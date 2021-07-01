@@ -3,7 +3,7 @@
  * Plugin Name: Disable XML-RPC Pingback
  * Description: Stops abuse of your site's Pingback method from XML-RPC by simply removing it. While you can use the rest of XML-RPC methods.
  * Author: Samuel Aguilera
- * Version: 1.2.1
+ * Version: 1.2.2
  * Author URI: http://www.samuelaguilera.com
  * License: GPL2
  *
@@ -40,7 +40,7 @@ function sar_block_xmlrpc_attacks( $methods ) {
 /**
  * Check WP version.
  */
-if ( version_compare( $wp_version, '4.4' ) >= 0 ) {
+if ( version_compare( get_bloginfo( 'version' ), '4.4', '>=' ) ) {
 
 	add_action( 'wp', 'sar_remove_x_pingback_header_44', 9999 );
 
@@ -50,7 +50,7 @@ if ( version_compare( $wp_version, '4.4' ) >= 0 ) {
 	function sar_remove_x_pingback_header_44() {
 		header_remove( 'X-Pingback' );
 	}
-} else {
+} elseif ( version_compare( get_bloginfo( 'version' ), '4.4', '<' ) ) {
 
 	add_filter( 'wp_headers', 'sar_remove_x_pingback_header' );
 
