@@ -15,6 +15,5 @@
 </footer><!-- #colophon -->
 </div><!-- #page -->
 <?php wp_footer(); ?>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.2/iframeResizer.contentWindow.min.js"></script>
 </body>
 </html>
