@@ -395,12 +395,10 @@ if (defined('RELOCATE') && RELOCATE) { // Move flag is set.
 	}
 }
 
-// Set a cookie now to see if they are supported by the browser.
-$secure = ('https' === parse_url(wp_login_url(), PHP_URL_SCHEME));
-setcookie(TEST_COOKIE, 'WP Cookie check', 0, COOKIEPATH, COOKIE_DOMAIN, $secure);
+setcookie(TEST_COOKIE, 'WP Cookie check', 0, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
 
 if (SITECOOKIEPATH !== COOKIEPATH) {
-	setcookie(TEST_COOKIE, 'WP Cookie check', 0, SITECOOKIEPATH, COOKIE_DOMAIN, $secure);
+	setcookie(TEST_COOKIE, 'WP Cookie check', 0, SITECOOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
 }
 
 /**
@@ -624,16 +622,9 @@ switch ($action) {
 		 *
 		 * @param int $expires The expiry time, as passed to setcookie().
 		 */
-		$expire  = apply_filters('post_password_expires', time() + 10 * DAY_IN_SECONDS);
-		$referer = wp_get_referer();
+		$expire = apply_filters('post_password_expires', time() + 10 * DAY_IN_SECONDS);
 
-		if ($referer) {
-			$secure = ('https' === parse_url($referer, PHP_URL_SCHEME));
-		} else {
-			$secure = false;
-		}
-
-		setcookie('wp-postpass_' . COOKIEHASH, $hasher->HashPassword(wp_unslash($_POST['post_password'])), $expire, COOKIEPATH, COOKIE_DOMAIN, $secure);
+		setcookie('wp-postpass_' . COOKIEHASH, $hasher->HashPassword(wp_unslash($_POST['post_password'])), $expire, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
 
 		wp_safe_redirect(wp_get_referer());
 		exit;

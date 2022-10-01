@@ -12,11 +12,15 @@ class AIOWPSecurity_Configure_Settings {
 	 */
 	public static function set_default_settings() {
 		global $aio_wp_security;
-		$blog_email_address = get_bloginfo('admin_email'); //Get the blog admin email address - we will use as the default value
 
+		$blog_email_address = get_bloginfo('admin_email'); //Get the blog admin email address - we will use as the default value
+				
 		//Debug
 		$aio_wp_security->configs->set_value('aiowps_enable_debug', '');//Checkbox
-
+		
+		//PHP backtrace
+		$aio_wp_security->configs->set_value('aiowps_enable_php_backtrace_in_email', '');//Checkbox
+		
 		//WP Generator Meta Tag feature
 		$aio_wp_security->configs->set_value('aiowps_remove_wp_generator_meta_info', '');//Checkbox
 		
@@ -31,7 +35,8 @@ class AIOWPSecurity_Configure_Settings {
 		$aio_wp_security->configs->set_value('aiowps_allow_unlock_requests', '1'); // Checkbox
 		$aio_wp_security->configs->set_value('aiowps_max_login_attempts', '3');
 		$aio_wp_security->configs->set_value('aiowps_retry_time_period', '5');
-		$aio_wp_security->configs->set_value('aiowps_lockout_time_length', '60');
+		$aio_wp_security->configs->set_value('aiowps_lockout_time_length', '5');
+		$aio_wp_security->configs->set_value('aiowps_max_lockout_time_length', '60');
 		$aio_wp_security->configs->set_value('aiowps_set_generic_login_msg', '');//Checkbox
 		$aio_wp_security->configs->set_value('aiowps_enable_email_notify', '');//Checkbox
 		$aio_wp_security->configs->set_value('aiowps_email_address', $blog_email_address);//text field
@@ -109,6 +114,7 @@ class AIOWPSecurity_Configure_Settings {
 		//Brute Force features
 		$aio_wp_security->configs->set_value('aiowps_enable_rename_login_page', '');//Checkbox
 		$aio_wp_security->configs->set_value('aiowps_enable_login_honeypot', '');//Checkbox
+		$aio_wp_security->configs->set_value('aiowps_disable_application_password', '');//Checkbox
 
 		$aio_wp_security->configs->set_value('aiowps_enable_brute_force_attack_prevention', '');//Checkbox
 		$aio_wp_security->configs->set_value('aiowps_brute_force_secret_word', '');
@@ -128,6 +134,8 @@ class AIOWPSecurity_Configure_Settings {
 		$aio_wp_security->configs->set_value('aiowps_spam_ip_min_comments_block', '');
 		$aio_wp_security->configs->set_value('aiowps_enable_bp_register_captcha', '');
 		$aio_wp_security->configs->set_value('aiowps_enable_bbp_new_topic_captcha', '');//Checkbox
+		$aio_wp_security->configs->set_value('aiowps_enable_trash_spam_comments', '');
+		$aio_wp_security->configs->set_value('aiowps_trash_spam_comments_after_days', '14');
 		
 		//Filescan features
 		//File change detection feature
@@ -151,10 +159,17 @@ class AIOWPSecurity_Configure_Settings {
 		//REST API Security
 		$aio_wp_security->configs->set_value('aiowps_disallow_unauthorized_rest_requests', '');//Checkbox
 
+		//IP retrieval setting
+		$aio_wp_security->configs->set_value('aiowps_ip_retrieve_method', '0');//default is $_SERVER['REMOTE_ADDR']
+
 		// Google reCaptcha
 		$aio_wp_security->configs->set_value('aiowps_recaptcha_site_key', '');
 		$aio_wp_security->configs->set_value('aiowps_recaptcha_secret_key', '');
 		$aio_wp_security->configs->set_value('aiowps_default_recaptcha', '');//Checkbox
+		
+		// Deactivation Handler
+		$aio_wp_security->configs->set_value('aiowps_on_uninstall_delete_db_tables', '1'); //Checkbox
+		$aio_wp_security->configs->set_value('aiowps_on_uninstall_delete_configs', '1'); //Checkbox
 		
 		//TODO - keep adding default options for any fields that require it
 		
@@ -168,7 +183,10 @@ class AIOWPSecurity_Configure_Settings {
 
 		//Debug
 		$aio_wp_security->configs->add_value('aiowps_enable_debug', '');//Checkbox
-
+		
+		//PHP backtrace
+		$aio_wp_security->configs->add_value('aiowps_enable_php_backtrace_in_email', '');//Checkbox
+		
 		//WP Generator Meta Tag feature
 		$aio_wp_security->configs->add_value('aiowps_remove_wp_generator_meta_info', '');//Checkbox
 		
@@ -184,7 +202,8 @@ class AIOWPSecurity_Configure_Settings {
 		$aio_wp_security->configs->add_value('aiowps_allow_unlock_requests', '1'); // Checkbox
 		$aio_wp_security->configs->add_value('aiowps_max_login_attempts', '3');
 		$aio_wp_security->configs->add_value('aiowps_retry_time_period', '5');
-		$aio_wp_security->configs->add_value('aiowps_lockout_time_length', '60');
+		$aio_wp_security->configs->add_value('aiowps_lockout_time_length', '5');
+		$aio_wp_security->configs->add_value('aiowps_max_lockout_time_length', '60');
 		$aio_wp_security->configs->add_value('aiowps_set_generic_login_msg', '');//Checkbox
 		$aio_wp_security->configs->add_value('aiowps_enable_email_notify', '');//Checkbox
 		$aio_wp_security->configs->add_value('aiowps_email_address', $blog_email_address);//text field
@@ -210,7 +229,7 @@ class AIOWPSecurity_Configure_Settings {
 		//User registration
 		$aio_wp_security->configs->add_value('aiowps_enable_manual_registration_approval', '');//Checkbox
 		$aio_wp_security->configs->add_value('aiowps_enable_registration_page_captcha', '');//Checkbox
-		$aio_wp_security->configs->set_value('aiowps_enable_registration_honeypot', '');//Checkbox
+		$aio_wp_security->configs->add_value('aiowps_enable_registration_honeypot', '');//Checkbox
 	   
 		//DB Security feature
 		//$aio_wp_security->configs->add_value('aiowps_new_manual_db_pefix', ''); //text field
@@ -258,6 +277,7 @@ class AIOWPSecurity_Configure_Settings {
 		//Brute Force features
 		$aio_wp_security->configs->add_value('aiowps_enable_rename_login_page', '');//Checkbox
 		$aio_wp_security->configs->add_value('aiowps_enable_login_honeypot', '');//Checkbox
+		$aio_wp_security->configs->add_value('aiowps_disable_application_password', '1');//Checkbox
 		
 		$aio_wp_security->configs->add_value('aiowps_enable_brute_force_attack_prevention', '');//Checkbox
 		$aio_wp_security->configs->add_value('aiowps_brute_force_secret_word', '');
@@ -277,6 +297,8 @@ class AIOWPSecurity_Configure_Settings {
 		$aio_wp_security->configs->add_value('aiowps_spam_ip_min_comments_block', '');
 		$aio_wp_security->configs->add_value('aiowps_enable_bp_register_captcha', '');
 		$aio_wp_security->configs->add_value('aiowps_enable_bbp_new_topic_captcha', '');//Checkbox
+		$aio_wp_security->configs->add_value('aiowps_enable_trash_spam_comments', '');
+		$aio_wp_security->configs->add_value('aiowps_trash_spam_comments_after_days', '14');
 
 
 		//Filescan features
@@ -301,15 +323,43 @@ class AIOWPSecurity_Configure_Settings {
 	   //REST API Security
 		$aio_wp_security->configs->add_value('aiowps_disallow_unauthorized_rest_requests', '');//Checkbox
 
+		//IP retrieval setting
+		// Commented the below code line because the IP retrieve method will be configured when the AIOS plugin is activated for the first time.
+		// $aio_wp_security->configs->add_value('aiowps_ip_retrieve_method', '0');//default is $_SERVER['REMOTE_ADDR']
+
 		// Google reCaptcha
 		$aio_wp_security->configs->add_value('aiowps_recaptcha_site_key', '');
 		$aio_wp_security->configs->add_value('aiowps_recaptcha_secret_key', '');
 		$aio_wp_security->configs->add_value('aiowps_default_recaptcha', '');//Checkbox
 		
+		// Deactivation Handler
+		$aio_wp_security->configs->add_value('aiowps_on_uninstall_delete_db_tables', '1'); //Checkbox
+		$aio_wp_security->configs->add_value('aiowps_on_uninstall_delete_configs', '1'); //Checkbox
+
+		$aio_wp_security->configs->add_value('installed-at', current_time('timestamp', true));
+
 		//TODO - keep adding default options for any fields that require it
 		
 		//Save it
 		$aio_wp_security->configs->save_config();
+
+		// For Cookie based brute force prevention backward compatibility
+		if ($aio_wp_security->should_cookie_based_brute_force_prvent()) {
+			$brute_force_secret_word = $aio_wp_security->configs->get_value('aiowps_brute_force_secret_word');
+			if (empty($brute_force_secret_word)) {
+				$brute_force_secret_word = AIOS_DEFAULT_BRUTE_FORCE_FEATURE_SECRET_WORD;
+			}
+			AIOWPSecurity_Utility::set_cookie_value(AIOWPSecurity_Utility::get_brute_force_secret_cookie_name(), wp_hash($brute_force_secret_word));
+		}
+
+		// Login whitelisting started to work on non-apache server from db_version 1.9.5
+		if (is_main_site() && !AIOWPSecurity_Utility::is_apache_server() && version_compare(get_option('aiowpsec_db_version'), '1.9.5', '<') && '1' == $aio_wp_security->configs->get_value('aiowps_enable_whitelisting') && !empty($aio_wp_security->configs->get_value('aiowps_allowed_ip_addresses'))) {
+			$aio_wp_security->configs->set_value('aiowps_enable_whitelisting', '0');
+			$aio_wp_security->configs->set_value('aiowps_is_login_whitelist_disabled_on_upgrade', '1');
+			$aio_wp_security->configs->save_config();
+		}
+
+		update_option('aiowpsec_db_version', AIO_WP_SECURITY_DB_VERSION);
 	}
 
 	public static function turn_off_all_security_features() {

@@ -3,10 +3,14 @@ if (!defined('ABSPATH')) {
 	exit;//Exit if accessed directly
 }
 
-//Allows activating via wp-cli
-require_once(dirname(__FILE__) . '/wp-security-configure-settings.php');
-
 class AIOWPSecurity_Installer {
+
+	/**
+	 * Run installer function.
+	 *
+	 * @param boolean $networkwide
+	 * @return void
+	 */
 	public static function run_installer($networkwide = '') {
 		global $wpdb;
 		if (function_exists('is_multisite') && is_multisite() && $networkwide) {
@@ -57,6 +61,8 @@ class AIOWPSecurity_Installer {
 			$perm_block_tbl_name = AIOWPSEC_TBL_PERM_BLOCK;
 		}
 
+		$debug_log_tbl_name = AIOWPSEC_TBL_DEBUG_LOG;
+
 		$charset_collate = '';
 		if (!empty($wpdb->charset)) {
 			$charset_collate = "DEFAULT CHARACTER SET $wpdb->charset";
@@ -76,7 +82,12 @@ class AIOWPSecurity_Installer {
 		failed_login_ip varchar(100) NOT NULL DEFAULT '',
 		lock_reason varchar(128) NOT NULL DEFAULT '',
 		unlock_key varchar(128) NOT NULL DEFAULT '',
-		PRIMARY KEY  (id)
+		is_lockout_email_sent tinyint(1) NOT NULL DEFAULT '1',
+		backtrace_log text NOT NULL DEFAULT '',
+		PRIMARY KEY  (id),
+		  KEY failed_login_ip (failed_login_ip),
+		  KEY is_lockout_email_sent (is_lockout_email_sent),
+		  KEY unlock_key (unlock_key)
 		)" . $charset_collate . ";";
 		dbDelta($ld_tbl_sql);
 
@@ -86,7 +97,10 @@ class AIOWPSecurity_Installer {
 		user_login VARCHAR(150) NOT NULL,
 		failed_login_date datetime NOT NULL DEFAULT '1000-10-10 10:00:00',
 		login_attempt_ip varchar(100) NOT NULL DEFAULT '',
-		PRIMARY KEY  (id)
+		PRIMARY KEY  (id),
+		  KEY failed_login_date (failed_login_date),
+		  KEY login_attempt_ip (login_attempt_ip),
+		  KEY failed_login_date_and_login_attempt_ip (failed_login_date, login_attempt_ip)
 		)" . $charset_collate . ";";
 		dbDelta($fl_tbl_sql);
 
@@ -142,18 +156,27 @@ class AIOWPSecurity_Installer {
 		country_origin varchar(50) NOT NULL DEFAULT '',
 		blocked_date datetime NOT NULL DEFAULT '1000-10-10 10:00:00',
 		unblock tinyint(1) NOT NULL DEFAULT '0',
-		PRIMARY KEY  (id)
+		PRIMARY KEY  (id),
+		KEY blocked_ip (blocked_ip)
 		)" . $charset_collate . ";";
 		dbDelta($pb_tbl_sql);
 
-		update_option("aiowpsec_db_version", AIO_WP_SECURITY_DB_VERSION);
+		$debug_log_tbl_sql = "CREATE TABLE " . $debug_log_tbl_name . " (
+			id bigint(20) NOT NULL AUTO_INCREMENT,
+			level varchar(25) NOT NULL DEFAULT '',
+			message text NOT NULL DEFAULT '',
+			type varchar(25) NOT NULL DEFAULT '',
+			created datetime NOT NULL DEFAULT '1000-10-10 10:00:00',
+			PRIMARY KEY  (id)
+			)" . $charset_collate . ";";
+		dbDelta($debug_log_tbl_sql);
 	}
 
 	public static function create_db_backup_dir() {
 		global $aio_wp_security;
 		//Create our folder in the "wp-content" directory
 		$aiowps_dir = WP_CONTENT_DIR . '/' . AIO_WP_SECURITY_BACKUPS_DIR_NAME;
-		if (!is_dir($aiowps_dir)) {
+		if (!is_dir($aiowps_dir) && is_writable(WP_CONTENT_DIR)) {
 			mkdir($aiowps_dir, 0755, true);
 			//Let's also create an empty index.html file in this folder
 			$index_file = $aiowps_dir . '/index.html';
@@ -209,11 +232,15 @@ class AIOWPSecurity_Installer {
 	 * Handles both single and multi-site (NW activation) cases
 	 *
 	 * @global type $wpdb
-	 * @param type $networkwide
+	 * @param Boolean $networkwide Whether set cronjob networkwide or normal site.
+	 * @return Void
 	 */
-	public static function set_cron_tasks_upon_activation($networkwide) {
-		global $wpdb;
-		if (AIOWPSecurity_Utility::is_multisite_install() && $networkwide) {
+	public static function set_cron_tasks_upon_activation($networkwide = false) {
+		require_once(__DIR__.'/wp-security-cronjob-handler.php');
+		// It is required because we are going to schedule a 15-minute cron event upon activation.
+		add_filter('cron_schedules', array('AIOWPSecurity_Cronjob_Handler', 'cron_schedules'));
+		if (is_multisite() && $networkwide) {
+			global $wpdb;
 			// check if it is a network activation
 			$blogids = $wpdb->get_col("SELECT blog_id FROM $wpdb->blogs");
 			foreach ($blogids as $blog_id) {
@@ -229,9 +256,14 @@ class AIOWPSecurity_Installer {
 	}
 	
 	/**
-	 * Helper function for scheduling aiowps cron events
+	 * Helper function for scheduling aiowps cron events.
+	 *
+	 * @return Void
 	 */
 	public static function schedule_cron_events() {
+		if (!wp_next_scheduled('aios_15_minutes_cron_event')) {
+			wp_schedule_event(time(), 'aios-every-15-minutes', 'aios_15_minutes_cron_event'); //schedule a 15 minutes cron event
+		}
 		if (!wp_next_scheduled('aiowps_hourly_cron_event')) {
 			wp_schedule_event(time(), 'hourly', 'aiowps_hourly_cron_event'); //schedule an hourly cron event
 		}

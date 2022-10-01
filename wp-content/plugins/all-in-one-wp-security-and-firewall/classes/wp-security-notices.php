@@ -2,9 +2,9 @@
 
 if (!defined('AIO_WP_SECURITY_PATH')) die('No direct access allowed');
 
-if (!class_exists('Updraft_Notices')) require_once(AIO_WP_SECURITY_PATH.'/classes/updraft-notices.php');
+if (!class_exists('Updraft_Notices_1_2')) require_once(AIO_WP_SECURITY_PATH.'/vendor/team-updraft/common-libs/src/updraft-notices/updraft-notices.php');
 
-class AIOWPSecurity_Notices extends Updraft_Notices {
+class AIOWPSecurity_Notices extends Updraft_Notices_1_2 {
 
 	private $initialized = false;
 
@@ -22,6 +22,65 @@ class AIOWPSecurity_Notices extends Updraft_Notices {
 		$parent_notice_content = parent::populate_notices_content();
 
 		$child_notice_content = array(
+			// Upgrade AIOS backup to UDP backup in the 5.0.0 version
+			'automated-database-backup' => array(
+				'title'		  => htmlspecialchars(__('Removed database backup feature from the All In One WP Security & Firewall plugin', 'all-in-one-wp-security-and-firewall')),
+				'text' 		  => '<p>' .
+									__('Beginning with version 5.0.0, AIOS has replaced the AIOS backup method with the superior UpdraftPlus method.', 'all-in-one-wp-security-and-firewall') . '  '.
+									__('It remains free and is fully supported by the UpdraftPlus team.', 'all-in-one-wp-security-and-firewall') .
+								'</p>' .
+								'<p>' .
+									__('You are seeing this notice because you have previously set up automated database backups in AIOS.', 'all-in-one-wp-security-and-firewall') . '   ' .
+									__('Would you like to set up scheduled backups with UpdraftPlus?', 'all-in-one-wp-security-and-firewall') .
+								'</p>',
+				'button_link' => add_query_arg(array(
+					'page' => 'aiowpsec_database',
+					'tab'  => 'tab2',
+				), admin_url('admin.php')) . '#automated-scheduled-backups-heading',
+				'button_meta' => __('Setup UpdraftPlus backup plugin', 'all-in-one-wp-security-and-firewall'),
+				'dismiss_time' => 'dismiss_automated_database_backup_notice',
+				'supported_positions' => array('automated-database-backup'),
+				'validity_function' => 'should_show_automated_database_backup_notice',
+			),
+			'ip-retrieval-settings' => array(
+				'title'		  => htmlspecialchars(__('Important: set up your IP address detection settings', 'all-in-one-wp-security-and-firewall')),
+				'text' 		  => '<p>' .
+					__("The All in One Security plugin couldn't be certain about the correct method to detect the IP address for your site visitors with your currently-configured IP address detection settings.", 'all-in-one-wp-security-and-firewall') . '  '.
+					__('It is important for your security to set the IP address detection settings properly.', 'all-in-one-wp-security-and-firewall') .
+					'</p>' .
+					'<p>' .
+					__('Please go to the settings and set them now.', 'all-in-one-wp-security-and-firewall') .
+					'</p>',
+				'button_link' => add_query_arg(array(
+					'page' => 'aiowpsec_settings',
+					'tab'  => 'advanced-settings',
+				), admin_url('admin.php')) . '#automated-scheduled-backups-heading',
+				'button_meta' => __('Setup IP address detection settings', 'all-in-one-wp-security-and-firewall'),
+				'dismiss_time' => 'dismiss_ip_retrieval_settings_notice',
+				'supported_positions' => array('ip-retrieval-settings'),
+				'validity_function' => 'should_show_ip_retrieval_settings_notice',
+			),
+			'login-whitelist-disabled-on-upgrade' => array(
+				'title'		  => htmlspecialchars(__('Important: Disabled login whitelist setting', 'all-in-one-wp-security-and-firewall')),
+				'text' 		  => '<p>' .
+					__('The All in One Security plugin has disabled the login whitelist setting that you have enabled in the past.', 'all-in-one-wp-security-and-firewall') .
+					'</p>' .
+					'<p>' .
+					__('Your website is running on a non-Apache webserver, so the login whitelisting was not functional until the recent update of AIOS (because it relied upon Apache-specific features). It began working with AIOS version 5.0.8.', 'all-in-one-wp-security-and-firewall') . '   ' .
+					__('We have disabled it so that your login page will not be blocked unexpectedly.', 'all-in-one-wp-security-and-firewall') .
+					'</p>' .
+					'<p>' .
+					__('Would you like to re-enable login whitelisting?', 'all-in-one-wp-security-and-firewall') .
+					'</p>',
+				'button_link' => add_query_arg(array(
+					'page' => AIOWPSEC_BRUTE_FORCE_MENU_SLUG,
+					'tab'  => 'tab4',
+				), admin_url('admin.php')) . '#aiowps_enable_whitelisting',
+				'button_meta' => __('Setup login whitelist setting', 'all-in-one-wp-security-and-firewall'),
+				'dismiss_time' => 'dismiss_login_whitelist_disabled_on_upgrade_notice',
+				'supported_positions' => array('login-whitelist-disabled-on-upgrade'),
+				'validity_function' => 'should_show_login_whitelist_disabled_on_upgrade_notice',
+			),
 			'rate_plugin' => array(
 				'text' => sprintf(htmlspecialchars(__('Hey - We noticed All In One WP Security & Firewall has kept your site safe for a while.  If you like us, please consider leaving a positive review to spread the word.  Or if you have any issues or questions please leave us a support message %s.', 'all-in-one-wp-security-and-firewall')), '<a href="https://wordpress.org/support/plugin/all-in-one-wp-security-and-firewall/" target="_blank">'.__('here', 'all-in-one-wp-security-and-firewall').'</a>').'<br>'.__('Thank you so much!', 'all-in-one-wp-security-and-firewall').'<br><br>- <b>'.__('Team All In One WP Security & Firewall', 'all-in-one-wp-security-and-firewall').'</b>',
 				'image' => 'notices/aiowps-logo.png',
@@ -57,14 +116,221 @@ class AIOWPSecurity_Notices extends Updraft_Notices {
 
 		return array_merge($parent_notice_content, $child_notice_content);
 	}
-	
+
+	/**
+	 * Decides whether to show the automated database backup notice.
+	 *
+	 * @return Boolean True if the automated database notice should be shown, otherwise false.
+	 */
+	protected function should_show_automated_database_backup_notice() {
+		if ($this->is_database_backup_admin_page_tab()) {
+			return false;
+		}
+
+		if (defined('AIOS_FORCE_AUTOMATED_DATABASE_BACKUP_NOTICE') && AIOS_FORCE_AUTOMATED_DATABASE_BACKUP_NOTICE) {
+			return true;
+		}
+
+		if ($this->is_updraftplus_plugin_active() && $this->is_schedule_database_backup_set_in_updraftplus()) {
+			return false;
+		}
+
+		global $aio_wp_security;
+		if ('1' == $aio_wp_security->configs->get_value('aiowps_enable_automated_backups')) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Whether the current page is the AIOS database backup admin page
+	 *
+	 * @return Boolean True if the current page is the AIOS database backup admin page, otherwise false.
+	 */
+	private function is_database_backup_admin_page_tab() {
+		return $this->is_database_security_admin_page() && $this->is_database_backup_tab();
+	}
+
+	/**
+	 * Whether the current page is the database security admin page.
+	 *
+	 * @return Boolean True if the current page is the database security admin page, otherwise false.
+	 */
+	private function is_database_security_admin_page() {
+		return ('admin.php' == $GLOBALS['pagenow'] && isset($_GET['page']) && 'aiowpsec_database' == $_GET['page']);
+	}
+
+	/**
+	 * Whether the current tab is the database backup tab.
+	 *
+	 * @return Boolean True if the current tab is the database backup tab, otherwise false.
+	 */
+	private function is_database_backup_tab() {
+		return (isset($_GET['tab']) && 'tab2' == $_GET['tab']);
+	}
+
+	/**
+	 * Decides whether to show the IP address detection settings notice.
+	 *
+	 * @return Boolean True if the IP address detection settings notice should be shown, otherwise false.
+	 */
+	protected function should_show_ip_retrieval_settings_notice() {
+		if (!is_main_site()) {
+			return false;
+		}
+
+		if ($this->is_ip_settings_admin_page_tab()) {
+			return false;
+		}
+
+		if (defined('AIOS_FORCE_IP_RETRIEVAL_SETTINGS_NOTICE') && AIOS_FORCE_IP_RETRIEVAL_SETTINGS_NOTICE) {
+			return true;
+		}
+
+		global $aio_wp_security;
+
+		// Is notice dismissed.
+		if ('1' == $aio_wp_security->configs->get_value('dismiss_ip_retrieval_settings_notice')) {
+			return false;
+		}
+
+		$configured_ip_method_id = $aio_wp_security->configs->get_value('aiowps_ip_retrieve_method');
+
+		if (AIOWPSecurity_Utility_IP::is_server_suitable_ip_methods_give_same_ip_address()) {
+			if ('' === $configured_ip_method_id) {
+				$most_suitable_ip_method = reset(AIOWPSecurity_Utility_IP::get_server_suitable_ip_methods());
+				if (!empty($most_suitable_ip_method)) {
+					$most_suitable_ip_method_id = array_search($most_suitable_ip_method, AIOS_Abstracted_Ids::get_ip_retrieve_methods());
+					$aio_wp_security->configs->set_value('aiowps_ip_retrieve_method', $most_suitable_ip_method_id);
+					$aio_wp_security->configs->save_config();//save the value
+				}
+			}
+
+			return false;
+		}
+
+		// If the IP retrieval method is not set.
+		$configured_ip_method_id = $aio_wp_security->configs->get_value('aiowps_ip_retrieve_method');
+		if ('' === $configured_ip_method_id) {
+			return true;
+		}
+
+		$server_user_ip_address = AIOWPSecurity_Utility_IP::get_server_detected_user_ip_address();
+		return empty($server_user_ip_address);
+	}
+
+	/**
+	 * Whether the current page is the AIOS IP retrieval admin page
+	 *
+	 * @return Boolean True if the current page is the AIOS database backup admin page, otherwise false.
+	 */
+	private function is_ip_settings_admin_page_tab() {
+		return $this->is_settings_admin_page() && $this->is_advanced_settings_tab();
+	}
+
+	/**
+	 * Whether the current page is the AIOS settings admin page
+	 *
+	 * @return Boolean True if the current page is the AIOS settings admin page, otherwise false.
+	 */
+	private function is_settings_admin_page() {
+		return ('admin.php' == $GLOBALS['pagenow'] && isset($_GET['page']) && 'aiowpsec_settings' == $_GET['page']);
+	}
+
+	/**
+	 * Whether the current tab is the advanced settings tab.
+	 *
+	 * @return Boolean True if the current tab is the advanced settings tab, otherwise false.
+	 */
+	private function is_advanced_settings_tab() {
+		return (isset($_GET['tab']) && 'advanced-settings' == $_GET['tab']);
+	}
+
+	/**
+	 * Check whether the UpdraftPlus plugin is active or not.
+	 *
+	 * @return bool True if the UpdraftPlus plugin is active, otherwise false.
+	 */
+	private function is_updraftplus_plugin_active() {
+		return class_exists('UpdraftPlus');
+	}
+
+	/**
+	 * Check whether the database backup scheduled in the UpdraftPlus plugin.
+	 *
+	 * @return bool
+	 */
+	private function is_schedule_database_backup_set_in_updraftplus() {
+		$updraft_interval_database_option_val = get_option('updraft_interval_database', '');
+		if (empty($updraft_interval_database_option_val) || 'manual' == $updraft_interval_database_option_val) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Decides whether to show the IP address detection settings notice.
+	 *
+	 * @return Boolean True if the IP address detection settings notice should be shown, otherwise false.
+	 */
+	protected function should_show_login_whitelist_disabled_on_upgrade_notice() {
+		if (!is_main_site()) {
+			return false;
+		}
+
+		if ($this->is_login_whitelist_admin_page_tab()) {
+			return false;
+		}
+
+		if (defined('AIOS_FORCE_LOGIN_WHITELIST_DISABLED_ON_UPGRADE_NOTICE') && AIOS_FORCE_LOGIN_WHITELIST_DISABLED_ON_UPGRADE_NOTICE) {
+			return true;
+		}
+
+		global $aio_wp_security;
+
+		if ('1' == $aio_wp_security->configs->get_value('aiowps_is_login_whitelist_disabled_on_upgrade') && '1' != $aio_wp_security->configs->get_value('aiowps_enable_whitelisting')) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Whether the current page is the AIOS IP retrieval admin page
+	 *
+	 * @return Boolean True if the current page is the AIOS database backup admin page, otherwise false.
+	 */
+	private function is_login_whitelist_admin_page_tab() {
+		return $this->is_brute_force_admin_page() && $this->is_login_whitelist_tab();
+	}
+
+	/**
+	 * Whether the current page is the AIOS settings admin page
+	 *
+	 * @return Boolean True if the current page is the AIOS settings admin page, otherwise false.
+	 */
+	private function is_brute_force_admin_page() {
+		return ('admin.php' == $GLOBALS['pagenow'] && isset($_GET['page']) && AIOWPSEC_BRUTE_FORCE_MENU_SLUG == $_GET['page']);
+	}
+
+	/**
+	 * Whether the current tab is the advanced settings tab.
+	 *
+	 * @return Boolean True if the current tab is the advanced settings tab, otherwise false.
+	 */
+	private function is_login_whitelist_tab() {
+		return (isset($_GET['tab']) && 'tab4' == $_GET['tab']);
+	}
+
 	/**
 	 * Call this method to setup the notices
 	 */
 	public function notices_init() {
 		if ($this->initialized) return;
 		$this->initialized = true;
-		$this->notices_content = (defined('AIOWPSECURITY_NOADS_B') && AIOWPSECURITY_NOADS_B) ? array() : $this->populate_notices_content();
+		$this->notices_content = $this->populate_notices_content();
 
 		$enqueue_version = (defined('WP_DEBUG') && WP_DEBUG) ? AIO_WP_SECURITY_VERSION.'.'.time() : AIO_WP_SECURITY_VERSION;
 		wp_enqueue_style('aiowpsec-admin-notices-css',  AIO_WP_SECURITY_URL.'/css/wp-security-notices.css', array(), $enqueue_version);
@@ -170,6 +436,8 @@ class AIOWPSecurity_Notices extends Updraft_Notices {
 	 * Checks whether a notice is dismissed(returns true) or not(returns false).
 	 *
 	 * @param String $dismiss_time - dismiss time id for the notice
+	 *
+	 * @return boolean
 	 */
 	protected function check_notice_dismissed($dismiss_time) {
 		$time_now = $this->get_time_now();
@@ -197,6 +465,8 @@ class AIOWPSecurity_Notices extends Updraft_Notices {
 			$template_file = 'report.php';
 		} elseif ('report-plain' == $position) {
 			$template_file = 'report-plain.php';
+		} elseif (in_array($position, AIOS_Abstracted_Ids::custom_admin_notice_ids())) {
+			$template_file = 'custom-notice.php';
 		} else {
 			$template_file = 'horizontal-notice.php';
 		}

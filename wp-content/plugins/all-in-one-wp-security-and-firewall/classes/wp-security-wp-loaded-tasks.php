@@ -59,6 +59,8 @@ class AIOWPSecurity_WP_Loaded_Tasks {
 		//https://wordpress.org/support/topic/already-logged-in-no-captcha
 		if (is_user_logged_in()) {
 			wp_redirect(admin_url());
+		} else {
+			AIOWPSecurity_Utility_IP::check_login_whitelist_and_forbid();
 		}
 	}
 
