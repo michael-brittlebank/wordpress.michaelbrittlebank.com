@@ -31,18 +31,14 @@ class Rule_Builder {
 	 * @return iterable
 	 */
 	private static function get_rule_classname() {
+		$rec_iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(AIOWPS_FIREWALL_DIR.'/rule/rules/', \FilesystemIterator::SKIP_DOTS));
 
-		$handle = opendir(AIOWPS_FIREWALL_DIR.'/rule/rules/');
-		if ($handle) {
-			while (false !== ($entry = readdir($handle))) {
-				$matches = array();
-				if (preg_match('/^rule-(.*)\.php$/', $entry, $matches)) {
-					yield "AIOWPS\Firewall\Rule_".ucwords(str_replace('-', '_', $matches[1]), '_');
-				}
+		foreach ($rec_iterator as $dir_iterator) {
+			$matches = array();
+			if (preg_match('/^rule-(?<rule_name>.*)\.php$/', $dir_iterator->getFilename(), $matches)) {
+				yield "AIOWPS\Firewall\Rule_".ucwords(str_replace('-', '_', $matches['rule_name']), '_');
 			}
-			@closedir($handle); //phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
 		}
-
 	}
 
 }

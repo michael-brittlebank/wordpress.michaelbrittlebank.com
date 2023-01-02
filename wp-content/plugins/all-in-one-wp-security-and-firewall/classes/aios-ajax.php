@@ -139,7 +139,7 @@ if (!class_exists('AIOS_Ajax')) :
 		 * @return bool
 		 */
 		private function is_user_capable() {
-			return current_user_can(AIOWPSEC_MANAGEMENT_PERMISSION);
+			return current_user_can(apply_filters('aios_management_permission', 'manage_options'));
 		}
 
 		/**

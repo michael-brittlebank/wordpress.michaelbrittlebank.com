@@ -1,5 +1,5 @@
 <?php if (!defined('AIO_WP_SECURITY_PATH')) die('No direct access allowed'); ?>
-<span class="aiowps_more_info_anchor"><span class="aiowps_more_info_toggle_char">+</span><span class="aiowps_more_info_toggle_text"><?php _e('More Info', 'all-in-one-wp-security-and-firewall'); ?></span></span>
+<span class="aiowps_more_info_anchor"><span class="aiowps_more_info_toggle_char">+</span><span class="aiowps_more_info_toggle_text"><?php _e('More info', 'all-in-one-wp-security-and-firewall'); ?></span></span>
 	<div class="aiowps_more_info_body">
 	<?php
 		echo '<p class="description">' . __('Each IP address must be on a new line.', 'all-in-one-wp-security-and-firewall') . '</p>';

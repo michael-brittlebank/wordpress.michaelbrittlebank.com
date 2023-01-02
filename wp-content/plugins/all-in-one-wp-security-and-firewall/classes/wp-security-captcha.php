@@ -8,11 +8,45 @@ class AIOWPSecurity_Captcha {
 	private $google_verify_recaptcha_url = 'https://www.google.com/recaptcha/api/siteverify';
 
 	public function __construct() {
-		//NOP
+		$this->upgrade_captcha_options();
 	}
 
 	/**
-	 * Displays Google reCaptcha form v2
+	 * This function handles upgrading captcha options
+	 *
+	 * @return void
+	 */
+	private function upgrade_captcha_options() {
+		global $aio_wp_security;
+
+		if (!empty($aio_wp_security->configs->get_value('aiowps_default_captcha'))) return;
+
+		// Upgrade the default captcha option
+		if ($aio_wp_security->configs->get_value('aiowps_default_recaptcha')) {
+			$aio_wp_security->configs->set_value('aiowps_default_recaptcha', '');
+			$aio_wp_security->configs->set_value('aiowps_default_captcha', 'google-recaptcha-v2');
+		} elseif ('1' == $aio_wp_security->configs->get_value('aiowps_enable_login_captcha') || '1' == $aio_wp_security->configs->get_value('aiowps_enable_registration_page_captcha')) {
+			$aio_wp_security->configs->set_value('aiowps_default_captcha', 'simple-math');
+		} else {
+			$aio_wp_security->configs->set_value('aiowps_default_captcha', 'none');
+		}
+	}
+
+	/**
+	 * This function will return an array of supported CAPTCHA options
+	 *
+	 * @return array - an array of supported CAPTCHA options
+	 */
+	public function get_supported_captchas() {
+		return array(
+			'none' => 'No CAPTCHA',
+			'google-recaptcha-v2' => 'Google reCAPTCHA V2',
+			'simple-math' => 'Simple math CAPTCHA'
+		);
+	}
+
+	/**
+	 * Displays Google reCAPTCHA form v2
 	 *
 	 * @global type $aio_wp_security
 	 */
@@ -22,19 +56,19 @@ class AIOWPSecurity_Captcha {
 			//if buddy press feature active add action hook so buddy press can display our errors properly on bp registration form
 			do_action('bp_aiowps-captcha-answer_errors');
 		}
-		$site_key = $aio_wp_security->configs->get_value('aiowps_recaptcha_site_key');
-		if (false === $aio_wp_security->google_recaptcha_sitekey_verification($site_key)) {
-			$aio_wp_security->configs->set_value('aios_is_google_recaptcha_wrong_site_key', 1);
-			$aio_wp_security->configs->save_config();
+
+		if ('1' == $aio_wp_security->configs->get_value('aios_google_recaptcha_invalid_configuration')) {
 			return;
 		}
+
+		$site_key = $aio_wp_security->configs->get_value('aiowps_recaptcha_site_key');
 
 		$cap_form = '<div class="g-recaptcha-wrap" style="padding:10px 0 10px 0"><div class="g-recaptcha" data-sitekey="'.esc_attr($site_key).'"></div></div>';
 		echo $cap_form;
 	}
 
 	/**
-	 * Displays simple maths captcha form
+	 * Displays simple maths CAPTCHA form
 	 *
 	 * @global type $aio_wp_security
 	 */
@@ -44,8 +78,8 @@ class AIOWPSecurity_Captcha {
 			//if buddy press feature active add action hook so buddy press can display our errors properly on bp registration form
 			do_action('bp_aiowps-captcha-answer_errors');
 		}
-		$cap_form = '<p class="aiowps-captcha"><label for="aiowps-captcha-answer">'.__('Please enter an answer in digits:', 'all-in-one-wp-security-and-firewall').'</label>';
-		$cap_form .= '<div class="aiowps-captcha-equation"><strong>';
+		$cap_form = '<p class="aiowps-captcha hide-when-displaying-tfa-input"><label for="aiowps-captcha-answer">'.__('Please enter an answer in digits:', 'all-in-one-wp-security-and-firewall').'</label>';
+		$cap_form .= '<div class="aiowps-captcha-equation hide-when-displaying-tfa-input"><strong>';
 		$maths_question_output = $this->generate_maths_question();
 		$cap_form .= $maths_question_output . '</strong></div></p>';
 		echo $cap_form;
@@ -150,18 +184,18 @@ class AIOWPSecurity_Captcha {
 
 
 	/**
-	 * Verifies the math or Google recaptcha v2 forms
+	 * Verifies the math or Google reCAPTCHA v2 forms
 	 * Returns TRUE if correct answer.
-	 * Returns FALSE on wrong captcha result or missing data.
+	 * Returns FALSE on wrong CAPTCHA result or missing data.
 	 *
 	 * @global type $aio_wp_security
 	 * @return boolean
 	 */
 	public function verify_captcha_submit() {
 		global $aio_wp_security;
-		if ($aio_wp_security->configs->get_value('aiowps_default_recaptcha')) {
-			//Google reCaptcha enabled
-			if (1 == $aio_wp_security->configs->get_value('aios_is_google_recaptcha_wrong_site_key')) {
+		if ('google-recaptcha-v2' == $aio_wp_security->configs->get_value('aiowps_default_captcha')) {
+			// Google reCAPTCHA enabled
+			if ('1' == $aio_wp_security->configs->get_value('aios_google_recaptcha_invalid_configuration')) {
 				return true;
 			}
 			$site_key = esc_html($aio_wp_security->configs->get_value('aiowps_recaptcha_site_key'));// phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
@@ -170,25 +204,25 @@ class AIOWPSecurity_Captcha {
 				$verify_captcha = $this->verify_google_recaptcha($g_recaptcha_response);
 				return $verify_captcha;
 			} else {
-				// Expected captcha field in $_POST but got none!
+				// Expected CAPTCHA field in $_POST but got none!
 				return false;
 			}
-		} else {
-			// math captcha is enabled
+		} elseif ('simple-math' == $aio_wp_security->configs->get_value('aiowps_default_captcha')) {
+			// Math CAPTCHA is enabled
 			if (array_key_exists('aiowps-captcha-answer', $_POST)) {
 				$captcha_answer = isset($_POST['aiowps-captcha-answer']) ? sanitize_text_field($_POST['aiowps-captcha-answer']) : '';
 
 				$verify_captcha = $this->verify_math_captcha_answer($captcha_answer);
 				return $verify_captcha;
 			} else {
-				// Expected captcha field in $_POST but got none!
+				// Expected CAPTCHA field in $_POST but got none!
 				return false;
 			}
 		}
 	}
 
 	/**
-	 * Verifies the math captcha answer entered by the user
+	 * Verifies the math CAPTCHA answer entered by the user
 	 *
 	 * @param type $captcha_answer
 	 * @return boolean
@@ -216,7 +250,7 @@ class AIOWPSecurity_Captcha {
 	}
 
 	/**
-	 * Send a query to Google api to verify reCaptcha submission
+	 * Send a query to Google API to verify reCAPTCHA submission
 	 *
 	 * @global type $aio_wp_security
 	 * @param type $resp_token
@@ -252,6 +286,49 @@ class AIOWPSecurity_Captcha {
 			$is_humanoid = true;
 		}
 		return $is_humanoid;
+	}
+
+	/**
+	 *  Get site locale code for Google reCaptcha.
+	 *
+	 * @return string The site locale code.
+	 */
+	public static function get_google_recaptcha_compatible_site_locale() {
+		$google_recaptcha_locale_codes = AIOS_Abstracted_Ids::get_google_recaptcha_locale_codes();
+		$locale = str_replace('_', '-', determine_locale());
+
+		if (in_array($locale, $google_recaptcha_locale_codes, true)) {
+			return $locale;
+		}
+
+		// Return 2 letter locale code.
+		$locale = explode('-', $locale);
+		return $locale[0];
+	}
+
+	/**
+	 * Verify Google reCAPTCHA configuration.
+	 *
+	 * @param String $site_key
+	 * @param String $secret_key
+	 *
+	 * @return Boolean
+	 */
+	public function google_recaptcha_verify_configuration($site_key, $secret_key) {
+		$site_key_verify_params = array('k' => $site_key, 'size' => 'checkbox');
+		$site_key_verify_url = esc_url(add_query_arg($site_key_verify_params, 'https://www.google.com/recaptcha/api2/anchor'));
+		$site_key_verify_response_body = wp_remote_retrieve_body(wp_remote_get($site_key_verify_url));
+
+		$secret_key_verify_params = array('secret' => $secret_key);
+		$secret_key_verify_url = esc_url(add_query_arg($secret_key_verify_params, $this->google_verify_recaptcha_url));
+		$secret_key_verify_response_body = wp_remote_retrieve_body(wp_remote_get($secret_key_verify_url));
+		$secret_key_verify_json = json_decode($secret_key_verify_response_body, true);
+
+		if (false !== strpos($site_key_verify_response_body, 'Invalid site key') || is_null($secret_key_verify_json) || (isset($secret_key_verify_json['error-codes']) && in_array('invalid-input-secret', $secret_key_verify_json['error-codes']))) {
+			return false;
+		} else {
+			return true;
+		}
 	}
 
 }

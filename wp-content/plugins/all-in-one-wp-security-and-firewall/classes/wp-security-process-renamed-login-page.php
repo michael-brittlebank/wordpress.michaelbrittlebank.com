@@ -264,7 +264,7 @@ class AIOWPSecurity_Process_Renamed_Login_Page {
 
 	public static function aiowps_set_404() {
 		global $wp_query;
-		do_action('aiopws_before_set_404'); //This hook is for themes which produce a fatal error when the rename login feature is enabled and someone visits "wp-admin" slug directly
+		do_action('aiowps_before_set_404'); // This hook is for themes which produce a fatal error when the rename login feature is enabled and someone visits "wp-admin" slug directly
 
 		status_header(404);
 		$wp_query->set_404();

@@ -9,7 +9,7 @@
  */
 
 // Make sure that the WordPress bootstrap has run before continuing.
-// aiowps - for our special case we do not want to include wp-load.php
+// AIOS - for our special case we do not want to include wp-load.php
 // require __DIR__ . '/wp-load.php';
 
 // Redirect to HTTPS login if forced to use SSL.
@@ -577,7 +577,7 @@ switch ($action) {
 					$change_link = add_query_arg('highlight', 'confirm_admin_email', $change_link);
 					?>
 					<a class="button button-large" href="<?php echo esc_url($change_link); ?>"><?php _e('Update'); ?></a>
-					<input type="submit" name="correct-admin-email" id="correct-admin-email" class="button button-primary button-large" value="<?php esc_attr_e('The email is correct'); ?>" />
+					<input type="submit" name="correct-admin-email" id="correct-admin-email" class="button button-primary button-large" value="<?php esc_attr_e('The email is correct'); ?>">
 				</div>
 				<?php if ($remind_interval > 0) : ?>
 					<div class="admin-email__actions-secondary">
@@ -732,7 +732,7 @@ switch ($action) {
 			?>
 			<input type="hidden" name="redirect_to" value="<?php echo esc_attr($redirect_to); ?>" />
 			<p class="submit">
-				<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e('Get New Password'); ?>" />
+				<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e('Get new password'); ?>">
 			</p>
 		</form>
 
@@ -865,7 +865,7 @@ switch ($action) {
 			?>
 			<input type="hidden" name="rp_key" value="<?php echo esc_attr($rp_key); ?>" />
 			<p class="submit">
-				<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e('Reset Password'); ?>" />
+				<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e('Reset password'); ?>">
 			</p>
 		</form>
 
@@ -965,7 +965,7 @@ switch ($action) {
 			<br class="clear" />
 			<input type="hidden" name="redirect_to" value="<?php echo esc_attr($redirect_to); ?>" />
 			<p class="submit">
-				<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e('Register'); ?>" />
+				<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e('Register'); ?>">
 			</p>
 		</form>
 
@@ -1295,7 +1295,7 @@ switch ($action) {
 			?>
 			<p class="forgetmenot"><input name="rememberme" type="checkbox" id="rememberme" value="forever" <?php checked($rememberme); ?> /> <label for="rememberme"><?php esc_html_e('Remember Me'); ?></label></p>
 			<p class="submit">
-				<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e('Log In'); ?>" />
+				<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e('Log in'); ?>">
 				<?php
 
 				if ($interim_login) {

@@ -14,10 +14,6 @@ jQuery(function($) {
 		tfa_query_leaving = true;
 	});
 	
-	$(".tfa_settings_form input[name='simbatfa_delivery_type']").on('change', function() {
-		$(".tfa_third_party_holder").slideToggle();
-	});
-	
 	$(".simbatfa_settings_save").on('click', function() {
 		
 		$.blockUI({ message: '<div style="margin: 8px;font-size:150%;">'+simba_tfa_frontend.saving+'</div>' });

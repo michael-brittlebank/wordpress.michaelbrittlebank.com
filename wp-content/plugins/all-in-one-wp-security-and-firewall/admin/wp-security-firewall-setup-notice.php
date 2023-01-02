@@ -88,13 +88,12 @@ class AIOWPSecurity_Firewall_Setup_Notice {
 			return;
 		}
 
-		if (true !== $is_firewall_in_server || true !== $is_firewall_in_bootstrap) {
-
-			if (true !== $is_firewall_in_wpconfig) {
-				$this->render_automatic_setup_notice(); //Show notice to setup firewall, if the firewall is not present in our required files
-			}elseif (true === $is_firewall_in_wpconfig) {
+		if (AIOWPSecurity_Utility_Firewall::is_firewall_setup()) {
+			if (true !== $is_firewall_in_server) {
 				$this->render_upgrade_protection_notice();
 			}
+		} else {
+			$this->render_automatic_setup_notice();
 		}
 
 		$this->render_notices();
@@ -108,11 +107,9 @@ class AIOWPSecurity_Firewall_Setup_Notice {
 	private function do_setup() {
 
 		$is_inserted_firewall_file = false;
-		
+
 		$is_inserted_bootstrap_file = $this->bootstrap->contains_contents();
-
 		if (true !== $is_inserted_bootstrap_file) {
-
 			$is_inserted_bootstrap_file = $this->bootstrap->insert_contents();
 
 			if (true !== $is_inserted_bootstrap_file) {
@@ -122,9 +119,9 @@ class AIOWPSecurity_Firewall_Setup_Notice {
 			}
 
 		}
-
+		
 		$firewall_file = AIOWPSecurity_Utility_Firewall::get_server_file();
-
+		
 		if ($firewall_file instanceof AIOWPSecurity_Block_Userini) {
 
 			$directive = AIOWPSecurity_Utility_Firewall::get_already_set_directive($firewall_file);
@@ -148,26 +145,32 @@ class AIOWPSecurity_Firewall_Setup_Notice {
 			}
 		}
 
+		//Set up the firewall in the wp-config file
 		$is_inserted_wpconfig = $this->wpconfig->contains_contents();
 		if (true !== $is_inserted_wpconfig) {
 			$is_inserted_wpconfig = $this->wpconfig->insert_contents();
 		}
+		$this->log_wp_error($is_inserted_wpconfig);
+
+		//Set up the firewall in the mu-plugin
+		$is_inserted_muplugin = $this->muplugin->contains_contents();
+		if (true !== $is_inserted_muplugin) {
+			$is_inserted_muplugin = $this->muplugin->insert_contents();
+		}
+		if (false === $is_inserted_muplugin) {
+			$this->log_wp_error(new \WP_Error(
+				'file-mu-plugin-failed',
+				'Unable to create the mu-plugin',
+				$this->muplugin
+			));
+		}
+		$this->log_wp_error($is_inserted_muplugin);
 
 		if (true === $is_inserted_firewall_file) { 
 			$this->show_notice(self::NOTICE_INSTALLED);
-		}
-
-		if (true !== $is_inserted_firewall_file) { 
-
-			if (true !== $is_inserted_wpconfig) {
-				$is_inserted_muplugin = $this->muplugin->insert_contents();
-				$this->log_wp_error($is_inserted_muplugin);
-				$this->log_wp_error($is_inserted_wpconfig);
-			}
-
+		} else {
 			$this->log_wp_error($is_inserted_firewall_file);
 			$this->show_notice(self::NOTICE_MANUAL);
-			
 		}
 
 	}
@@ -203,7 +206,7 @@ class AIOWPSecurity_Firewall_Setup_Notice {
 	public function handle_setup_form() {
 		if (isset($_POST['_wpnonce']) && wp_verify_nonce($_POST['_wpnonce'], 'aiowpsec-firewall-setup')) {
 			$this->do_setup();
-			AIOWPSecurity_Utility::redirect_to_url(admin_url('admin.php?page=aiowpsec'));
+			$this->do_redirect();
 		}
 	}
 
@@ -215,8 +218,50 @@ class AIOWPSecurity_Firewall_Setup_Notice {
 	public function handle_dismiss_form() {
 		if (isset($_POST['_wpnonce']) && wp_verify_nonce($_POST['_wpnonce'], 'aiowpsec-firewall-setup-dismiss')) {
 			$this->do_dismiss();
-			AIOWPSecurity_Utility::redirect_to_url(admin_url('admin.php?page=aiowpsec'));
+			$this->do_redirect();
 		}
+	}
+
+	/**
+	 * Handles the form that downgrades the firewall's protection.
+	 *
+	 * @return void
+	 */
+	public function handle_downgrade_protection_form() {
+		if (isset($_POST['_wpnonce']) && wp_verify_nonce($_POST['_wpnonce'], 'aiowpsec-firewall-downgrade')) {
+			AIOWPSecurity_Utility_Firewall::remove_firewall();
+			$this->do_redirect();
+		}
+	}
+
+	/**
+	 * Handles the redirect
+	 *
+	 * @return void
+	 */
+	private function do_redirect() {
+
+		// Go back to the previous page and tab if set
+		if (isset($_POST['_wp_http_referer'])) {
+			
+			$matches = array();
+			if (preg_match('/\?page='.AIOWPSEC_MENU_SLUG_PREFIX.'(?<page>.*)(&tab=(?<tab>.*))?$/m', $_POST['_wp_http_referer'], $matches)) {
+					$url = 'admin.php?page='.AIOWPSEC_MENU_SLUG_PREFIX;
+
+					if (isset($matches['page'])) {
+						$url .= sanitize_text_field($matches['page']);
+
+						if (isset($matches['tab'])) {
+							$url .= '&tab='.sanitize_text_field($matches['tab']);
+						}
+					}
+					
+					AIOWPSecurity_Utility::redirect_to_url(admin_url(sanitize_url($url)));
+			}
+
+		}
+	
+		AIOWPSecurity_Utility::redirect_to_url(admin_url('admin.php?page='.AIOWPSEC_MENU_SLUG_PREFIX));
 	}
 
 	/**
@@ -387,7 +432,7 @@ class AIOWPSecurity_Firewall_Setup_Notice {
 			<p>
 				<?php _e('3. Change it to the following:', 'all-in-one-wp-security-and-firewall'); ?>
 			</p>
-				<pre style='max-width: 100%;background-color: #f0f0f0;border:#ccc solid 1px;padding: 10px;white-space:pre-wrap;'><?php echo "auto_prepend_file='".esc_html($bootstrap_path)."'";?></pre>
+				<pre style='max-width: 100%;background-color: #f0f0f0;border:#ccc solid 1px;padding: 10px;white-space:pre-wrap;'><?php echo esc_html(AIOWPSecurity_Utility_Firewall::get_server_file()->get_contents()); ?></pre>
 			<p>
 				<?php echo __('4. Save the file  and press the \'Try again\' button below:', 'all-in-one-wp-security-and-firewall').' '.__('You may have to wait up to 5 minutes before the settings take effect.', 'all-in-one-wp-security-and-firewall'); ?>
 			</p>
@@ -536,7 +581,7 @@ class AIOWPSecurity_Firewall_Setup_Notice {
 					<?php wp_nonce_field('aiowpsec-firewall-setup'); ?>
 					<input type="hidden" name="action" value="aiowps_firewall_setup">
 					<p>
-						<?php _e('We have detected that your AIOWPS firewall is not fully installed, and therefore does not have the highest level of protection. ', 'all-in-one-wp-security-and-firewall');?>
+						<?php _e('We have detected that your AIOS firewall is not fully installed, and therefore does not have the highest level of protection. ', 'all-in-one-wp-security-and-firewall');?>
 						<?php _e('Your firewall will have reduced functionality until it has been upgraded. ', 'all-in-one-wp-security-and-firewall');?>
 						<div style="padding-top: 10px;">
 						    <input class="button button-primary" type="submit" name="btn_upgrade_now" value="<?php _e('Upgrade your protection now', 'all-in-one-wp-security-and-firewall'); ?>">
@@ -559,7 +604,7 @@ class AIOWPSecurity_Firewall_Setup_Notice {
             return true;
         }
 
-        if (!current_user_can(AIOWPSEC_MANAGEMENT_PERMISSION)) {
+        if (!current_user_can(apply_filters('aios_management_permission', 'manage_options'))) {
 			return true;
 		}
 

@@ -90,7 +90,7 @@ class Simba_TFA_Login_Form_Integrations {
 	 * Runs upon the WP action affwp_process_login_form
 	 */
 	public function affwp_process_login_form() {
-	
+			
 		if (!function_exists('affiliate_wp')) return;
 		
 		$affiliate_wp = affiliate_wp();
@@ -99,7 +99,7 @@ class Simba_TFA_Login_Form_Integrations {
 		$params = array(
 			'log' => stripslashes($_POST['affwp_user_login']),
 			'caller'=> $_SERVER['PHP_SELF'] ? $_SERVER['PHP_SELF'] : $_SERVER['REQUEST_URI'],
-			'two_factor_code' => stripslashes((string) $_POST['two_factor_code'])
+			'two_factor_code' => isset($_POST['two_factor_code']) ? stripslashes((string) $_POST['two_factor_code']) : '',
 		);
 		$code_ok = $this->tfa->authorise_user_from_login($params, true);
 		

@@ -113,6 +113,15 @@ abstract class AIOWPSecurity_Block_File {
 	 */
 	public function contains_contents() {
 
+		clearstatcache();
+		if (!file_exists($this->file_path)) {
+			return new WP_Error(
+				'file_does_not_exist',
+				'The file does not exist.',
+				$this->file_path
+			);
+		}
+		
 		if (!is_readable($this->file_path)) {
 			return new WP_Error(
 				'file_wrong_permissions',
@@ -140,7 +149,7 @@ abstract class AIOWPSecurity_Block_File {
 	  * @return boolean|WP_Error
 	  */
 	public function remove_contents() {
-
+		
 		if (!is_readable($this->file_path) || !is_writable($this->file_path)) {
 			return new WP_Error(
 				'file_wrong_permissions',

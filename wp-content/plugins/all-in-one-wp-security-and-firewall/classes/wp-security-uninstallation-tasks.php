@@ -61,18 +61,13 @@ class AIOWPSecurity_Uninstallation_Tasks extends AIOWPSecurity_Base_Tasks {
 
 		// check and delete configurations
 		if ('1' == $aio_wp_security->configs->get_value('aiowps_on_uninstall_delete_configs')) {
-
 			delete_option('aio_wp_security_configs');
 			delete_option('aiowps_temp_configs');
 			delete_option('aiowpsec_db_version');
-
-			if (is_main_site()) {
-				// Remove all settings from .htaccess file that were added by this plugin
-				AIOWPSecurity_Utility_Htaccess::write_to_htaccess();
-			}
+			delete_option('aiowpsec_firewall_version');
 		}
 	}
-	
+
 	/**
 	 * Helper function which clears aiowps cron events
 	 */

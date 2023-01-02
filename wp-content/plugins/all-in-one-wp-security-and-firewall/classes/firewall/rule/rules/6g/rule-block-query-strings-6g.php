@@ -38,7 +38,7 @@ class Rule_Block_Query_Strings_6g extends Rule {
 	 */
 	public function is_satisfied() {
 		
-		if (empty($_SERVER['QUERY_STRING'])) return !Rule::SATISFIED;
+		if (empty($_SERVER['QUERY_STRING'])) return Rule::NOT_SATISFIED;
 
 		//Patterns to match against
 		$patterns = array(

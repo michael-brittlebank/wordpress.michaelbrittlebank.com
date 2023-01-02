@@ -5,12 +5,12 @@ if (!defined('ABSPATH')) die('No direct access.');
 if (!class_exists('HOTP')) require_once(__DIR__.'/hotp-php-master/hotp.php');
 if (!class_exists('Base32')) require_once(__DIR__.'/Base32/Base32.php');
 
-class Simba_TFA_Provider_TOTP {
+class Simba_TFA_Provider_totp {
 	
 	/**
 	 * Simba 2FA object
 	 *
-	 * @var object instance of Simba_Two_Factor_Authentication
+	 * @var object instance of Simba_Two_Factor_Authentication(_version)
 	 */
 	private $tfa;
 	
@@ -94,7 +94,7 @@ class Simba_TFA_Provider_TOTP {
 	/**
 	 * Class constructor
 	 *
-	 * @param Simba_Two_Factor_Authentication main plugin class
+	 * @param Object - main Simba_Two_Factor_Authentication(_version) plugin class
 	 */
 	public function __construct($tfa) {
 		$this->tfa = $tfa;
@@ -155,7 +155,6 @@ class Simba_TFA_Provider_TOTP {
 	
 	/**
 	 * Enqueue adding of JavaScript for footer
-	 *
 	 */
 	public function add_footer() {
 		
@@ -163,127 +162,42 @@ class Simba_TFA_Provider_TOTP {
 		if ($added_footer) return;
 		$added_footer = true;
 		
-		$script_file = (defined('SCRIPT_DEBUG') && SCRIPT_DEBUG) ? 'jquery-qrcode.js' : 'jquery-qrcode.min.js';
-		$script_ver = (defined('WP_DEBUG') && WP_DEBUG) ? time() : filemtime($this->tfa->includes_dir()."/jquery-qrcode/$script_file");
-		wp_enqueue_script('jquery-qrcode', $this->tfa->includes_url()."/jquery-qrcode/$script_file", array('jquery'), $script_ver);
-		add_action(is_admin() ? 'admin_footer' : 'wp_footer', array($this, 'footer'));
+		$qr_script_file = (defined('SCRIPT_DEBUG') && SCRIPT_DEBUG) ? 'jquery-qrcode.js' : 'jquery-qrcode.min.js';
 		
+		$qr_script_ver = (defined('WP_DEBUG') && WP_DEBUG) ? time() : filemtime($this->tfa->includes_dir()."/jquery-qrcode/$qr_script_file");
+		
+		wp_register_script('jquery-qrcode', $this->tfa->includes_url()."/jquery-qrcode/$qr_script_file", array('jquery'), $qr_script_ver);
+		
+		$script_ver = (defined('WP_DEBUG') && WP_DEBUG) ? time() : filemtime($this->tfa->includes_dir()."/totp.js");
+		
+		// Adds the necessary JavaScript for rendering and updating QR codes, and handling trusted devices removal in the admin area
+		wp_enqueue_script('simba-tfa-totp', $this->tfa->includes_url()."/totp.js", array('jquery-qrcode'), $script_ver);
+		
+		wp_localize_script('simba-tfa-totp', 'simbatfa_totp', $this->translation_strings());
+
 	}
 	
 	/**
-	 * Runs upon the WP actions wp_footer and admin_footer. Adds the necessary JavaScript for rendering and updating QR codes, and handling trusted devices removal in the admin area
+	 * Get textual strings used from JavaScript
+	 *
+	 * @return Array
 	 */
-	public function footer() {
-		$ajax_url = admin_url('admin-ajax.php');
+	private function translation_strings() {
+		
 		// It's possible that FORCE_ADMIN_SSL will make that SSL, whilst the user is on the front-end having logged in over non-SSL - and as a result, their login cookies won't get sent, and they're not registered as logged in.
+		$ajax_url = admin_url('admin-ajax.php');
+		$also_try = '';
 		if (!is_admin() && substr(strtolower($ajax_url), 0, 6) == 'https:' && !is_ssl()) {
 			$also_try = 'http:'.substr($ajax_url, 6);
 		}
-		?>
-		<script>
-		jQuery(function($) {
-			
-			// Render any QR codes
-			$('.simbaotp_qr_container').qrcode({
-				'render': 'image',
-				'text': $('.simbaotp_qr_container:first').data('qrcode'),
-			});
-			
-			function update_otp_code() {
-				$('.simba_current_otp').html('<em><?php echo esc_attr(__('Updating...', 'all-in-one-wp-security-and-firewall'));?></em>');
-				
-				$.post('<?php echo esc_js($ajax_url);?>', {
-					action: 'simbatfa_shared_ajax',
-					subaction: 'refreshotp',
-					nonce: '<?php echo esc_js(wp_create_nonce('tfa_shared_nonce'));?>'
-				}, function(response) {
-					var got_code = '';
-				try {
-					var resp = JSON.parse(response);
-					got_code = resp.code;
-				} catch(err) {
-					<?php if (!isset($also_try)) { ?>
-						alert("<?php echo esc_js(__('Response:', 'all-in-one-wp-security-and-firewall')); ?> "+response);
-					<?php } ?>
-					console.log(response);
-					console.log(err);
-				}
-				<?php
-				if (isset($also_try)) {
-					?>
-					$.post('<?php echo esc_js($also_try);?>', {
-						action: 'simbatfa_shared_ajax',
-						subaction: 'refreshotp',
-						nonce: '<?php echo esc_js(wp_create_nonce('tfa_shared_nonce'));?>'
-					}, function(response) {
-						try {
-							var resp = JSON.parse(response);
-							if (resp.code) {
-								$('.simba_current_otp').html(resp.code);
-							} else {
-								console.log(response);
-								console.log("TFA: no code found");
-							}
-						} catch(err) {
-							alert("<?php echo esc_js(__('Response:', 'all-in-one-wp-security-and-firewall')); ?> "+response);
-							console.log(response);
-							console.log(err);
-						}
-					});
-					<?php } else { ?>
-						if ('' != got_code) {
-							$('.simba_current_otp').html(got_code);
-						} else {
-							console.log("TFA: no code found");
-						}
-					<?php } ?>
-				});
-			}
-			
-			var min_refresh_after = 30;
-			
-			if (0 == $('body.settings_page_two-factor-auth').length) {
-				$('.simba_current_otp').each(function(ind, obj) {
-					var refresh_after = $(obj).data('refresh_after');
-					if (refresh_after > 0 && refresh_after < min_refresh_after) {
-						min_refresh_after = refresh_after;
-					}
-				});
-				
-				// Update after the given seconds, and then every 30 seconds
-				setTimeout(function() {
-					setInterval(update_otp_code, 30000)
-					update_otp_code();
-				}, min_refresh_after * 1000);
-			}
-			
-			// Handle clicks on the 'refresh' link
-			$('.simbaotp_refresh').on('click', function(e) {
-				e.preventDefault();
-				update_otp_code();
-			});
-			
-			$('#tfa_trusted_devices_box').on('click', '.simbatfa-trust-remove', function(e) {
-				e.preventDefault();
-				var device_id = $(this).data('trusted-device-id');
-				$(this).parents('.simbatfa_trusted_device').css('opacity', '0.5');
-				if ('undefined' !== typeof device_id) {
-					$.post('<?php echo esc_js($ajax_url);?>', {
-						action: 'simbatfa_shared_ajax',
-						subaction: 'untrust_device',
-						nonce: '<?php echo esc_js(wp_create_nonce('tfa_shared_nonce'));?>',
-						   device_id: device_id
-					}, function(response) {
-						var resp = JSON.parse(response);
-						if (resp.hasOwnProperty('trusted_list')) {
-							$('#tfa_trusted_devices_box_inner').html(resp.trusted_list);
-						}
-					});
-				}
-			});
-		});
-		</script>
-		<?php
+		
+		return apply_filters('simba_tfa_totp_translation_strings', array(
+			'ajax_url' => $ajax_url,
+			'updating' => __('Updating...', 'all-in-one-wp-security-and-firewall'),
+			'tfa_shared_nonce' => wp_create_nonce('tfa_shared_nonce'),
+			'also_try' => $also_try,
+			'response' => __('Response:', 'all-in-one-wp-security-and-firewall'),
+		));
 	}
 	
 	/**
@@ -943,13 +857,13 @@ class Simba_TFA_Provider_TOTP {
 	/**
 	 * Whether HOTP or TOTP is being used
 	 *
-	 * @param Integer $user_id - WordPress user ID
+	 * @param Integer|Boolean $user_id - WordPress user ID, or false for the site-wide default
 	 *
 	 * @return String - 'hotp' or 'totp'
 	 */
-	public function get_user_otp_algorithm($user_id) {
+	public function get_user_otp_algorithm($user_id = false) {
 
-		$setting = get_user_meta($user_id, 'tfa_algorithm_type', true);
+		$setting = $user_id ? get_user_meta($user_id, 'tfa_algorithm_type', true) : false;
 		
 		$default_hmac = $this->tfa->get_option('tfa_default_hmac');
 		if (!$default_hmac) $default_hmac = $this->default_hmac;
@@ -1055,14 +969,7 @@ class Simba_TFA_Provider_TOTP {
 	}
 	
 	public function setUserHMACTypes() {
-		// We need this because we dont want to change third party apps users algorithm
-		$users = get_users(array('meta_key' => 'simbatfa_delivery_type', 'meta_value' => 'third-party-apps'));
-		if (empty($users)) return;
-		foreach ($users as $user) {
-			$tfa_algorithm_type = get_user_meta($user->ID, 'tfa_algorithm_type', true);
-			if ($tfa_algorithm_type) continue;
-			update_user_meta($user->ID, 'tfa_algorithm_type', $this->get_user_otp_algorithm($user->ID));
-		}
+		trigger_error("Deprecated: setUserHMACTypes() does nothing: remove any calls to it");
 	}
 
 }

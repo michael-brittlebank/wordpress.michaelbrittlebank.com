@@ -23,10 +23,10 @@ class AIOWPSecurity_Filesystem_Menu extends AIOWPSecurity_Admin_Menu
     function set_menu_tabs() 
     {
         $this->menu_tabs = array(
-        'tab1' => __('File Permissions','all-in-one-wp-security-and-firewall'),
-        'tab2' => __('PHP File Editing','all-in-one-wp-security-and-firewall'),
-        'tab3' => __('WP File Access','all-in-one-wp-security-and-firewall'),
-        'tab4' => __('Host System Logs','all-in-one-wp-security-and-firewall'),
+        'tab1' => __('File permissions','all-in-one-wp-security-and-firewall'),
+        'tab2' => __('PHP file editing','all-in-one-wp-security-and-firewall'),
+        'tab3' => __('WP file access','all-in-one-wp-security-and-firewall'),
+        'tab4' => __('Host system logs','all-in-one-wp-security-and-firewall'),
         );
     }
 
@@ -52,7 +52,7 @@ class AIOWPSecurity_Filesystem_Menu extends AIOWPSecurity_Admin_Menu
     function render_menu_page() 
     {
         echo '<div class="wrap">';
-        echo '<h2>'.__('Filesystem Security','all-in-one-wp-security-and-firewall').'</h2>';//Interface title
+        echo '<h2>'.__('Filesystem security','all-in-one-wp-security-and-firewall').'</h2>';//Interface title
         $this->set_menu_tabs();
         $tab = $this->get_current_tab();
         $this->render_menu_tabs();
@@ -97,7 +97,7 @@ class AIOWPSecurity_Filesystem_Menu extends AIOWPSecurity_Admin_Menu
             }
         }
         ?>
-        <h2><?php _e('File Permissions Scan', 'all-in-one-wp-security-and-firewall')?></h2>
+		<h2><?php _e('File permissions scan', 'all-in-one-wp-security-and-firewall'); ?></h2>
         <div class="aio_blue_box">
             <?php
             echo '<p>'.__('Your WordPress file and folder permission settings govern the accessability and read/write privileges of the files and folders which make up your WP installation.', 'all-in-one-wp-security-and-firewall').'
@@ -118,7 +118,7 @@ class AIOWPSecurity_Filesystem_Menu extends AIOWPSecurity_Admin_Menu
         }else{
         ?>
         <div class="postbox">
-        <h3 class="hndle"><label for="title"><?php _e('WP Directory and File Permissions Scan Results', 'all-in-one-wp-security-and-firewall'); ?></label></h3>
+		<h3 class="hndle"><label for="title"><?php _e('WP directory and file permissions scan results', 'all-in-one-wp-security-and-firewall'); ?></label></h3>
         <div class="inside">
         <?php
         //Display security info badge
@@ -126,15 +126,15 @@ class AIOWPSecurity_Filesystem_Menu extends AIOWPSecurity_Admin_Menu
         $aiowps_feature_mgr->output_feature_details_badge("filesystem-file-permissions");
         ?>
         <form action="" method="POST">
-        <?php wp_nonce_field('aiowpsec-fix-permissions-nonce'); ?>            
+		<?php wp_nonce_field('aiowpsec-fix-permissions-nonce'); ?>
             <table class="widefat file_permission_table">
                 <thead>
                     <tr>
-                        <th><?php _e('Name', 'all-in-one-wp-security-and-firewall') ?></th>
-                        <th><?php _e('File/Folder', 'all-in-one-wp-security-and-firewall') ?></th>
-                        <th><?php _e('Current Permissions', 'all-in-one-wp-security-and-firewall') ?></th>
-                        <th><?php _e('Recommended Permissions', 'all-in-one-wp-security-and-firewall') ?></th>
-                        <th><?php _e('Recommended Action', 'all-in-one-wp-security-and-firewall') ?></th>
+						<th><?php _e('Name', 'all-in-one-wp-security-and-firewall'); ?></th>
+						<th><?php _e('File/Folder', 'all-in-one-wp-security-and-firewall'); ?></th>
+						<th><?php _e('Current permissions', 'all-in-one-wp-security-and-firewall'); ?></th>
+						<th><?php _e('Recommended permissions', 'all-in-one-wp-security-and-firewall'); ?></th>
+						<th><?php _e('Recommended action', 'all-in-one-wp-security-and-firewall'); ?></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -149,11 +149,11 @@ class AIOWPSecurity_Filesystem_Menu extends AIOWPSecurity_Admin_Menu
                 </tbody>
                 <tfoot>
                     <tr>
-                        <th><?php _e('Name', 'all-in-one-wp-security-and-firewall') ?></th>
-                        <th><?php _e('File/Folder', 'all-in-one-wp-security-and-firewall') ?></th>
-                        <th><?php _e('Current Permissions', 'all-in-one-wp-security-and-firewall') ?></th>
-                        <th><?php _e('Recommended Permissions', 'all-in-one-wp-security-and-firewall') ?></th>
-                        <th><?php _e('Recommended Action', 'all-in-one-wp-security-and-firewall') ?></th>
+						<th><?php _e('Name', 'all-in-one-wp-security-and-firewall'); ?></th>
+						<th><?php _e('File/Folder', 'all-in-one-wp-security-and-firewall'); ?></th>
+						<th><?php _e('Current permissions', 'all-in-one-wp-security-and-firewall'); ?></th>
+						<th><?php _e('Recommended permissions', 'all-in-one-wp-security-and-firewall'); ?></th>
+						<th><?php _e('Recommended action', 'all-in-one-wp-security-and-firewall'); ?></th>
                 </tfoot>
             </table>
         </form>
@@ -161,7 +161,7 @@ class AIOWPSecurity_Filesystem_Menu extends AIOWPSecurity_Admin_Menu
         <?php
         }
     }
-    
+
     function render_tab2()
     {
         global $aio_wp_security;
@@ -209,10 +209,10 @@ class AIOWPSecurity_Filesystem_Menu extends AIOWPSecurity_Admin_Menu
                 $aiowps_feature_mgr->check_feature_status_and_recalculate_points();
         }
         ?>
-        <h2><?php _e('File Editing', 'all-in-one-wp-security-and-firewall')?></h2>
+		<h2><?php _e('File editing', 'all-in-one-wp-security-and-firewall'); ?></h2>
         <div class="aio_blue_box">
             <?php
-            echo '<p>'.__('The Wordpress Dashboard by default allows administrators to edit PHP files, such as plugin and theme files.', 'all-in-one-wp-security-and-firewall').'
+            echo '<p>'.__('The WordPress Dashboard by default allows administrators to edit PHP files, such as plugin and theme files.', 'all-in-one-wp-security-and-firewall').'
             <br />'.__('This is often the first tool an attacker will use if able to login, since it allows code execution.', 'all-in-one-wp-security-and-firewall').'
             <br />'.__('This feature will disable the ability for people to edit PHP files via the dashboard.', 'all-in-one-wp-security-and-firewall').'
             </p>';
@@ -220,7 +220,7 @@ class AIOWPSecurity_Filesystem_Menu extends AIOWPSecurity_Admin_Menu
         </div>
 
         <div class="postbox">
-        <h3 class="hndle"><label for="title"><?php _e('Disable PHP File Editing', 'all-in-one-wp-security-and-firewall'); ?></label></h3>
+		<h3 class="hndle"><label for="title"><?php _e('Disable PHP file editing', 'all-in-one-wp-security-and-firewall'); ?></label></h3>
         <div class="inside">
         <?php
         //Display security info badge
@@ -232,14 +232,14 @@ class AIOWPSecurity_Filesystem_Menu extends AIOWPSecurity_Admin_Menu
         <?php wp_nonce_field('aiowpsec-disable-file-edit-nonce'); ?>            
         <table class="form-table">
             <tr valign="top">
-                <th scope="row"><?php _e('Disable Ability To Edit PHP Files', 'all-in-one-wp-security-and-firewall')?>:</th>
+				<th scope="row"><?php _e('Disable ability to edit PHP files', 'all-in-one-wp-security-and-firewall'); ?>:</th>
                 <td>
                 <input id="aiowps_disable_file_editing" name="aiowps_disable_file_editing" type="checkbox"<?php if($aio_wp_security->configs->get_value('aiowps_disable_file_editing')=='1') echo ' checked="checked"'; ?> value="1"/>
                 <label for="aiowps_disable_file_editing" class="description"><?php _e('Check this if you want to remove the ability for people to edit PHP files via the WP dashboard', 'all-in-one-wp-security-and-firewall'); ?></label>
                 </td>
             </tr>            
         </table>
-        <input type="submit" name="aiowps_disable_file_edit" value="<?php _e('Save Settings', 'all-in-one-wp-security-and-firewall')?>" class="button-primary" />
+		<input type="submit" name="aiowps_disable_file_edit" value="<?php _e('Save settings', 'all-in-one-wp-security-and-firewall'); ?>" class="button-primary">
         </form>
         </div></div>
     <?php
@@ -288,7 +288,7 @@ class AIOWPSecurity_Filesystem_Menu extends AIOWPSecurity_Admin_Menu
         }
 
         ?>
-        <h2><?php _e('WordPress Files', 'all-in-one-wp-security-and-firewall')?></h2>
+		<h2><?php _e('WordPress files', 'all-in-one-wp-security-and-firewall'); ?></h2>
         <div class="aio_blue_box">
             <?php
             $info_msg = sprintf( __('This feature allows you to prevent access to files such as %s, %s and %s which are delivered with all WP installations.', 'all-in-one-wp-security-and-firewall'), 'readme.html', 'license.txt', 'wp-config-sample.php');
@@ -297,7 +297,7 @@ class AIOWPSecurity_Filesystem_Menu extends AIOWPSecurity_Admin_Menu
         </div>
 
         <div class="postbox">
-        <h3 class="hndle"><label for="title"><?php _e('Prevent Access to Default WP Files', 'all-in-one-wp-security-and-firewall'); ?></label></h3>
+		<h3 class="hndle"><label for="title"><?php _e('Prevent access to default WP files', 'all-in-one-wp-security-and-firewall'); ?></label></h3>
         <div class="inside">
         <?php
         //Display security info badge
@@ -308,14 +308,14 @@ class AIOWPSecurity_Filesystem_Menu extends AIOWPSecurity_Admin_Menu
         <?php wp_nonce_field('aiowpsec-prevent-default-wp-file-access-nonce'); ?>            
         <table class="form-table">
             <tr valign="top">
-                <th scope="row"><?php _e('Prevent Access to WP Default Install Files', 'all-in-one-wp-security-and-firewall')?>:</th>
+				<th scope="row"><?php _e('Prevent access to WP default install files', 'all-in-one-wp-security-and-firewall'); ?>:</th>
                 <td>
                 <input id="aiowps_prevent_default_wp_file_access" name="aiowps_prevent_default_wp_file_access" type="checkbox"<?php if($aio_wp_security->configs->get_value('aiowps_prevent_default_wp_file_access')=='1') echo ' checked="checked"'; ?> value="1"/>
                 <label for="aiowps_prevent_default_wp_file_access" class="description"><?php _e('Check this if you want to prevent access to readme.html, license.txt and wp-config-sample.php.', 'all-in-one-wp-security-and-firewall'); ?></label>
                 </td>
             </tr>            
         </table>
-        <input type="submit" name="aiowps_save_wp_file_access_settings" value="<?php _e('Save Setting', 'all-in-one-wp-security-and-firewall')?>" class="button-primary" />
+		<input type="submit" name="aiowps_save_wp_file_access_settings" value="<?php _e('Save setting', 'all-in-one-wp-security-and-firewall'); ?>" class="button-primary">
         </form>
         </div></div>
         <?php
@@ -339,7 +339,7 @@ class AIOWPSecurity_Filesystem_Menu extends AIOWPSecurity_Admin_Menu
         }
         
         ?>
-        <h2><?php _e('System Logs', 'all-in-one-wp-security-and-firewall')?></h2>
+		<h2><?php _e('System logs', 'all-in-one-wp-security-and-firewall'); ?></h2>
         <div class="aio_blue_box">
             <?php
             echo '<p>'.__('Sometimes your hosting platform will produce error or warning logs in a file called "error_log".', 'all-in-one-wp-security-and-firewall').'
@@ -350,7 +350,7 @@ class AIOWPSecurity_Filesystem_Menu extends AIOWPSecurity_Admin_Menu
         </div>
 
         <div class="postbox">
-        <h3 class="hndle"><label for="title"><?php _e('View System Logs', 'all-in-one-wp-security-and-firewall'); ?></label></h3>
+		<h3 class="hndle"><label for="title"><?php _e('View system logs', 'all-in-one-wp-security-and-firewall'); ?></label></h3>
         <div class="inside">
             <p><?php _e('Please click the button below to view the latest system logs', 'all-in-one-wp-security-and-firewall'); ?>:</p>
             <form action="" method="POST">
@@ -360,7 +360,7 @@ class AIOWPSecurity_Filesystem_Menu extends AIOWPSecurity_Admin_Menu
                 <span class="description"><?php _e('Enter your system log file name. (Defaults to error_log)', 'all-in-one-wp-security-and-firewall'); ?></span>
                 </div>
                 <div class="aio_spacer_15"></div>
-                <input type="submit" name="aiowps_search_error_files" value="<?php _e('View Latest System Logs', 'all-in-one-wp-security-and-firewall'); ?>" class="button-primary search-error-files" />
+				<input type="submit" name="aiowps_search_error_files" value="<?php _e('View latest system logs', 'all-in-one-wp-security-and-firewall'); ?>" class="button-primary search-error-files">
                 <span class="aiowps_loading_1">
                     <img src="<?php echo AIO_WP_SECURITY_URL.'/images/loading.gif'; ?>" alt="<?php __('Loading...', 'all-in-one-wp-security-and-firewall'); ?>" />
                 </span>            
@@ -379,7 +379,7 @@ class AIOWPSecurity_Filesystem_Menu extends AIOWPSecurity_Admin_Menu
             $logResults = AIOWPSecurity_Utility_File::recursive_file_search($sys_log_file, 0, ABSPATH);
             if (empty($logResults) || $logResults == NULL || $logResults == '' || $logResults === FALSE)
             {
-                $this->show_msg_updated(__('No system logs were found!', 'all-in-one-wp-security-and-firewall'));
+                $this->show_msg_updated(__('No system logs were found.', 'all-in-one-wp-security-and-firewall'));
             }
             else 
             {
@@ -432,13 +432,13 @@ class AIOWPSecurity_Filesystem_Menu extends AIOWPSecurity_Admin_Menu
             if ($fix)
             {
                 echo '<td>
-                    <input type="submit" name="aiowps_fix_permissions" value="'.__('Set Recommended Permissions','all-in-one-wp-security-and-firewall').'" class="button-secondary" />
+					<input type="submit" name="aiowps_fix_permissions" value="'.__('Set recommended permissions', 'all-in-one-wp-security-and-firewall').'" class="button-secondary">
                     <input type="hidden" name="aiowps_permission_chg_file" value="'.$path.'"/>
                     <input type="hidden" name="aiowps_recommended_permissions" value="'.$recommended.'"/>                        
                     </td>';
             } else
             {
-                echo '<td>'.__('No Action Required', 'all-in-one-wp-security-and-firewall').'</td>';
+                echo '<td>'.__('No action required', 'all-in-one-wp-security-and-firewall').'</td>';
             }
         echo "</tr>";
     }

@@ -421,3 +421,7 @@ svg > g > g.google-visualization-tooltip {
 .wp-security_page_aiowpsec_settings h2, .wp-security_page_aiowpsec_settings #poststuff h2 {
     padding-left: 0;
 }
+
+.aio_hidden {
+    display: none;
+}

@@ -60,7 +60,7 @@
 						<span class="description">
 							<?php _e("Choose a \$_SERVER variable you would like to detect visitors' IP address using.", 'all-in-one-wp-security-and-firewall'); ?>
 						</span>
-						<span class="aiowps_more_info_anchor"><span class="aiowps_more_info_toggle_char">+</span><span class="aiowps_more_info_toggle_text"><?php _e('More Info', 'all-in-one-wp-security-and-firewall'); ?></span></span>
+						<span class="aiowps_more_info_anchor"><span class="aiowps_more_info_toggle_char">+</span><span class="aiowps_more_info_toggle_text"><?php _e('More info', 'all-in-one-wp-security-and-firewall'); ?></span></span>
 						<div class="aiowps_more_info_body">
 							<p class="description">
 								<?php

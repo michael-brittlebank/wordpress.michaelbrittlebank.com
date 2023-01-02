@@ -22,7 +22,7 @@ class AIOWPSecurity_Maintenance_Menu extends AIOWPSecurity_Admin_Menu
     function set_menu_tabs()
     {
         $this->menu_tabs = array(
-        'tab1' => __('Visitor Lockout', 'all-in-one-wp-security-and-firewall'),
+        'tab1' => __('Visitor lockout', 'all-in-one-wp-security-and-firewall'),
         );
     }
 
@@ -89,7 +89,7 @@ class AIOWPSecurity_Maintenance_Menu extends AIOWPSecurity_Admin_Menu
         }
         ?>
         <div class="postbox">
-        <h3 class="hndle"><label for="title"><?php _e('General Visitor Lockout', 'all-in-one-wp-security-and-firewall'); ?></label></h3>
+		<h3 class="hndle"><label for="title"><?php _e('General visitor lockout', 'all-in-one-wp-security-and-firewall'); ?></label></h3>
         <div class="inside">
         <form action="" method="POST">
         <?php wp_nonce_field('aiowpsec-site-lockout'); ?>
@@ -101,14 +101,14 @@ class AIOWPSecurity_Maintenance_Menu extends AIOWPSecurity_Admin_Menu
         </div>
         <table class="form-table">
             <tr valign="top">
-                <th scope="row"><?php _e('Enable Front-end Lockout', 'all-in-one-wp-security-and-firewall')?>:</th>
+				<th scope="row"><?php _e('Enable front-end lockout', 'all-in-one-wp-security-and-firewall'); ?>:</th>
                 <td>
                 <input id="aiowps_site_lockout" name="aiowps_site_lockout" type="checkbox"<?php if($aio_wp_security->configs->get_value('aiowps_site_lockout')=='1') echo ' checked="checked"'; ?> value="1"/>
                 <label for="aiowps_site_lockout" class="description"><?php _e('Check this if you want all visitors except those who are logged in as administrator to be locked out of the front-end of your site.', 'all-in-one-wp-security-and-firewall'); ?></label>
                 </td>
             </tr>
             <tr valign="top">
-                <th scope="row"><label for="aiowps_site_lockout_msg_editor_content"><?php _e('Enter a Message:', 'all-in-one-wp-security-and-firewall')?></label></th>
+				<th scope="row"><label for="aiowps_site_lockout_msg_editor_content"><?php _e('Enter a message:', 'all-in-one-wp-security-and-firewall'); ?></label></th>
                 <td>
                     <?php
                     $aiowps_site_lockout_msg_raw = $aio_wp_security->configs->get_value('aiowps_site_lockout_msg');
@@ -127,7 +127,7 @@ class AIOWPSecurity_Maintenance_Menu extends AIOWPSecurity_Admin_Menu
         </table>
 
         <div class="submit">
-            <input type="submit" class="button-primary" name="aiowpsec_save_site_lockout" value="<?php _e('Save Site Lockout Settings', 'all-in-one-wp-security-and-firewall'); ?>" />
+			<input type="submit" class="button-primary" name="aiowpsec_save_site_lockout" value="<?php _e('Save site lockout settings', 'all-in-one-wp-security-and-firewall'); ?>">
         </div>
         </form>
         </div></div>

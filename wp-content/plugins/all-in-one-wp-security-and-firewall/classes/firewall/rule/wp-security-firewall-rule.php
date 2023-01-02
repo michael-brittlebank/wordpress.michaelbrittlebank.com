@@ -35,6 +35,14 @@ abstract class Rule {
 	const SATISFIED = true;
 
 	/**
+	 * An abstraction for when the rule is not satisfied
+	 *
+	 * @var boolean
+	 */
+	const NOT_SATISFIED = false;
+
+
+	/**
 	 * Executes the rule's action
 	 *
 	 * @return void

@@ -38,7 +38,7 @@ class Rule_Block_User_Agents_6g extends Rule {
 	 */
 	public function is_satisfied() {
 		
-		if (empty($_SERVER['HTTP_USER_AGENT'])) return !Rule::SATISFIED;
+		if (empty($_SERVER['HTTP_USER_AGENT'])) return Rule::NOT_SATISFIED;
 
 		//Patterns to match against
 		$patterns = array(

@@ -220,7 +220,7 @@ class AIOWPSecurity_Scan {
 			}
 
 			if ($fileinfo->getFilename() == 'wp-security-log-cron-job.txt' || $fileinfo->getFilename() == 'wp-security-log.txt') {
-				continue; // skip aiowps log files
+				continue; // Skip AIOS log files
 			}
 
 			// Let's omit any file types from the scan which were specified in the settings if necessary

@@ -38,7 +38,10 @@ class Rule_Block_Request_Strings_6g extends Rule {
 	 */
 	public function is_satisfied() {
 		
-		if (empty($_SERVER['PHP_SELF'])) return !Rule::SATISFIED;
+		if (empty($_SERVER['REQUEST_URI'])) return Rule::NOT_SATISFIED;
+		
+		// ensure we get the request uri without the query string
+		$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 		
 		//Patterns to match against
 		$patterns = array(
@@ -55,7 +58,7 @@ class Rule_Block_Request_Strings_6g extends Rule {
 			'#/(^$|(wp-)?config|mobiquo|phpinfo|shell|sqlpatch|thumb|thumb_editor|thumbopen|timthumb|webshell)\.php#i',
 		);
 
-		return Rule_Utils::contains_pattern(rawurldecode($_SERVER['PHP_SELF']), $patterns);
+		return Rule_Utils::contains_pattern(rawurldecode($uri), $patterns);
 	}
 
 }

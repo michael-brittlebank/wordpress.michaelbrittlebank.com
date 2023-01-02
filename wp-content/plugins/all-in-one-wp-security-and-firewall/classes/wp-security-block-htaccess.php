@@ -11,6 +11,7 @@ class AIOWPSecurity_Block_Htaccess extends AIOWPSecurity_Block_File {
 	 * @return boolean|WP_Error   true if success; false if failed
 	 */
 	public function insert_contents() {
+
 		$home_path = AIOWPSecurity_Utility_File::get_home_path();
 
 		if (!is_writable($home_path)) {
@@ -59,7 +60,7 @@ class AIOWPSecurity_Block_Htaccess extends AIOWPSecurity_Block_File {
 	 * @return string
 	 */
 	protected function get_regex_pattern() {
-		return '/\r?\n# Begin AIOWPSEC Firewall(.*?)# End AIOWPSEC Firewall/is';
+		return '/\r?\n?# Begin AIOWPSEC Firewall(.*?)# End AIOWPSEC Firewall/is';
 	}
 
 	/**

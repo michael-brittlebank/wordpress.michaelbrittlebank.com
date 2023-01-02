@@ -26,7 +26,7 @@ class AIOWPSecurity_Utility {
 	 */
 	public static function has_manage_cap() {
 		// This filter will useful when the administrator would like to give permission to access AIOWPS to Security Analyst.
-		$cap = apply_filters('aiowps_management_capability', AIOWPSEC_MANAGEMENT_PERMISSION);
+		$cap = apply_filters('aiowps_management_capability', apply_filters('aios_management_permission', 'manage_options'));
 		return current_user_can($cap);
 	}
 
@@ -47,6 +47,8 @@ class AIOWPSecurity_Utility {
 	 * @return string
 	 */
 	public static function get_current_page_url() {
+		if (defined('WP_CLI') && WP_CLI) return '';
+
 		$pageURL = 'http';
 		if (isset($_SERVER["HTTPS"]) && "on" == $_SERVER["HTTPS"]) {
 			$pageURL .= "s";
@@ -431,7 +433,7 @@ class AIOWPSecurity_Utility {
 	 **/
 	public static function check_locked_ip($ip) {
 		global $wpdb;
-		$login_lockdown_table = AIOWPSEC_TBL_LOGIN_LOCKDOWN;
+		$login_lockdown_table = AIOWPSEC_TBL_LOGIN_LOCKOUT;
 		$now = current_time('mysql', true);
 		$locked_ip = $wpdb->get_row($wpdb->prepare("SELECT * FROM $login_lockdown_table WHERE release_date > %s AND failed_login_ip = %s", $now, $ip), ARRAY_A);
 		if (null != $locked_ip) {
@@ -449,7 +451,7 @@ class AIOWPSecurity_Utility {
 	 */
 	public static function get_locked_ips() {
 		global $wpdb;
-		$login_lockdown_table = AIOWPSEC_TBL_LOGIN_LOCKDOWN;
+		$login_lockdown_table = AIOWPSEC_TBL_LOGIN_LOCKOUT;
 		$now = current_time('mysql', true);
 	$locked_ips = $wpdb->get_results($wpdb->prepare("SELECT * FROM $login_lockdown_table WHERE release_date > %s", $now), ARRAY_A);
 		
@@ -462,7 +464,7 @@ class AIOWPSecurity_Utility {
 
 
 	/**
-	 * Locks an IP address - Adds an entry to the AIOWPSEC_TBL_LOGIN_LOCKDOWN table.
+	 * Locks an IP address - Adds an entry to the AIOWPSEC_TBL_LOGIN_LOCKOUT table.
 	 *
 	 * @global wpdb            $wpdb
 	 * @global AIO_WP_Security $aio_wp_security
@@ -475,7 +477,7 @@ class AIOWPSecurity_Utility {
 	 */
 	public static function lock_IP($ip, $lock_reason, $username = '') {
 		global $wpdb, $aio_wp_security;
-		$login_lockdown_table = AIOWPSEC_TBL_LOGIN_LOCKDOWN;
+		$login_lockdown_table = AIOWPSEC_TBL_LOGIN_LOCKOUT;
 
 		if ('404' == $lock_reason) {
 			$lock_minutes = $aio_wp_security->configs->get_value('aiowps_404_lockout_time_length');
@@ -592,9 +594,9 @@ class AIOWPSecurity_Utility {
 	}
 	
 	/**
-	 * Delete expired captcha info option
+	 * Delete expired CAPTCHA info option
 	 *
-	 * Note: A unique instance these option is created everytime the login page is loaded with captcha enabled
+	 * Note: A unique instance these option is created everytime the login page is loaded with CAPTCHA enabled
 	 * This function will help prune the options table of old expired entries.
 	 *
 	 * @global wpdb $wpdb
@@ -629,23 +631,27 @@ class AIOWPSecurity_Utility {
 	 */
 	public static function get_server_type() {
 		if (!isset($_SERVER['SERVER_SOFTWARE'])) {
-			return -1;
+			return apply_filters('aios_server_type', -1);
 		}
 
 		// Figure out what server they're using.
 		$server_software = strtolower(sanitize_text_field(wp_unslash(($_SERVER['SERVER_SOFTWARE']))));
 
 		if (strstr($server_software, 'apache')) {
-			return 'apache';
+			$server_type = 'apache';
 		} elseif (strstr($server_software, 'nginx')) {
-			return 'nginx';
+			$server_type = 'nginx';
 		} elseif (strstr($server_software, 'litespeed')) {
-			return 'litespeed';
+			$server_type = 'litespeed';
 		} elseif (strstr($server_software, 'iis')) {
-			return 'iis';
+			$server_type = 'iis';
+		} elseif (strstr($server_software, 'lighttpd')) {
+			$server_type = 'lighttpd';
 		} else { // Unsupported server
-			return -1;
+			$server_type = -1;
 		}
+
+		return apply_filters('aios_server_type', $server_type);
 	}
 
 	/**
@@ -773,7 +779,7 @@ class AIOWPSecurity_Utility {
 	 *
 	 * @return boolean True if the incompatible TFA premium plugin version active, otherwise false.
 	 */
-	public static function is_incopatible_tfa_premium_version_active() {
+	public static function is_incompatible_tfa_premium_version_active() {
 		if (!function_exists('get_plugins')) {
 			require_once(ABSPATH.'/wp-admin/includes/plugin.php');
 		}

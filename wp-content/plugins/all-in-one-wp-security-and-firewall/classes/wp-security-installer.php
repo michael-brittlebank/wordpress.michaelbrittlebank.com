@@ -45,7 +45,7 @@ class AIOWPSecurity_Installer {
 			 * otherwise it will contain the original blog id and not the current id we need.
 			 *
 			 */
-			$lockdown_tbl_name = $wpdb->prefix.'aiowps_login_lockdown';
+			$lockout_tbl_name = $wpdb->prefix.'aiowps_login_lockdown';
 			$failed_login_tbl_name = $wpdb->prefix.'aiowps_failed_logins';
 			$user_login_activity_tbl_name = $wpdb->prefix.'aiowps_login_activity';
 			$aiowps_global_meta_tbl_name = $wpdb->prefix.'aiowps_global_meta';
@@ -53,7 +53,7 @@ class AIOWPSecurity_Installer {
 			$perm_block_tbl_name = $wpdb->prefix.'aiowps_permanent_block';
 			
 		} else {
-			$lockdown_tbl_name = AIOWPSEC_TBL_LOGIN_LOCKDOWN;
+			$lockout_tbl_name = AIOWPSEC_TBL_LOGIN_LOCKOUT;
 			$failed_login_tbl_name = AIOWPSEC_TBL_FAILED_LOGINS;
 			$user_login_activity_tbl_name = AIOWPSEC_TBL_USER_LOGIN_ACTIVITY;
 			$aiowps_global_meta_tbl_name = AIOWPSEC_TBL_GLOBAL_META_DATA;
@@ -73,7 +73,7 @@ class AIOWPSecurity_Installer {
 			$charset_collate .= " COLLATE $wpdb->collate";
 		}
 
-		$ld_tbl_sql = "CREATE TABLE " . $lockdown_tbl_name . " (
+		$ld_tbl_sql = "CREATE TABLE " . $lockout_tbl_name . " (
 		id bigint(20) NOT NULL AUTO_INCREMENT,
 		user_id bigint(20) NOT NULL,
 		user_login VARCHAR(150) NOT NULL,
@@ -201,35 +201,58 @@ class AIOWPSecurity_Installer {
 		}
 	}
 
+	/**
+	 * Restores original config settings and .htaccess file rules from before the last deactivation.
+	 *
+	 * @global AIO_WP_Security $aio_wp_security
+	 *
+	 * @return Boolean - whether or not the restoration succeeded
+	 */
 	public static function reactivation_tasks() {
 		global $aio_wp_security;
-		$temp_cfgs = get_option('aiowps_temp_configs');
-		if (false !== $temp_cfgs) {
-			//Case where previously installed plugin was reactivated
-			//Let's copy the original configs back to the options table
-			$updated = update_option('aio_wp_security_configs', $temp_cfgs);
-			if (!$updated) {
-				$aio_wp_security->debug_logger->log_debug("AIOWPSecurity_Installer::reactivation_tasks() - Update of option settings failed upon plugin activation!", 4);
-			}
-			$aio_wp_security->configs->configs = $temp_cfgs; //copy the original configs to memory
-			//Now let's write any rules to the .htaccess file if necessary
-			$res = AIOWPSecurity_Utility_Htaccess::write_to_htaccess();
 
-			if (!$res) {
-				$aio_wp_security->debug_logger->log_debug("AIOWPSecurity_Installer::reactivation_tasks() - Could not write to the .htaccess file. Please check the file permissions.", 4);
+		$temp_configs = get_option('aiowps_temp_configs');
+
+		if (false !== $temp_configs) {
+			// Case where previously installed plugin is reactivated
+			// Let's copy the original configs back to the options table
+			$updated = update_option('aio_wp_security_configs', $temp_configs);
+
+			if (!$updated) {
+				if (get_option('aio_wp_security_configs') === $temp_configs) {
+					delete_option('aiowps_temp_configs');
+				}
+
+				$aio_wp_security->debug_logger->log_debug('AIOWPSecurity_Installer::reactivation_tasks() - Restoration of original config settings failed or nothing changed.', 4);
 				return false;
 			}
+
+			// Load the restored config settings to the configs object
+			$aio_wp_security->configs->load_config();
+
+			if (is_main_site() && is_super_admin()) {
+				// Now let's write any rules to the .htaccess file if necessary
+				$result = AIOWPSecurity_Utility_Htaccess::write_to_htaccess();
+				AIOWPSecurity_Configure_Settings::reapply_firewall_configs();
+
+				if (!$result) {
+					$aio_wp_security->debug_logger->log_debug('AIOWPSecurity_Installer::reactivation_tasks() - Could not write to the .htaccess file. Please check the file permissions.', 4);
+					return false;
+				}
+			}
+
 			delete_option('aiowps_temp_configs');
+
 			return true;
 		} else {
-			$aio_wp_security->debug_logger->log_debug("AIOWPSecurity_Deactivation::run_deactivation_tasks() - Original config settings not found!", 4);
+			$aio_wp_security->debug_logger->log_debug('AIOWPSecurity_Installer::reactivation_tasks() - Original config settings not found.', 4);
 			return false;
 		}
 	}
-	
+
 	/**
-	 * Setup aiowps cron tasks
-	 * Handles both single and multi-site (NW activation) cases
+	 * Setup AIOS cron tasks.
+	 * Handles both single and multi-site (NW activation) cases.
 	 *
 	 * @global type $wpdb
 	 * @param Boolean $networkwide Whether set cronjob networkwide or normal site.
@@ -254,9 +277,9 @@ class AIOWPSecurity_Installer {
 			do_action('aiowps_activation_complete');
 		}
 	}
-	
+
 	/**
-	 * Helper function for scheduling aiowps cron events.
+	 * Helper function for scheduling AIOS cron events.
 	 *
 	 * @return Void
 	 */

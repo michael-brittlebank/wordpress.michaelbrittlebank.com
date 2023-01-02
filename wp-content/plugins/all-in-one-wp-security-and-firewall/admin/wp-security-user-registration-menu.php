@@ -24,9 +24,9 @@ class AIOWPSecurity_User_Registration_Menu extends AIOWPSecurity_Admin_Menu
     function set_menu_tabs() 
     {
         $this->menu_tabs = array(
-        'tab1' => __('Manual Approval', 'all-in-one-wp-security-and-firewall'),
-        'tab2' => __('Registration Captcha', 'all-in-one-wp-security-and-firewall'),
-        'tab3' => __('Registration Honeypot', 'all-in-one-wp-security-and-firewall'),
+        'tab1' => __('Manual approval', 'all-in-one-wp-security-and-firewall'),
+		'tab2' => __('Registration CAPTCHA', 'all-in-one-wp-security-and-firewall'),
+        'tab3' => __('Registration honeypot', 'all-in-one-wp-security-and-firewall'),
         );
     }
 
@@ -52,7 +52,7 @@ class AIOWPSecurity_User_Registration_Menu extends AIOWPSecurity_Admin_Menu
     function render_menu_page() 
     {
         echo '<div class="wrap">';
-        echo '<h2>'.__('User Registration','all-in-one-wp-security-and-firewall').'</h2>';//Interface title
+        echo '<h2>'.__('User registration','all-in-one-wp-security-and-firewall').'</h2>';//Interface title
         $this->set_menu_tabs();
         $tab = $this->get_current_tab();
         $this->render_menu_tabs();
@@ -112,17 +112,17 @@ class AIOWPSecurity_User_Registration_Menu extends AIOWPSecurity_Admin_Menu
 
 
         ?>
-        <h2><?php _e('User Registration Settings', 'all-in-one-wp-security-and-firewall')?></h2>
+		<h2><?php _e('User registration settings', 'all-in-one-wp-security-and-firewall'); ?></h2>
         <form action="" method="POST">
-        <?php wp_nonce_field('aiowpsec-user-registration-settings-nonce'); ?>            
+		<?php wp_nonce_field('aiowpsec-user-registration-settings-nonce'); ?>
         <div class="postbox">
-        <h3 class="hndle"><label for="title"><?php _e('Manually Approve New Registrations', 'all-in-one-wp-security-and-firewall'); ?></label></h3>
+		<h3 class="hndle"><label for="title"><?php _e('Manually approve new registrations', 'all-in-one-wp-security-and-firewall'); ?></label></h3>
         <div class="inside">
         <div class="aio_blue_box">
             <?php
-            echo '<p>'.__('If your site allows people to create their own accounts via the WordPress registration form, then you can minimize SPAM or bogus registrations by manually approving each registration.', 'all-in-one-wp-security-and-firewall').
-            '<br />'.__('This feature will automatically set a newly registered account to "pending" until the administrator activates it. Therefore undesirable registrants will be unable to log in without your express approval.', 'all-in-one-wp-security-and-firewall').
-            '<br />'.__('You can view all accounts which have been newly registered via the handy table below and you can also perform bulk activation/deactivation/deletion tasks on each account.', 'all-in-one-wp-security-and-firewall').'</p>';
+			echo '<p>'.__('If your site allows people to create their own accounts via the WordPress registration form, then you can minimize spam or bogus registrations by manually approving each registration.', 'all-in-one-wp-security-and-firewall').
+			'<br>'.__('This feature will automatically set a newly registered account to "pending" until the administrator activates it. Therefore undesirable registrants will be unable to log in without your express approval.', 'all-in-one-wp-security-and-firewall').
+			'<br>'.__('You can view all accounts which have been newly registered via the handy table below and you can also perform bulk activation/deactivation/deletion tasks on each account.', 'all-in-one-wp-security-and-firewall').'</p>';
             ?>
         </div>
         <?php
@@ -139,7 +139,7 @@ class AIOWPSecurity_User_Registration_Menu extends AIOWPSecurity_Admin_Menu
         ?>
         <table class="form-table">
             <tr valign="top">
-                <th scope="row"><?php _e('Enable manual approval of new registrations', 'all-in-one-wp-security-and-firewall')?>:</th>
+				<th scope="row"><?php _e('Enable manual approval of new registrations', 'all-in-one-wp-security-and-firewall'); ?>:</th>
                 <td>
                 <input id="aiowps_enable_manual_registration_approval" name="aiowps_enable_manual_registration_approval" type="checkbox"<?php if($aio_wp_security->configs->get_value('aiowps_enable_manual_registration_approval')=='1') echo ' checked="checked"'; ?> value="1"/>
                 <label for="aiowps_enable_manual_registration_approval" class="description"><?php _e('Check this if you want to automatically disable all newly registered accounts so that you can approve them manually.', 'all-in-one-wp-security-and-firewall'); ?></label>
@@ -147,11 +147,11 @@ class AIOWPSecurity_User_Registration_Menu extends AIOWPSecurity_Admin_Menu
             </tr>            
         </table>
         <?php } //End if statement ?>
-        <input type="submit" name="aiowps_save_user_registration_settings" value="<?php _e('Save Settings', 'all-in-one-wp-security-and-firewall')?>" class="button-primary" />
+		<input type="submit" name="aiowps_save_user_registration_settings" value="<?php _e('Save settings', 'all-in-one-wp-security-and-firewall'); ?>" class="button-primary">
         </div></div>
         </form>
         <div class="postbox">
-        <h3 class="hndle"><label for="title"><?php _e('Approve Registered Users', 'all-in-one-wp-security-and-firewall'); ?></label></h3>
+		<h3 class="hndle"><label for="title"><?php _e('Approve registered users', 'all-in-one-wp-security-and-firewall'); ?></label></h3>
         <div class="inside">
             <?php
             //Fetch, prepare, sort, and filter our data...
@@ -184,13 +184,13 @@ class AIOWPSecurity_User_Registration_Menu extends AIOWPSecurity_Admin_Menu
             $nonce=$_REQUEST['_wpnonce'];
             if (!wp_verify_nonce($nonce, 'aiowpsec-registration-captcha-settings-nonce'))
             {
-                $aio_wp_security->debug_logger->log_debug("Nonce check failed on registration captcha settings save!",4);
-                die("Nonce check failed on registration captcha settings save!");
+				$aio_wp_security->debug_logger->log_debug('Nonce check failed on registration CAPTCHA settings save.', 4);
+				die('Nonce check failed on registration CAPTCHA settings save.');
             }
 
 
             //Save all the form values to the options
-            $random_20_digit_string = AIOWPSecurity_Utility::generate_alpha_numeric_random_string(20); //Generate random 20 char string for use during captcha encode/decode
+			$random_20_digit_string = AIOWPSecurity_Utility::generate_alpha_numeric_random_string(20); // Generate random 20 char string for use during CAPTCHA encode/decode
             $aio_wp_security->configs->set_value('aiowps_captcha_secret_key', $random_20_digit_string);
             $aio_wp_security->configs->set_value('aiowps_enable_registration_page_captcha',isset($_POST["aiowps_enable_registration_page_captcha"])?'1':'');
             $aio_wp_security->configs->save_config();
@@ -203,22 +203,21 @@ class AIOWPSecurity_User_Registration_Menu extends AIOWPSecurity_Admin_Menu
         ?>
         <div class="aio_blue_box">
             <?php
-            echo '<p>'.__('This feature allows you to add a captcha form on the WordPress registration page.', 'all-in-one-wp-security-and-firewall').'
-            <br />'.__('Users who attempt to register will also need to enter the answer to a simple mathematical question - if they enter the wrong answer, the plugin will not allow them to register.', 'all-in-one-wp-security-and-firewall').'
-            <br />'.__('Therefore, adding a captcha form on the registration page is another effective yet simple SPAM registration prevention technique.', 'all-in-one-wp-security-and-firewall').'
-            </p>';
+			echo '<p>'.__('This feature allows you to add a CAPTCHA form on the WordPress registration page.', 'all-in-one-wp-security-and-firewall').
+			'<br>'.__('Users who attempt to register will also need to enter the answer to a simple mathematical question - if they enter the wrong answer, the plugin will not allow them to register.', 'all-in-one-wp-security-and-firewall').
+			'<br>'.__('Therefore, adding a CAPTCHA form on the registration page is another effective yet simple spam registration prevention technique.', 'all-in-one-wp-security-and-firewall').'</p>';
             ?>
         </div>
         <div class="postbox">
-        <h3 class="hndle"><label for="title"><?php _e('Registration Page Captcha Settings', 'all-in-one-wp-security-and-firewall'); ?></label></h3>
+		<h3 class="hndle"><label for="title"><?php _e('Registration page CAPTCHA settings', 'all-in-one-wp-security-and-firewall'); ?></label></h3>
         <div class="inside">
         <?php
-        if (is_multisite() && get_current_blog_id() != 1)
+        if (!is_main_site())
         {
             //Hide config settings if MS and not main site
             $special_msg = '<div class="aio_yellow_box">';
             $special_msg .= '<p>'.__('The core default behaviour for WordPress Multi Site regarding user registration is that all users are registered via the main site.','all-in-one-wp-security-and-firewall').'</p>';
-            $special_msg .= '<p>'.__('Therefore, if you would like to add a captcha form to the registration page for a Multi Site, please go to "Registration Captcha" settings on the main site.','all-in-one-wp-security-and-firewall').'</p>';
+			$special_msg .= '<p>'.__('Therefore, if you would like to add a CAPTCHA form to the registration page for a Multi Site, please go to "Registration CAPTCHA" settings on the main site.', 'all-in-one-wp-security-and-firewall').'</p>';
             $special_msg .= '</div>';
             echo $special_msg;
         }
@@ -233,14 +232,14 @@ class AIOWPSecurity_User_Registration_Menu extends AIOWPSecurity_Admin_Menu
         <?php wp_nonce_field('aiowpsec-registration-captcha-settings-nonce'); ?>
             <table class="form-table">
                 <tr valign="top">
-                    <th scope="row"><?php _e('Enable Captcha On Registration Page', 'all-in-one-wp-security-and-firewall')?>:</th>
+					<th scope="row"><?php _e('Enable CAPTCHA on registration page', 'all-in-one-wp-security-and-firewall'); ?>:</th>
                     <td>
                     <input id="aiowps_enable_registration_page_captcha" name="aiowps_enable_registration_page_captcha" type="checkbox"<?php if($aio_wp_security->configs->get_value('aiowps_enable_registration_page_captcha')=='1') echo ' checked="checked"'; ?> value="1"/>
-                    <label for="aiowps_enable_registration_page_captcha" class="description"><?php _e('Check this if you want to insert a captcha form on the WordPress user registration page (if you allow user registration).', 'all-in-one-wp-security-and-firewall'); ?></label>
+					<label for="aiowps_enable_registration_page_captcha" class="description"><?php _e('Check this if you want to insert a CAPTCHA form on the WordPress user registration page (if you allow user registration).', 'all-in-one-wp-security-and-firewall'); ?></label>
                     </td>
                 </tr>            
             </table>
-            <input type="submit" name="aiowpsec_save_registration_captcha_settings" value="<?php _e('Save Settings', 'all-in-one-wp-security-and-firewall')?>" class="button-primary" />
+			<input type="submit" name="aiowpsec_save_registration_captcha_settings" value="<?php _e('Save settings', 'all-in-one-wp-security-and-firewall'); ?>" class="button-primary">
             </form>
             </div></div>        
         <?php
@@ -283,7 +282,7 @@ class AIOWPSecurity_User_Registration_Menu extends AIOWPSecurity_Admin_Menu
         </div>
         <form action="" method="POST">
         <div class="postbox">
-        <h3 class="hndle"><label for="title"><?php _e('Registration Form Honeypot Settings', 'all-in-one-wp-security-and-firewall'); ?></label></h3>
+		<h3 class="hndle"><label for="title"><?php _e('Registration form honeypot settings', 'all-in-one-wp-security-and-firewall'); ?></label></h3>
         <div class="inside">
         <?php
         //Display security info badge
@@ -294,7 +293,7 @@ class AIOWPSecurity_User_Registration_Menu extends AIOWPSecurity_Admin_Menu
         <?php wp_nonce_field('aiowpsec-registration-honeypot-settings-nonce'); ?>
         <table class="form-table">
             <tr valign="top">
-                <th scope="row"><?php _e('Enable Honeypot On Registration Page', 'all-in-one-wp-security-and-firewall')?>:</th>
+				<th scope="row"><?php _e('Enable honeypot on registration page', 'all-in-one-wp-security-and-firewall'); ?>:</th>
                 <td>
                 <input id="aiowps_enable_registration_honeypot" name="aiowps_enable_registration_honeypot" type="checkbox"<?php if($aio_wp_security->configs->get_value('aiowps_enable_registration_honeypot')=='1') echo ' checked="checked"'; ?> value="1"/>
                 <label for="aiowps_enable_registration_honeypot" class="description"><?php _e('Check this if you want to enable the honeypot feature for the registration page', 'all-in-one-wp-security-and-firewall'); ?></label>
@@ -303,7 +302,7 @@ class AIOWPSecurity_User_Registration_Menu extends AIOWPSecurity_Admin_Menu
         </table>
         </div></div>        
      
-        <input type="submit" name="aiowpsec_save_registration_honeypot_settings" value="<?php _e('Save Settings', 'all-in-one-wp-security-and-firewall')?>" class="button-primary" />
+		<input type="submit" name="aiowpsec_save_registration_honeypot_settings" value="<?php _e('Save settings', 'all-in-one-wp-security-and-firewall'); ?>" class="button-primary">
         </form>
         <?php
     }   

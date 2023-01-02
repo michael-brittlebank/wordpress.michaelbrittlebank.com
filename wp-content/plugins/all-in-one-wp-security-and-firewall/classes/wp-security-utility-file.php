@@ -470,6 +470,8 @@ class AIOWPSecurity_Utility_File {
 	 * @return string
 	 */
 	public static function get_home_path() {
+		// Make the scope of $wp_file_descriptions global, so that when wp-admin/includes/file.php assigns to it, it is adjusting the global variable as intended
+		global $wp_file_descriptions; // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 		if (!function_exists('get_home_path')) require_once(ABSPATH. '/wp-admin/includes/file.php');
 		return wp_normalize_path(get_home_path());
 	}

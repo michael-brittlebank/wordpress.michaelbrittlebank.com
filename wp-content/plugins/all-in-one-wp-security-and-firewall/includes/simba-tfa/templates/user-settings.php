@@ -3,7 +3,7 @@
 if (!defined('ABSPATH')) die('Access denied.');
 
 global $current_user;
-$totp_controller = $simba_tfa->get_totp_controller();
+$totp_controller = $simba_tfa->get_controller('totp');
 
 ?>
 <style>

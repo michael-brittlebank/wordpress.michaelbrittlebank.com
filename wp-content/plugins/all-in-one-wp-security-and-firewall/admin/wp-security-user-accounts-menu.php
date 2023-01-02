@@ -29,8 +29,8 @@ class AIOWPSecurity_User_Accounts_Menu extends AIOWPSecurity_Admin_Menu
     function set_menu_tabs() 
     {
         $this->menu_tabs = array(
-        'tab1' => __('WP Username', 'all-in-one-wp-security-and-firewall'),
-        'tab2' => __('Display Name', 'all-in-one-wp-security-and-firewall'),
+        'tab1' => __('WP username', 'all-in-one-wp-security-and-firewall'),
+        'tab2' => __('Display name', 'all-in-one-wp-security-and-firewall'),
         'tab3' => __('Password', 'all-in-one-wp-security-and-firewall')
         );
     }
@@ -57,7 +57,7 @@ class AIOWPSecurity_User_Accounts_Menu extends AIOWPSecurity_Admin_Menu
     function render_menu_page() 
     {
         echo '<div class="wrap">';
-        echo '<h2>'.__('User Accounts','all-in-one-wp-security-and-firewall').'</h2>';//Interface title
+        echo '<h2>'.__('User accounts','all-in-one-wp-security-and-firewall').'</h2>';//Interface title
         $this->set_menu_tabs();
         $tab = $this->get_current_tab();
         $this->render_menu_tabs();
@@ -79,11 +79,11 @@ class AIOWPSecurity_User_Accounts_Menu extends AIOWPSecurity_Admin_Menu
             echo $this->validate_change_username_form();
         }
         ?>
-        <h2><?php _e('Admin User Security', 'all-in-one-wp-security-and-firewall')?></h2>
+		<h2><?php _e('Admin user security', 'all-in-one-wp-security-and-firewall'); ?></h2>
         <div class="aio_blue_box">
             <?php
             echo '<p>'.__('By default, WordPress sets the administrator username to "admin" at installation time.', 'all-in-one-wp-security-and-firewall').'
-            <br />'.__('A lot of hackers try to take advantage of this information by attempting "Brute Force Login Attacks" where they repeatedly try to guess the password by using "admin" for username.', 'all-in-one-wp-security-and-firewall').'
+            <br />'.__('A lot of hackers try to take advantage of this information by attempting "Brute force login attacks" where they repeatedly try to guess the password by using "admin" for username.', 'all-in-one-wp-security-and-firewall').'
             <br />'.__('From a security perspective, changing the default "admin" user name is one of the first and smartest things you should do on your site.', 'all-in-one-wp-security-and-firewall').'
             <br /><br />'.__('This feature will allow you to change your default "admin" user name to a more secure name of your choosing.', 'all-in-one-wp-security-and-firewall').'
             </p>';
@@ -92,7 +92,7 @@ class AIOWPSecurity_User_Accounts_Menu extends AIOWPSecurity_Admin_Menu
         
         <?php
         //display a list of all administrator accounts for this site
-        $postbox_title = __('List of Administrator Accounts', 'all-in-one-wp-security-and-firewall');
+		$postbox_title = __('List of administrator accounts', 'all-in-one-wp-security-and-firewall');
         if (is_multisite()) { //Multi-site: get admin accounts for current site
           $blog_id = get_current_blog_id();
           $this->postbox($postbox_title, $this->get_all_admin_accounts($blog_id));
@@ -101,7 +101,7 @@ class AIOWPSecurity_User_Accounts_Menu extends AIOWPSecurity_Admin_Menu
         }
         ?>
         <div class="postbox">
-        <h3 class="hndle"><label for="title"><?php _e('Change Admin Username', 'all-in-one-wp-security-and-firewall')?></label></h3>
+		<h3 class="hndle"><label for="title"><?php _e('Change admin username', 'all-in-one-wp-security-and-firewall'); ?></label></h3>
         <div class="inside">
         <?php
         global $aiowps_feature_mgr;
@@ -115,13 +115,13 @@ class AIOWPSecurity_User_Accounts_Menu extends AIOWPSecurity_Admin_Menu
             <?php wp_nonce_field('aiowpsec-change-admin-nonce'); ?>
             <table class="form-table">
                 <tr valign="top">
-                    <th scope="row"><label for="aiowps_new_user_name"><?php _e('New Admin Username', 'all-in-one-wp-security-and-firewall')?>:</label></th>
+					<th scope="row"><label for="aiowps_new_user_name"><?php _e('New admin username', 'all-in-one-wp-security-and-firewall'); ?>:</label></th>
                     <td><input type="text" size="16" id="aiowps_new_user_name" name="aiowps_new_user_name" />
                     <p class="description"><?php _e('Choose a new username for admin.', 'all-in-one-wp-security-and-firewall'); ?></p>
                     </td> 
                 </tr>
             </table>
-            <input type="submit" name="aiowps_change_admin_username" value="<?php _e('Change Username', 'all-in-one-wp-security-and-firewall')?>" class="button-primary" />
+			<input type="submit" name="aiowps_change_admin_username" value="<?php _e('Change username', 'all-in-one-wp-security-and-firewall'); ?>" class="button-primary">
             <div class="aio_spacer_15"></div>
             <p class="description"><?php _e('NOTE: If you are currently logged in as "admin" you will be automatically logged out after changing your username and will be required to log back in.', 'all-in-one-wp-security-and-firewall')?></p>
             </form>          
@@ -145,7 +145,7 @@ class AIOWPSecurity_User_Accounts_Menu extends AIOWPSecurity_Admin_Menu
     function render_tab2()
     {
         ?>
-            <h2><?php _e('Display Name Security', 'all-in-one-wp-security-and-firewall')?></h2>
+			<h2><?php _e('Display name security', 'all-in-one-wp-security-and-firewall'); ?></h2>
             <div class="aio_blue_box">
                 <?php
                 echo '<p>'.__('When you submit a post or answer a comment, WordPress will usually display your "nickname".', 'all-in-one-wp-security-and-firewall').'
@@ -157,7 +157,7 @@ class AIOWPSecurity_User_Accounts_Menu extends AIOWPSecurity_Admin_Menu
             </div>
 
             <div class="postbox">
-            <h3 class="hndle"><label for="title"><?php _e('Modify Accounts With Identical Login Name & Display Name', 'all-in-one-wp-security-and-firewall')?></label></h3>
+			<h3 class="hndle"><label for="title"><?php _e('Modify accounts with identical login name and display name', 'all-in-one-wp-security-and-firewall'); ?></label></h3>
             <div class="inside">
             <?php
             global $aiowps_feature_mgr;
@@ -194,7 +194,7 @@ class AIOWPSecurity_User_Accounts_Menu extends AIOWPSecurity_Admin_Menu
     function render_tab3()
     {
         ?>
-            <h2><?php _e('Password Tool', 'all-in-one-wp-security-and-firewall')?></h2>
+			<h2><?php _e('Password tool', 'all-in-one-wp-security-and-firewall'); ?></h2>
             <div class="aio_blue_box">
                 <?php
                 echo '<p>'.__('Poor password selection is one of the most common weak points of many sites and is usually the first thing a hacker will try to exploit when attempting to break into your site.', 'all-in-one-wp-security-and-firewall').'</p>'.
@@ -205,7 +205,7 @@ class AIOWPSecurity_User_Accounts_Menu extends AIOWPSecurity_Admin_Menu
             </div>
 
             <div class="postbox">
-            <h3 class="hndle"><label for="title"><?php _e('Password Strength Tool', 'all-in-one-wp-security-and-firewall');?></label></h3>
+			<h3 class="hndle"><label for="title"><?php _e('Password strength tool', 'all-in-one-wp-security-and-firewall'); ?></label></h3>
             <div class="inside">
                 <div class="aio_grey_box aio_half_width"><p><?php _e('This password tool uses an algorithm which calculates how long it would take for your password to be cracked using the computing power of an off-the-shelf current model desktop PC with high end processor, graphics card and appropriate password cracking software.', 'all-in-one-wp-security-and-firewall');?></p></div>
                 <div class="aiowps_password_tool_field">
@@ -234,8 +234,8 @@ class AIOWPSecurity_User_Accounts_Menu extends AIOWPSecurity_Admin_Menu
         $nonce=$_REQUEST['_wpnonce'];
         if (!wp_verify_nonce($nonce, 'aiowpsec-change-admin-nonce'))
         {
-            $aio_wp_security->debug_logger->log_debug("Nonce check failed on admin username change operation!",4);
-            die(__('Nonce check failed on admin username change operation!','all-in-one-wp-security-and-firewall'));
+            $aio_wp_security->debug_logger->log_debug("Nonce check failed on admin username change operation.", 4);
+            die('Nonce check failed on admin username change operation.');
         }
         if (!empty($_POST['aiowps_new_user_name'])) {
             $new_username = sanitize_text_field($_POST['aiowps_new_user_name']);
@@ -299,7 +299,7 @@ class AIOWPSecurity_User_Accounts_Menu extends AIOWPSecurity_Admin_Menu
             $return_msg = '<div id="message" class="error"><p>' . $errors . '</p></div>';
         } 
         else{
-            $return_msg = '<div id="message" class="updated fade"><p>'.__('Username Successfully Changed!', 'all-in-one-wp-security-and-firewall').'</p></div>';
+            $return_msg = '<div id="message" class="updated fade"><p>'.__('Username successfully changed.', 'all-in-one-wp-security-and-firewall').'</p></div>';
         }
         return $return_msg;
     }
@@ -319,7 +319,7 @@ class AIOWPSecurity_User_Accounts_Menu extends AIOWPSecurity_Admin_Menu
         $account_output = "";
         if ($admin_users != NULL) {
             $account_output .= '<table>';
-            $account_output .= '<tr><th>'.__('Account Login Name', 'all-in-one-wp-security-and-firewall').'</th></tr>';
+			$account_output .= '<tr><th>'.__('Account login name', 'all-in-one-wp-security-and-firewall').'</th></tr>';
             foreach ($admin_users as $entry) {
                 $account_output .= '<tr>';
                 if (strtolower($entry->user_login) == 'admin') {
@@ -328,7 +328,7 @@ class AIOWPSecurity_User_Accounts_Menu extends AIOWPSecurity_Admin_Menu
                     $account_output .= '<td>'.$entry->user_login.'</td>';
                 }
                 $user_acct_edit_link = admin_url('user-edit.php?user_id=' . $entry->ID);
-                $account_output .= '<td><a href="'.$user_acct_edit_link.'" target="_blank">'.__('Edit User', 'all-in-one-wp-security-and-firewall').'</a></td>';
+				$account_output .= '<td><a href="'.$user_acct_edit_link.'" target="_blank">'.__('Edit user', 'all-in-one-wp-security-and-firewall').'</a></td>';
                 $account_output .= '</tr>';
             }
             $account_output .= '</table>';

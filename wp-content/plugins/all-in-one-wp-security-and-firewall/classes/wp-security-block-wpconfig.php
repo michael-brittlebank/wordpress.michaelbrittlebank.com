@@ -20,6 +20,15 @@ class AIOWPSecurity_Block_WpConfig extends AIOWPSecurity_Block_File {
 			);
 		}
 
+		//Take a backup of the file first
+		if (false === AIOWPSecurity_Utility_File::backup_and_rename_wp_config($this->file_path)) {
+			return new WP_Error(
+				'file_unable_to_backup',
+				'We were unable to take a backup of your file.',
+				$this->file_path
+			);
+		}
+
 		$wp_config = file($this->file_path, FILE_IGNORE_NEW_LINES);
 
 		if (false === $wp_config) {
@@ -70,7 +79,7 @@ class AIOWPSecurity_Block_WpConfig extends AIOWPSecurity_Block_File {
 	 * @return string
 	 */
 	protected function get_regex_pattern() {
-		return '#\r?\n// Begin AIOWPSEC Firewall(.*?)// End AIOWPSEC Firewall#is';
+		return '#\r?\n?// Begin AIOWPSEC Firewall(.*?)// End AIOWPSEC Firewall#is';
 	}
 
 	/**

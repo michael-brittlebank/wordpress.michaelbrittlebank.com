@@ -38,7 +38,7 @@ class Rule_Block_Refs_6g extends Rule {
 	 */
 	public function is_satisfied() {
 		
-		if (empty($_SERVER['HTTP_REFERER'])) return !Rule::SATISFIED;
+		if (empty($_SERVER['HTTP_REFERER'])) return Rule::NOT_SATISFIED;
 
 		//Patterns to match against
 		$patterns = array(

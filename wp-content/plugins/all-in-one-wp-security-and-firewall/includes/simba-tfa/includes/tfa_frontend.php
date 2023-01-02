@@ -23,7 +23,7 @@ class Simba_TFA_Frontend {
 	 * @uses die()
 	 */
 	public function ajax() {
-		$totp_controller = $this->mother->get_totp_controller();
+		$totp_controller = $this->mother->get_controller('totp');
 		global $current_user;
 		
 		$return_array = array();
@@ -103,7 +103,7 @@ class Simba_TFA_Frontend {
 	 */
 	public function tfa_fetch_assort_vars() {
 		global $current_user;
-		$totp_controller = $this->mother->get_totp_controller();
+		$totp_controller = $this->mother->get_controller('totp');
 		
 		$url = preg_replace('/^https?:\/\//i', '', site_url());
 				

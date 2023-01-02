@@ -41,7 +41,36 @@ class Config {
 	 * @return string
 	 */
 	private function get_file_content_prefix() {
-		return "<?php __halt_compiler();\n";
+		$prefix  = "<?php __halt_compiler();\n";
+		$prefix .= "/**\n";
+		$prefix .= " * This file was created by All In One Security (AIOS) plugin.\n";
+		$prefix .= " * The file is required for storing and retrieving your firewall's settings.\n";
+		$prefix .= " */\n";
+		return $prefix;
+	}
+
+	/**
+	 * Update the config file with the new prefix whenever the prefix changes.
+	 *
+	 * @return void
+	 */
+	public function update_prefix() {
+
+		$valid_prefix   = $this->get_file_content_prefix();
+		$current_prefix = file_get_contents($this->path, false, null, 0, strlen($valid_prefix));
+
+		if ($current_prefix === $valid_prefix) return; // prefix is valid
+
+		$contents = file_get_contents($this->path);
+
+		$matches = array();
+		if (preg_match('/\{.*\}/', $contents, $matches)) {
+			//update settings
+			file_put_contents($this->path, $valid_prefix . $matches[0]);
+		} else {
+			//reset settings
+			file_put_contents($this->path, $valid_prefix . json_encode(array()));
+		}
 	}
 
 	/**
