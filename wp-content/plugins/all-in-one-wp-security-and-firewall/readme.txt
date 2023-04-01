@@ -1,11 +1,11 @@
 === All-In-One Security (AIOS) – Security and Firewall ===
 Contributors: DavidAnderson, pmbaldha, Tips and Tricks HQ, wpsolutions, Peter Petreski, Ruhul Amin, mbrsolution
 Donate link: https://david.dw-perspective.org.uk/donate
-Tags: security, malware scanning, two factor authentication, firewall, antivirus
+Tags: security, malware scanning, two factor authentication, firewall, login security
 Requires PHP: 5.6
 Requires at least: 5.0
-Tested up to: 6.1
-Stable tag: 5.1.4
+Tested up to: 6.2
+Stable tag: 5.1.7
 License: GPLv3 or later
 
 Protect your website investment with All-In-One Security (AIOS) – a comprehensive and easy to use security plugin designed especially for WordPress. Featuring login security tools, a cutting-edge firewall and much more.
@@ -31,7 +31,7 @@ Our **Web Application Firewall** gives you automatic protection from security th
 https://www.youtube.com/watch?v=CJvCTlVtazA
 
 #### Still on the fence?
-* We’re currently the **Only WordPress Security Plugin with a 5 Star user** rating across more than 1 million installs.
+* We’re currently the **Only WordPress Security Plugin with a 5 Star user rating** across more than 1 million installs.
 * Our security team maintains a list of known exploits, actively building protections against them and releasing these as new firewall rules to free and paying customers, at the same time.
 * We’re already the world’s number one for backups, so you know you can trust us with the security of your website too.
 
@@ -44,7 +44,7 @@ Protect against brute-force attacks and keep bots at bay. All-In-One Security ta
 * **Login lockout:** External users making multiple login attempts can be locked out for a configured period of time. You can also lockout users with invalid usernames. See a list of all locked out users and unlock with one click.
 * **Reporting:**  All-In-One Security provides a wealth of information about website users. View activity by username, IP address, login and logout dates and times. See a list of users currently logged in, and a list of all failed login attempts.
 * **Force logouts:** Ensure users don’t stay logged in indefinitely. With All-In-One Security you can force logouts for all users after a configurable amount of time.
-* **Robot verification:** For additional security and to prevent spam registrations, implement Google reCAPTCHA, plain maths CAPTCHA or a honeypot to registration pages, or enable manual approval of user accounts instead.
+* **Robot verification:** For additional security and to prevent spam registrations, implement Cloudflare Turnstile, Google reCAPTCHA, plain maths CAPTCHA or a honeypot to registration pages, or enable manual approval of user accounts instead.
 * **Stops user enumeration:** Prevent external users and bots from fetching user information via author permalink.
 * **Two-factor authentication:** All-In-One Security TFA supports Google Authenticator, Microsoft Authenticator, Authy and many more.
 * **Password strength tool:** Calculates how long it would take for your password to be cracked in the event of a brute force attack.
@@ -72,7 +72,7 @@ Get comprehensive, instant protection with All-In-One Security.
 Eliminate spam, protect your WordPress content, and your search engine rankings with these important security features from All-In-One-Security.
 
 * **Comment SPAM prevention :** Webpages littered with spam comments damage your brand, effect the user experience and impact SEO.
-All-In-One Security stops SPAM at the source by preventing comments that originate from other domains. AIOS automatically and permanently blocks spammers’ IP addresses. Site owners can use reCAPTCHA to reduce comment spam and block malicious users with just one click.
+All-In-One Security stops SPAM at the source by preventing comments that originate from other domains. AIOS automatically and permanently blocks spammers’ IP addresses. Site owners can use Cloudflare Turnstile or Google reCAPTCHA to reduce comment spam and block malicious users with just one click.
 * **iFrame protection:** Preventing other websites from reproducing your content via an ‘iFrame’ is an useful security feature that protects your intellectual property and your website visitors.
 * **Copywriting protection:** Stop users from stealing your content by disabling the right-click, select and copy text function.
 * **Disable RSS and Atom Feeds:** RSS and Atom Feeds can be used by bots to ‘scrape’ your website content and present it as their own. This feature prevents that by disabling RSS and Atom Feeds on your website.
@@ -165,6 +165,50 @@ Go to the settings menu after you activate the plugin and follow the instruction
 
 == Changelog ==
 
+= 5.1.7 - 24/March/2023 =
+
+* FIX: Prevent fatal error when calling get_server_detected_user_ip_address() when the firewall is not setup
+
+= 5.1.6 - 21/March/2023 =
+
+* FEATURE: Added an audit log
+* FEATURE: Add salt postfix option to improve your site's security
+* FEATURE: Shared library that can be used from the firewall.
+* FIX: Rename login slug used like wp-login-RANDOM_SUFFIX showing 404 page issue solved and code clean up for multisite activation.
+* FIX: Divi child theme conflict - Call to undefined function et_builder_get_fonts() in functions.php on line 208 solved.
+* FIX: Captcha settings tab in multisite installation for subsites not showing
+* FIX: Cron reschedule event error for hook aios_15_minutes_cron_event if plugin deactivated or uninstalled
+* TWEAK: Stop user enumeration now shows 403 forbidden error code instead of 500 server error
+* TWEAK: PHP 8.1 warning rawurldecode passing null instead type string is deprecated for block request string 6g rule
+* TWEAK: Code clean up for disable cookie based brute force constant as rule moved to firewall
+* TWEAK: Comment spam IP monitoring page UI
+* TWEAK: Updated seasonal notices
+* TWEAK: Improve internal code structure making way for future improvements
+* TWEAK: Remove mention of the 6g firewall rules being .htaccess based as they are now php based
+* TWEAK: Added new internal function to check user capability and nonces
+* TWEAK: Improve config code with inline saving.
+* TWEAK: Allow audit log to be filtered and exported to CSV
+
+= 5.1.5 - 13/February/2023 =
+
+* FEATURE: Added Cloudflare Turnstile CAPTCHA support
+* FIX: Notices about undefined array key HTTP_USER_AGENT solved.
+* FIX: New v5 features not saved in export file and not properly reset after uninstallation.
+* FIX: File permission change being applied to the last record not selected one. Also, no longer change permissions when they are already tighter than the suggested.
+* FIX: Fatal error 'Call to a member function contains_contents() on null'
+* TWEAK: Removed wrong information about login whitelist being implemented via htaccess.
+* TWEAK: Refactoring settings tasks for WP CLI AIOS premium commands.
+* TWEAK: Page load performance issue due to incompatible tfa premium plugin active check improved.
+* TWEAK: Make sure translation domain is registered before attempting to use it
+* TWEAK: Replaced click with press in text because users could be on mobile etc and not using a mouse.
+* TWEAK: Registration, comment, Buddypress and bbPress admin pages to show notice enable the captcha settings.
+* TWEAK: Improve the UI/UX for the 404 detection tab
+* TWEAK: Improve internal code structure making way for future improvements
+* TWEAK: PHP 8.2 deprecation warning for dynamic properties
+* TWEAK: Remove the unintended ability for directory traversal and lack of escaping when outputting files with the "view system log" feature. This facility is only available to an administrator (who can of course already do anything on the site, so this has no security implications) and allow them to view (the last 50 lines) from any file or list any directory on the system where the web server has read access.
+* FIX: Fatal error 'Call to a member function contains_contents() on null'
+* TWEAK: Firewall gets constants from a single source.
+
 = 5.1.4 - 14/December/2022 =
 
 * FEATURE: Add option to disable RSS and ATOM feeds.
@@ -173,9 +217,10 @@ Go to the settings menu after you activate the plugin and follow the instruction
 = 5.1.3 - 09/December/2022 =
 
 * SECURITY: No longer save settings import files in a publicly accessible folder where they can be potentially indexed by search engines if the administrator does not actually import the settings (which deletes the import file)
+* FEATURE: Implement firewall events system
+* FIX: Protect subsites when firewall is loaded via plugins_hook
 * TWEAK: Improve the UX for uploading import files
 * TWEAK: Add a default CAPTCHA option making way for new CAPTCHAs in the future
-
 
 = 5.1.2 - 07/December/2022 =
 
@@ -193,6 +238,7 @@ Go to the settings menu after you activate the plugin and follow the instruction
 * TWEAK: Allow AIOS management permission to be filtered via `aios_management_permission` filter
 * TWEAK: Make use of is_main_site() function.
 * TWEAK: Copy IP to clipboard when clicking on it at WP Security -> Brute Force -> Login whitelist.
+* TWEAK: Better context detection for the firewall
 
 = 5.1.1 - 16/November/2022 =
 
@@ -1123,4 +1169,4 @@ those who want to enable the basic firewall but do not have "AllowOverride" opti
 - First commit to the WP repository.
 
 == Upgrade Notice ==
-* 5.1.4: Disable RSS and ATOM feeds feature and fixed the issue IP address blacklist manager wasn't working. See changelog for full details. All users are recommended to update.
+* 5.1.7: Resolves an error introduced in 5.1.6. See changelog for full details. A recommended update for all.

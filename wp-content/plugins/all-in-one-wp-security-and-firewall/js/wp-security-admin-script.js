@@ -244,7 +244,12 @@ jQuery(function($) {
 		var selected_captcha = $(this).val();
 		jQuery('.captcha_settings').hide();
 		jQuery('#aios-'+ selected_captcha).show();
-
+		
+		if ('none' === selected_captcha) {
+			jQuery('#aios-captcha-options').hide()
+		} else {
+			jQuery('#aios-captcha-options').show();
+		}
 	});
 	// End of CAPTCHA handling
 

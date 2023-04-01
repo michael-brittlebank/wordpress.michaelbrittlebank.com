@@ -15,9 +15,11 @@
 				</div>
 			<?php } ?>
 			<?php
+				$turnstile_link = '<a href="https://developers.cloudflare.com/turnstile/get-started/" target="_blank">Cloudflare Turnstile</a>';
 				$recaptcha_link = '<a href="https://www.google.com/recaptcha" target="_blank">Google reCAPTCHA v2</a>';
 				echo sprintf('<p>' . __('This feature allows you to add a CAPTCHA form on various WordPress login pages and forms.', 'all-in-one-wp-security-and-firewall') . ' ' . __('Adding a CAPTCHA form on a login page or form is another effective yet simple "Brute Force" prevention technique.', 'all-in-one-wp-security-and-firewall') .
-				'<br>' . __('You have the option of using either %s or a plain maths CAPTCHA form.', 'all-in-one-wp-security-and-firewall') . '</p>', $recaptcha_link);
+				'<br>' . __('You have the option of using either %s, %s or a plain maths CAPTCHA form.', 'all-in-one-wp-security-and-firewall') . '</p>', $turnstile_link, $recaptcha_link);
+				echo sprintf('<p>' . __('We recommend %s as a more privacy-respecting option than %s', 'all-in-one-wp-security-and-firewall') . '</p>', '<a href="https://blog.cloudflare.com/turnstile-private-captcha-alternative/" target="_blank">Cloudflare Turnstile</a>', 'Google reCAPTCHA');
 			?>
 			<table class="form-table">
 				<tr valign="top">
@@ -37,11 +39,28 @@
 					</td>
 				</tr>
 			</table>
+			<div id="aios-cloudflare-turnstile" class="aio_grey_box captcha_settings <?php if ('cloudflare-turnstile' !== $default_captcha) echo 'aio_hidden'; ?>">
+				<table class="form-table">
+					<tr valign="top">
+						<th scope="row"><label for="aiowps_turnstile_site_key"><?php _e('Site key', 'all-in-one-wp-security-and-firewall'); ?>:</label></th>
+						<td><input id="aiowps_turnstile_site_key" type="text" size="50" name="aiowps_turnstile_site_key" value="<?php echo esc_attr($aio_wp_security->configs->get_value('aiowps_turnstile_site_key')); ?>" />
+						</td>
+					</tr>
+					<tr valign="top">
+						<th scope="row">
+							<label for="aiowps_turnstile_secret_key"><?php _e('Secret key', 'all-in-one-wp-security-and-firewall'); ?>:</label>
+						</th>
+						<td>
+							<input id="aiowps_turnstile_secret_key" type="text" size="50" name="aiowps_turnstile_secret_key" value="<?php echo esc_attr(AIOWPSecurity_Utility::mask_string($aio_wp_security->configs->get_value('aiowps_turnstile_secret_key'))); ?>">
+						</td>
+					</tr>
+				</table>
+			</div>
 			<div id="aios-google-recaptcha-v2" class="aio_grey_box captcha_settings <?php if ('google-recaptcha-v2' !== $default_captcha) echo 'aio_hidden'; ?>">
 				<table class="form-table">
 					<tr valign="top">
 						<th scope="row"><label for="aiowps_recaptcha_site_key"><?php _e('Site key', 'all-in-one-wp-security-and-firewall'); ?>:</label></th>
-						<td><input id="aiowps_recaptcha_site_key" type="text" size="50" name="aiowps_recaptcha_site_key" value="<?php echo esc_html($aio_wp_security->configs->get_value('aiowps_recaptcha_site_key')); ?>" />
+						<td><input id="aiowps_recaptcha_site_key" type="text" size="50" name="aiowps_recaptcha_site_key" value="<?php echo esc_attr($aio_wp_security->configs->get_value('aiowps_recaptcha_site_key')); ?>" />
 						</td>
 					</tr>
 					<tr valign="top">
@@ -49,20 +68,20 @@
 							<label for="aiowps_recaptcha_secret_key"><?php _e('Secret key', 'all-in-one-wp-security-and-firewall'); ?>:</label>
 						</th>
 						<td>
-							<input id="aiowps_recaptcha_secret_key" type="text" size="50" name="aiowps_recaptcha_secret_key" value="<?php echo esc_html($secret_key_masked); ?>">
+							<input id="aiowps_recaptcha_secret_key" type="text" size="50" name="aiowps_recaptcha_secret_key" value="<?php echo esc_attr(AIOWPSecurity_Utility::mask_string($aio_wp_security->configs->get_value('aiowps_recaptcha_secret_key'))); ?>">
 						</td>
 					</tr>
 				</table>
 			</div>
 		</div>
 	</div>
+	<div id="aios-captcha-options" <?php if ('none' === $default_captcha) echo 'class="aio_hidden"'; ?>>
 	<div class="postbox">
 		<h3 class="hndle"><label for="title"><?php _e('Login form CAPTCHA settings', 'all-in-one-wp-security-and-firewall'); ?></label></h3>
 		<div class="inside">
 			<?php
-			//Display security info badge
-			global $aiowps_feature_mgr;
-			$aiowps_feature_mgr->output_feature_details_badge("user-login-captcha");
+				// Display security info badge
+				$aiowps_feature_mgr->output_feature_details_badge("user-login-captcha");
 			?>
 			<table class="form-table">
 				<tr valign="top">
@@ -166,5 +185,6 @@
 	<?php
 	}
 	?>
+	</div>
 	<?php submit_button(__('Save settings', 'all-in-one-wp-security-and-firewall'), 'primary', 'aiowpsec_save_captcha_settings');?>
 </form>

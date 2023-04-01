@@ -161,17 +161,17 @@ class AIOWPSecurity_List_Comment_Spammer_IP extends AIOWPSecurity_List_Table {
 				$aio_wp_security->debug_logger->log_debug("Nonce check failed for delete selected blocked IP operation!",4);
 				die(__('Nonce check failed for delete selected blocked IP operation!','all-in-one-wp-security-and-firewall'));
 			}
-			
+
 			//individual entry where "block" link was clicked
 			//Check if the IP address is already in the blacklist. If not add it to the list.
 			if (!in_array($entries, $currently_banned_ips)) {
 				$raw_banned_ip_list .= PHP_EOL.$entries;
 			}
 		}
-		
+
 		//Let's save the selected IP addresses to the blacklist config
-		$aio_wp_security->configs->set_value('aiowps_banned_ip_addresses',$raw_banned_ip_list); //Save the blocked IP address config variable with the newly added addresses
-		$aio_wp_security->configs->save_config();
+		$aio_wp_security->configs->set_value('aiowps_banned_ip_addresses', $raw_banned_ip_list, true); // Save the blocked IP address config variable with the newly added addresses
+
 		AIOWPSecurity_Admin_Menu::show_msg_updated_st(__('The selected IP addresses were saved in the blacklist configuration settings.','all-in-one-wp-security-and-firewall'));
 
 		//Let's check if the Enable Blacklisting flag has been set - If so, we will write the new data to the .htaccess file.

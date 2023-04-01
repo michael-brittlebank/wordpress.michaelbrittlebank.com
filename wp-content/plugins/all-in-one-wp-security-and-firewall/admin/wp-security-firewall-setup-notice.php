@@ -35,11 +35,11 @@ class AIOWPSecurity_Firewall_Setup_Notice {
 
 	/**
 	 * Constants for the different notice types
-	 * 
+	 *
 	 * @var string
 	 */
 	const NOTICE_BOOTSTRAP     = 'manual_bootstrap';
-	const NOTICE_MANUAL 	   = 'manual';
+	const NOTICE_MANUAL        = 'manual';
 	const NOTICE_INSTALLED     = 'success';
 	const NOTICE_DIRECTIVE_SET = 'userini_directive';
 
@@ -50,7 +50,7 @@ class AIOWPSecurity_Firewall_Setup_Notice {
 		$this->bootstrap = AIOWPSecurity_Utility_Firewall::get_bootstrap_file();
 		$this->wpconfig  = AIOWPSecurity_Utility_Firewall::get_wpconfig_file();
 		$this->muplugin  = AIOWPSecurity_Utility_Firewall::get_muplugin_file();
-		AIOWPSecurity_Utility_Firewall::get_firewall_rules_path(); //creates the needed directories for the first time
+		AIOWPSecurity_Utility_Firewall::get_firewall_rules_path(true); // Creates the needed directories for the first time.
 	}
 
 	/**
@@ -176,15 +176,14 @@ class AIOWPSecurity_Firewall_Setup_Notice {
 	}
 
 	/**
-	 * Dismisses the notice 
+	 * Dismisses the notice.
 	 *
 	 * @return void
 	 */
 	private function do_dismiss() {
 		global $aio_wp_security;
 
-		$aio_wp_security->configs->set_value('aios_firewall_dismiss', true);
-		$aio_wp_security->configs->save_config();
+		$aio_wp_security->configs->set_value('aios_firewall_dismiss', true, true);
 	}
 
 	/**
@@ -604,7 +603,7 @@ class AIOWPSecurity_Firewall_Setup_Notice {
             return true;
         }
 
-        if (!current_user_can(apply_filters('aios_management_permission', 'manage_options'))) {
+        if (!AIOWPSecurity_Utility_Permissions::has_manage_cap()) {
 			return true;
 		}
 

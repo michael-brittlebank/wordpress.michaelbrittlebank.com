@@ -41,7 +41,9 @@ class Rule_Block_Request_Strings_6g extends Rule {
 		if (empty($_SERVER['REQUEST_URI'])) return Rule::NOT_SATISFIED;
 		
 		// ensure we get the request uri without the query string
-		$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+		$uri = (string) parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+		
+		if ('' == $uri) return Rule::NOT_SATISFIED;
 		
 		//Patterns to match against
 		$patterns = array(

@@ -17,6 +17,7 @@ class AIOWPSecurity_Cronjob_Handler {
 		add_action('aios_15_minutes_cron_event', array($this, 'aios_15_minutes_cron_event'));
 		add_action('aiowps_hourly_cron_event', array($this, 'aiowps_hourly_cron_event_handler'));
 		add_action('aiowps_daily_cron_event', array($this, 'aiowps_daily_cron_event_handler'));
+		add_action('aios_change_auth_keys_and_salt', 'AIOWPSecurity_Utility::change_salt_postfixes');
 		add_action('aiowps_perform_failed_login_cleanup_task', array($this, 'failed_login_cleanup'));
 		add_action('aiowps_purge_old_debug_logs', array($this, 'purge_old_debug_logs'));
 		add_action('aiowps_send_lockout_email', array($this, 'send_lockout_email'));

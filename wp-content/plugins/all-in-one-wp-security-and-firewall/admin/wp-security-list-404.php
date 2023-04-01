@@ -32,7 +32,7 @@ class AIOWPSecurity_List_404 extends AIOWPSecurity_List_Table {
 		$tab = strip_tags($_REQUEST['tab']);
 		$ip = $item['ip_or_host'];
 
-		$blocked_ips_tab = 'tab2';
+		$blocked_ips_tab = 'locked-ip';
 		//Check if this IP address is locked
 		$is_locked = AIOWPSecurity_Utility::check_locked_ip($ip);
 		$delete_url = sprintf('admin.php?page=%s&tab=%s&action=%s&id=%s', AIOWPSEC_FIREWALL_MENU_SLUG, $tab, 'delete_event_log', $item['id']);

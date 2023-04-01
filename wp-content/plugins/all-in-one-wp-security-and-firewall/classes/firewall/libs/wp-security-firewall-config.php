@@ -122,7 +122,7 @@ class Config {
 	 *
 	 * @return string
 	 */
-	private function get_contents() {
+	public function get_contents() {
 		// __COMPILER_HALT_OFFSET__ doesn't define in a few PHP versions. It's a PHP bug.
 		// https://bugs.php.net/bug.php?id=70164
 		$contents = @file_get_contents($this->path, false, null, strlen($this->get_file_content_prefix())); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged -- ignore this
@@ -134,8 +134,24 @@ class Config {
 		if (empty($contents)) {
 			return array();
 		}
-		
+
 		return json_decode($contents, true);
+	}
+
+	/**
+	 * Sets entire firewall config from array.
+	 *
+	 * @param Array $contents
+	 *
+	 * @return Boolean
+	 */
+	public function set_contents($contents) {
+
+		if (null === $contents) {
+			return false;
+		}
+
+		return (false !== @file_put_contents($this->path, $this->get_file_content_prefix() . json_encode($contents), LOCK_EX)); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged -- ignore this
 	}
 
 	/**

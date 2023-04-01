@@ -38,6 +38,7 @@ class Simba_TFA_Login_Form_Integrations {
 		}
 		
 		add_filter('tml_display', array($this, 'tml_display'));
+		add_filter('wppb_login_form_bottom', array($this, 'pb_login_form'));
 	
 		// We want to run first if possible, so that we're not aborted by JavaScript exceptions in other components (our code is critical to the login process for TFA users)
 		// Unfortunately, though, people start enqueuing from init onwards (before that is buggy - https://core.trac.wordpress.org/ticket/11526), so, we try to detect the login page and go earlier there. 
@@ -64,6 +65,18 @@ class Simba_TFA_Login_Form_Integrations {
 		$this->tfa->login_enqueue_scripts();
 		return $whatever;
 	}
+
+	/**
+	 * Catch Profile Builder login form
+	 *
+	 * @param Mixed $whatever
+	 *
+	 * @return Mixed
+	 */
+	public function pb_login_form($whatever) {
+		$this->tfa->login_enqueue_scripts();
+		return $whatever;
+	}
 	
 	/**
 	 * Runs upon the WP filter simba_tfa_login_enqueue_localize.
@@ -81,7 +94,7 @@ class Simba_TFA_Login_Form_Integrations {
 		// bbPress - June 2021
 		// WooCommerce - ported over from the separate wooextend.js code, June 2021
 		// Affiliates WP - ported over from the separate wooextend.js code, June 2021
-		$localize['login_form_selectors'] .= '.tml-login form[name="loginform"], .tml-login form[name="login"], #loginform, #wpmem_login form, form#ihc_login_form, .bbp-login-form, .woocommerce form.login, #affwp-login-form';
+		$localize['login_form_selectors'] .= '.tml-login form[name="loginform"], .tml-login form[name="login"], #loginform, #wpmem_login form, form#ihc_login_form, .bbp-login-form, .woocommerce form.login, #affwp-login-form, #wppb-loginform';
 		$localize['login_form_off_selectors'] .= '#ihc_login_form';
 		return $localize;
 	}

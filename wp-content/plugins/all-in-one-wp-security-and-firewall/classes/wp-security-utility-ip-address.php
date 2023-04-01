@@ -9,94 +9,12 @@ class AIOWPSecurity_Utility_IP {
 	}
 
 	/**
-	 * Get sever detected visitor IP Address.
-	 *
-	 * @return String visitor IP Address.
-	 */
-	public static function get_server_detected_user_ip_address() {
-		global $aio_wp_security;
-
-		// check if user configured custom IP retrieval method
-		$ip_method_id = $aio_wp_security->configs->get_value('aiowps_ip_retrieve_method');
-
-		$visitor_ip = '';
-		$ip_retrieve_methods = AIOS_Abstracted_Ids::get_ip_retrieve_methods();
-
-		if (empty($ip_method_id) || !isset($ip_retrieve_methods[$ip_method_id])) {
-			$ip_method_id = 0;
-		}
-
-		$visitor_ip = isset($_SERVER[$ip_retrieve_methods[$ip_method_id]]) ? $_SERVER[$ip_retrieve_methods[$ip_method_id]] : '';
-
-		// Check if multiple IPs were given - these will be present as comma-separated list
-		if (stristr($visitor_ip, ',')) {
-			$temp = explode(',', $visitor_ip);
-			$visitor_ip = trim(reset($temp)); //get first address because this will likely be the original connecting IP
-		}
-
-		// Now remove port portion if applicable
-		if (false !== strpos($visitor_ip, '.') && false !== strpos($visitor_ip, ':')) {
-			// likely ipv4 address with port
-			$visitor_ip = preg_replace('/:\d+$/', '', $visitor_ip); //Strip off port
-		}
-
-		if (!filter_var($visitor_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) && !filter_var($visitor_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
-			$visitor_ip = empty($_SERVER['REMOTE_ADDR']) ? '' : $_SERVER['REMOTE_ADDR'];
-		}
-
-		return $visitor_ip;
-	}
-
-	/**
 	 * Get user IP Address.
 	 *
 	 * @return string User IP Address.
 	 */
 	public static function get_user_ip_address() {
-		static $visitor_ip;
-		if (isset($visitor_ip)) {
-			//already set in the page request
-			return $visitor_ip;
-		}
-		
-		$visitor_ip = self::get_server_detected_user_ip_address();
-
-		if ((!defined('AIOS_DISABLE_GET_EXTERNAL_IP') || !AIOS_DISABLE_GET_EXTERNAL_IP) && in_array($visitor_ip, array('', '127.0.0.1', '::1'))) {
-			$visitor_ip = self::get_external_ip_address();
-		}
-
-		return $visitor_ip;
-	}
-
-	/**
-	 * Get user IP Address using an external service.
-	 * This can be used as a fallback for users on localhost where
-	 * get_ip_address() will be a local IP and non-geolocatable.
-	 *
-	 * @return string external ip address.
-	 */
-	public static function get_external_ip_address() {
-		$external_ip_address = '0.0.0.0';
-		$ip_lookup_services = array(
-			'ipify'             => 'http://api.ipify.org/',
-			'ipecho'            => 'https://ipecho.net/plain',
-			'ident'             => 'http://ident.me',
-			'tnedi'				=> 'http://tnedi.me',
-		);
-		$ip_lookup_services_keys = array_keys($ip_lookup_services);
-		shuffle($ip_lookup_services_keys);
-
-		foreach ($ip_lookup_services_keys as $service_name) {
-			$service_endpoint = $ip_lookup_services[$service_name];
-			$response         = wp_safe_remote_get($service_endpoint, array( 'timeout' => 2 ));
-
-			if (!is_wp_error($response) && rest_is_ip_address($response['body'])) {
-				$external_ip_address = sanitize_text_field($response['body']);
-				break;
-			}
-		}
-
-		return $external_ip_address;
+		return AIOS_Helper::get_user_ip_address();
 	}
 
 	/**
@@ -200,75 +118,26 @@ class AIOWPSecurity_Utility_IP {
 	 */
 	public static function validate_ip_list($ip_list_array, $list_type = '') {
 		$errors = '';
-
+		
+		$current_user_ip = AIOWPSecurity_Utility_IP::get_user_ip_address();
+		
 		//validate list
 		$submitted_ips = $ip_list_array;
 		$list = array();
-
+		if (!(include_once AIO_WP_SECURITY_PATH.'/vendor/mlocati/ip-lib/ip-lib.php')) {
+			throw new \Exception("AIOWPSecurity_Utility_IP::validate_ip_list failed to load ip-lib.php");
+		}
 		if (!empty($submitted_ips)) {
 			foreach ($submitted_ips as $item) {
 				$item = sanitize_text_field($item);
 				if (strlen($item) > 0) {
-					//ipv6 - check
-					if (strpos($item, ':') !== false) {
-						//possible ipv6 addr
-						$checked_ip = AIOWPSecurity_Utility_IP::is_ipv6_address_or_ipv6_range($item);
-						if (false === $checked_ip) {
-							$errors .= "\n".$item.__(' is not a valid ip address format.', 'all-in-one-wp-security-and-firewall');
-						} else {
-							$list[] = trim($item);
-						}
-						continue;
+					$ip_address = \IPLib\Factory::addressFromString($item);
+					$ip_address_range = \IPLib\Factory::rangeFromString($item);
+					if (null == $ip_address && null == $ip_address_range) {
+						$errors .= "\n".$item.__(' is not a valid ip address format.', 'all-in-one-wp-security-and-firewall');
 					}
 					
-					$ipParts = explode('.', $item);
-					$isIP = 0;
-					$partcount = 1;
-					$goodip = true;
-					$foundwild = false;
-					
-					if (count($ipParts) < 2) {
-						$errors .= "\n".$item.__(' is not a valid ip address format.', 'all-in-one-wp-security-and-firewall');
-						continue;
-					}
-
-					foreach ($ipParts as $part) {
-						if (true == $goodip) {
-							if ((is_numeric(trim($part)) && trim($part) <= 255 && trim($part) >= 0) || trim($part) == '*') {
-								$isIP++;
-							}
-
-							switch ($partcount) {
-								case 1:
-									if ('*' == trim($part)) {
-										$goodip = false;
-										$errors .= "\n".$item.__(' is not a valid ip address format.', 'all-in-one-wp-security-and-firewall');
-									}
-									break;
-								case 2:
-									if ('*' == trim($part)) {
-										$foundwild = true;
-									}
-									break;
-								default:
-									if ('*' != trim($part)) {
-										if (true == $foundwild) {
-											$goodip = false;
-											$errors .= "\n".$item.__(' is not a valid ip address format.', 'all-in-one-wp-security-and-firewall');
-										}
-									} else {
-										$foundwild = true;
-									}
-									break;
-							}
-
-							$partcount++;
-						}
-					}
-					if (ip2long(trim(str_replace('*', '0', $item))) == false) { //invalid ip
-						$errors .= "\n".$item.__(' is not a valid ip address format.', 'all-in-one-wp-security-and-firewall');
-					} elseif (strlen($item) > 4 && !in_array($item, $list)) {
-						$current_user_ip = AIOWPSecurity_Utility_IP::get_user_ip_address();
+					if (strlen($item) > 4 && !in_array($item, $list)) {
 						if ($item == $current_user_ip && 'blacklist' == $list_type) {
 							//You can't ban your own IP
 							$errors .= "\n".__('You cannot ban your own IP address: ', 'all-in-one-wp-security-and-firewall').$item;
@@ -298,40 +167,6 @@ class AIOWPSecurity_Utility_IP {
 		$return_payload = array(1, array());
 		return $return_payload;
 	}
-	
-	
-	/**
-	 * Checks if IP address matches against the specified whitelist of IP addresses or IP ranges
-	 *
-	 * @param type $ip_address
-	 * @param type $whitelisted_ips (newline separated string of IPs)
-	 * @return boolean
-	 */
-	public static function is_ip_whitelisted($ip_address, $whitelisted_ips) {
-		if (empty($ip_address) || empty($whitelisted_ips)) return false;
-		
-		$ip_list_array = AIOWPSecurity_Utility_IP::create_ip_list_array_from_string_with_newline($whitelisted_ips);
-		if (empty($ip_list_array)) return false;
-		
-		require_once(AIO_WP_SECURITY_PATH.'/vendor/mlocati/ip-lib/ip-lib.php');
-		$ip_address_parsed = \IPLib\Factory::parseAddressString($ip_address);
-		foreach ($ip_list_array as $white_ip) {
-			$ipParts = explode('.', $white_ip);
-			$found = array_search('*', $ipParts);
-			$found_white_ipv6 = strpos($white_ip, ':');
-			// ipv4 range check starts
-			if (false !== $found || false != $found_white_ipv6) {
-				$range = \IPLib\Factory::parseRangeString($white_ip);
-				$with_in_range = $range->contains($ip_address_parsed);
-				if (true == $with_in_range) {
-					return true;
-				}
-			} elseif ($white_ip == $ip_address) {
-				return true;
-			}
-		}
-		return false;
-	}
 
 	/**
 	 * If login whitelist enabled and the user IP is not whitelisted, Then forbid access.
@@ -349,9 +184,8 @@ class AIOWPSecurity_Utility_IP {
 			return;
 		}
 
-		$ip = AIOWPSecurity_Utility_IP::get_user_ip_address(); //Get the IP address of user
 		$whitelisted_ips = $aio_wp_security->configs->get_value('aiowps_allowed_ip_addresses');
-		$is_whitelisted = AIOWPSecurity_Utility_IP::is_ip_whitelisted($ip, $whitelisted_ips);
+		$is_whitelisted = AIOWPSecurity_Utility_IP::is_userip_whitelisted($whitelisted_ips);
 
 		if ($is_whitelisted) {
 			return;
@@ -359,5 +193,20 @@ class AIOWPSecurity_Utility_IP {
 
 		header('HTTP/1.1 403 Forbidden');
 		exit();
+	}
+	
+	/**
+	 * Checks if user IP address matches against the specified whitelist of IP addresses or IP ranges
+	 *
+	 * @param type $whitelisted_ips (newline separated string of IPs)
+	 * @return boolean
+	 */
+	public static function is_userip_whitelisted($whitelisted_ips) {
+		if (empty($whitelisted_ips)) return false;
+		
+		$ip_list_array = AIOWPSecurity_Utility_IP::create_ip_list_array_from_string_with_newline($whitelisted_ips);
+		if (empty($ip_list_array)) return false;
+		
+		return AIOS_Helper::is_user_ip_address_within_list($ip_list_array);
 	}
 }

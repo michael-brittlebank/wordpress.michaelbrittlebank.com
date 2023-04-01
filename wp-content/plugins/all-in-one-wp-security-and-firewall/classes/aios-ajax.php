@@ -44,12 +44,13 @@ if (!class_exists('AIOS_Ajax')) :
 			$this->set_subaction();
 			$this->set_data();
 
-			if ($this->is_invalid_request()) {
-				$this->send_security_check_failed_error_response();
-			}
-
-			if (!$this->is_user_capable()) {
-				$this->send_user_capability_error_response();
+			$result = AIOWPSecurity_Utility_Permissions::check_nonce_and_user_cap($this->nonce, 'aios-ajax-nonce');
+			if (is_wp_error($result)) {
+				wp_send_json(array(
+					'result' => false,
+					'error_code' => $result->get_error_code(),
+					'error_message' => $result->get_error_message(),
+				));
 			}
 
 			if (is_multisite() && !current_user_can('manage_network_options')) {
@@ -58,9 +59,14 @@ if (!class_exists('AIOS_Ajax')) :
 				}
 			}
 
-			$this->execute_command();
-			$this->set_error_response_on_wp_error();
-			$this->maybe_set_results_as_null();
+			if ($this->is_invalid_command()) {
+				$this->add_invalid_command_error_log_entry();
+				$this->set_invalid_command_error_response();
+			} else {
+				$this->execute_command();
+				$this->set_error_response_on_wp_error();
+				$this->maybe_set_results_as_null();
+			}
 
 			$this->json_encode_results();
 
@@ -110,47 +116,6 @@ if (!class_exists('AIOS_Ajax')) :
 		 */
 		private function set_data() {
 			$this->data = isset($_POST['data']) ? wp_unslash($_POST['data']) : null;
-		}
-
-		/**
-		 * Checks whether the request is valid or not
-		 *
-		 * @return bool
-		 */
-		private function is_invalid_request() {
-			return !wp_verify_nonce($this->nonce, 'aios-ajax-nonce') || empty($this->subaction);
-		}
-
-		/**
-		 * Send security check failed error response to browser
-		 */
-		private function send_security_check_failed_error_response() {
-			wp_send_json(array(
-				'result' => false,
-				'error_code' => 'security_check',
-				'error_message' => __('The security check failed; try refreshing the page.', 'all-in-one-wp-security-and-firewall'),
-			));
-		}
-
-
-		/**
-		 * Checks whether current user capable of doing this action or not
-		 *
-		 * @return bool
-		 */
-		private function is_user_capable() {
-			return current_user_can(apply_filters('aios_management_permission', 'manage_options'));
-		}
-
-		/**
-		 * Send user capability check failed error response to browser.
-		 */
-		private function send_user_capability_error_response() {
-			wp_send_json(array(
-				'result' => false,
-				'error_code' => 'security_check',
-				'error_message' => __('You are not allowed to run this command.', 'all-in-one-wp-security-and-firewall'),
-			));
 		}
 
 		/**

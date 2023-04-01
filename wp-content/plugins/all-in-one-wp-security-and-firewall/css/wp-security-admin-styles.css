@@ -425,3 +425,10 @@ svg > g > g.google-visualization-tooltip {
 .aio_hidden {
     display: none;
 }
+
+/* Fix for WordPress thickbox not respecting the set width and height */
+/* Open issue for 8 years : https://core.trac.wordpress.org/ticket/27473 */
+#TB_ajaxContent {
+    width: 95% !important;
+    height: 95% !important;
+}

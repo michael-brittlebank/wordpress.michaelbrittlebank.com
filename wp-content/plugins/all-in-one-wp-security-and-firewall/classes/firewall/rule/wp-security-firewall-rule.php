@@ -72,19 +72,12 @@ abstract class Rule {
 
 		if ($this->is_satisfied()) {
 
-			if (defined('AIOS_FIREWALL_DEBUG') && AIOS_FIREWALL_DEBUG) {
-				error_log("AIOS firewall rule triggered: {$this->name}");
-
-				if (defined('AIOS_FIREWALL_SERVER_DUMP') && AIOS_FIREWALL_SERVER_DUMP) {
-					error_log(print_r($_SERVER, true));
-				}
-			}
-
-
-
+			Event::raise('rule_triggered', $this, time());
 			$this->do_action();
+
 		}
 
+		Event::raise('rule_not_triggered', $this, time());
 	}
 
 	/**

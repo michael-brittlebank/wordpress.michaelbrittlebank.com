@@ -37,7 +37,7 @@ class Rule_User_Agent_Blacklist extends Rule {
 	 * @return boolean
 	 */
 	public function is_active() {
-		return !empty($this->blocked_user_agents);
+		return !empty($this->blocked_user_agents) && isset($_SERVER['HTTP_USER_AGENT']);
 	}
 
 	/**

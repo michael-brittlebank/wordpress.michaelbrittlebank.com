@@ -1,5 +1,5 @@
 <?php
-if (!defined('ABSPATH')) {
+if (!defined('ABSPATH') && !defined('AIOWPS_FIREWALL_DIR')) {
 	exit; //Exit if accessed directly
 }
 
@@ -85,4 +85,19 @@ class AIOS_Abstracted_Ids {
 			'pt-PT', // Portuguese (Portugal).
 		);
 	}
+
+	/**
+	 * Get IP Lookup services.
+	 *
+	 * @return array
+	 */
+	public static function get_ip_lookup_services() {
+		return array(
+			'ipify'  => 'http://api.ipify.org/',
+			'ipecho' => 'http://ipecho.net/plain',
+			'ident'  => 'http://ident.me',
+			'tnedi'	 => 'http://tnedi.me',
+		);
+	}
+
 }

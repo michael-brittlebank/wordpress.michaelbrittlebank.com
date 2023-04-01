@@ -6,6 +6,7 @@ if (!defined('AIOWPS_FIREWALL_DIR')) {
 	exit();
 }
 
+
 /**
  * Loads and executes our firewall
  */
@@ -33,9 +34,10 @@ class Loader {
 			 */
 			if ($this->is_preloader_directly_accessed()) return;
 			
+			$this->init();
 
-			$this->init_includes();
-			$this->init_services();
+			global $aiowps_constants;
+			if ($aiowps_constants->AIOS_NO_FIREWALL) return;
 	
 			$families = new Family_Collection(Family_Builder::get_families());
 
@@ -55,6 +57,18 @@ class Loader {
 
 	}
 
+	/**
+	 * Performs general initalisation
+	 *
+	 * @return void
+	 */
+	public function init() {
+
+		$this->init_includes();
+		$this->init_services();
+
+		new Debug();
+	}
 
 	/**
 	 * Detects whether the preloader file (wp-security-firewall.php) was directly accessed
@@ -93,27 +107,24 @@ class Loader {
 		}
 
 		$GLOBALS['aiowps_firewall_config'] = new Config($workspace . 'settings.php');
+		$GLOBALS['aiowps_constants'] = new Constants();
 		
 	 }
 
 	 /**
-	  * Get our workspace directory (i.e: where we save and load data to and from)
+	  * Get our workspace directory, i.e., where we save and load data to and from.
 	  *
 	  * @return string
 	  */
 	 private function get_firewall_workspace() {
 		global $aiowps_firewall_rules_path;
+
 		$workspace = '';
-		
+
 		if (!empty($aiowps_firewall_rules_path)) {
 			$workspace = $aiowps_firewall_rules_path;
-		} else {
-			//Are we in a WordPress context?
-			if (function_exists('wp_get_upload_dir')) {
-			   $upload_dir_info = wp_get_upload_dir();
-			   $firewall_rules_path = trailingslashit($upload_dir_info['basedir'].'/aios/firewall-rules');
-			   $workspace = wp_normalize_path($firewall_rules_path);
-			}
+		} elseif (Context::wordpress_safe()) {
+			$workspace = \AIOWPSecurity_Utility_Firewall::get_firewall_rules_path();
 		}
 
 		return $workspace;

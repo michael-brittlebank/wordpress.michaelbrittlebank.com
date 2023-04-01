@@ -1,3 +1,5 @@
+<?php if (!defined('AIO_WP_SECURITY_PATH')) die('No direct access allowed'); ?>
+
 <div class="postbox">
 	<h3 class="hndle"><label for="title"><?php _e('IP address detection settings', 'all-in-one-wp-security-and-firewall'); ?></label></h3>
 	<div class="inside">

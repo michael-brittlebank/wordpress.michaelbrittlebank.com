@@ -25,7 +25,7 @@ class AIOWPSecurity_User_Login {
 		add_filter('login_message', array($this, 'aiowps_login_message')); //WP filter to add or modify messages on the login page
 
 		// Display disable lockdown message
-		if (is_admin() && current_user_can(apply_filters('aios_management_permission', 'manage_options')) && $aio_wp_security->is_login_lockdown_by_const() && $this->is_admin_page_to_display_disable_login_lockdown_by_const_notice()) {
+		if (is_admin() && AIOWPSecurity_Utility_Permissions::has_manage_cap() && $aio_wp_security->is_login_lockdown_by_const() && $this->is_admin_page_to_display_disable_login_lockdown_by_const_notice()) {
 			add_action('all_admin_notices', array($this, 'disable_login_lockdown_by_const_notice'));
 		}
 	}
@@ -62,7 +62,7 @@ class AIOWPSecurity_User_Login {
 	 */
 	public function disable_login_lockdown_by_const_notice() {
 
-		if (!AIOWPSecurity_Utility::has_manage_cap()) {
+		if (!AIOWPSecurity_Utility_Permissions::has_manage_cap()) {
 			return;
 		}
 
@@ -198,9 +198,8 @@ class AIOWPSecurity_User_Login {
 			$is_whitelisted = false;
 			//check if lockout whitelist enabled
 			if ($aio_wp_security->configs->get_value('aiowps_lockdown_enable_whitelisting') == '1') {
-				$ip = AIOWPSecurity_Utility_IP::get_user_ip_address(); //Get the IP address of user
 				$whitelisted_ips = $aio_wp_security->configs->get_value('aiowps_lockdown_allowed_ip_addresses');
-				$is_whitelisted = AIOWPSecurity_Utility_IP::is_ip_whitelisted($ip, $whitelisted_ips);
+				$is_whitelisted = AIOWPSecurity_Utility_IP::is_userip_whitelisted($whitelisted_ips);
 			}
 
 			if (false === $is_whitelisted) {
@@ -512,8 +511,8 @@ class AIOWPSecurity_User_Login {
 	 */
 	public static function send_unlock_request_email($email, $unlock_link) {
 		global $aio_wp_security;
-		$subject = '['.get_option('siteurl').'] '. __('Unlock request notification', 'all-in-one-wp-security-and-firewall');
-		$email_msg = sprintf(__('You have requested for the account with email address %s to be unlocked. Please click the link below to unlock your account:', 'all-in-one-wp-security-and-firewall'), $email) . "\n" . sprintf(__('Unlock link: %s', 'all-in-one-wp-security-and-firewall'), $unlock_link) . "\n\n" . __('After clicking the above link you will be able to login to the WordPress administration panel.', 'all-in-one-wp-security-and-firewall') . "\n";
+		$subject = '['.network_site_url().'] '. __('Unlock request notification', 'all-in-one-wp-security-and-firewall');
+		$email_msg = sprintf(__('You have requested for the account with email address %s to be unlocked. Please press the link below to unlock your account:', 'all-in-one-wp-security-and-firewall'), $email) . "\n" . sprintf(__('Unlock link: %s', 'all-in-one-wp-security-and-firewall'), $unlock_link) . "\n\n" . __('After pressing the above link you will be able to login to the WordPress administration panel.', 'all-in-one-wp-security-and-firewall') . "\n";
 		$site_title = get_bloginfo('name');
 		$from_name = empty($site_title) ? 'WordPress' : $site_title;
 		$email_header = 'From: '.$from_name.' <'.get_bloginfo('admin_email').'>' . "\r\n\\";

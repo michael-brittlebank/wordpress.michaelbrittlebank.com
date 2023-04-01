@@ -1,7 +1,9 @@
 <p class="simba_tfa_personal_settings_notice simba_tfa_intro_notice">
 <?php
 
-echo apply_filters('simba_tfa_message_personal_settings', __('These are your personal settings.', 'all-in-one-wp-security-and-firewall').' '.__('Nothing you change here will have any effect on other users.', 'all-in-one-wp-security-and-firewall'));
+if (current_user_can($simba_tfa->get_management_capability())) {
+	echo apply_filters('simba_tfa_message_personal_settings', __('These are your personal settings.', 'all-in-one-wp-security-and-firewall').' '.__('Nothing you change here will have any effect on other users.', 'all-in-one-wp-security-and-firewall'));
+}
 
 if (is_multisite()) {
 	if (is_super_admin()) {

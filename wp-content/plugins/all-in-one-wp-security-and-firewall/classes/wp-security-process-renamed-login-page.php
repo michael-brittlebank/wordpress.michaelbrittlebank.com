@@ -17,25 +17,10 @@ class AIOWPSecurity_Process_Renamed_Login_Page {
 	}
 
 	public function aiowps_login_init() {
-		if (strpos($_SERVER['REQUEST_URI'], 'wp-login') !== false) {
-			$referer = wp_get_referer();
-			if ($referer && strpos($referer, 'wp-activate.php') !== false) {
-				$parsed_referer = parse_url($referer);
-				if ($parsed_referer && !empty($parsed_referer['query'])) {
-					parse_str($parsed_referer['query'], $referer);
-					if (!empty($parsed_referer['key'])) {
-						$result = wpmu_activate_signup($parsed_referer['key']); //MS site creation
-						if ($result && is_wp_error($result) && ($result->get_error_code() === 'already_active' || $result->get_error_code() === 'blog_taken')) {
-							$aiowps_new_login_url = AIOWPSecurity_Process_Renamed_Login_Page::new_login_url();
-							wp_safe_redirect($aiowps_new_login_url . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : ''));
-							die;
-						}
-					}
-				}
-			}
+		$parsed_request = parse_url($_SERVER['REQUEST_URI']);
+		if ($parsed_request && preg_match('/wp-login\.php$/', $parsed_request['path'])) {
 			AIOWPSecurity_Process_Renamed_Login_Page::aiowps_set_404();
 		}
-
 	}
 
 	public function aiowps_site_url($url) {

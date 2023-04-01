@@ -20,8 +20,23 @@ class AIOWPSecurity_Config {
 		return isset($this->configs[$key]) ? $this->configs[$key] : '';
 	}
 
-	public function set_value($key, $value) {
+	/**
+	 * Sets a given config $value for a given $key.
+	 *
+	 * @param string  $key
+	 * @param mixed   $value
+	 * @param boolean $save_config - Whether or not to also save the $configs array to the database.
+	 *
+	 * @return boolean
+	 */
+	public function set_value($key, $value, $save_config = false) {
 		$this->configs[$key] = $value;
+
+		if ($save_config) {
+			return $this->save_config();
+		} else {
+			return true;
+		}
 	}
 
 	public function add_value($key, $value) {

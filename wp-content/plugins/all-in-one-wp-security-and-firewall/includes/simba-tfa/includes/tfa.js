@@ -74,7 +74,7 @@ jQuery(function($) {
 		
 		var $submit_button = $(form).find('input[name="wp-submit"], input[type="submit"], button[type="submit"]').first();
 		
-		if (simba_tfasettings.hasOwnProperty('spinnerimg')) {
+		if (simba_tfasettings.hasOwnProperty('spinnerimg') && $('.simbaotp_spinner').length === 0) {
 			var styling = 'float:right; margin:6px 12px; width: 20px; height: 20px;';
 			if ($('#theme-my-login #wp-submit').length >0) {
 				styling = 'margin-left: 4px; position: relative; top: 4px; width: 20px; height: 20px; border:0px; box-shadow:none;';
@@ -217,7 +217,7 @@ jQuery(function($) {
 			
 			// Would need further styling investigations to display this
 			if (!form_is_gravity_forms) {
-				html += simba_tfasettings.otp_login_help;
+				html += '<span class="simba_tfa_otp_login_help">'+simba_tfasettings.otp_login_help+'</span>';
 			}
 			
 			if (user_can_trust) {

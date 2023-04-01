@@ -18,9 +18,11 @@ class Rule_Builder {
 			$rule = new $classname();
 
 			if (!$rule->is_active()) {
+				Event::raise('rule_not_active', $rule, $classname);
 				continue;
 			}
 
+			Event::raise('rule_active', $rule, $classname);
 			yield $rule;
 		}
 	}

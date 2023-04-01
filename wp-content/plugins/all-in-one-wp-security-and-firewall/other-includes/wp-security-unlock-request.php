@@ -7,7 +7,6 @@
 global $aio_wp_security;
 $display_form = true;
 //Make this page look like the WP login page
-wp_head();
 wp_admin_css('login', true);
 wp_admin_css('colors-fresh', true);
 do_action('login_head');

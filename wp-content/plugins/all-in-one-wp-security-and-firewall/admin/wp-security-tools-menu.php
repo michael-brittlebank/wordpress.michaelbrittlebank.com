@@ -85,7 +85,7 @@ class AIOWPSecurity_Tools_Menu extends AIOWPSecurity_Admin_Menu {
 	 *
 	 * @return String|WP_Error - returns preformatted WHOIS lookup result or WP_Error
 	 */
-	private function whois_lookup($search, $timeout = 10) {
+	public function whois_lookup($search, $timeout = 10) {
 		$fp = @fsockopen('whois.iana.org', 43, $errno, $errstr, $timeout);
 
 		if (!$fp) {
@@ -167,32 +167,10 @@ class AIOWPSecurity_Tools_Menu extends AIOWPSecurity_Admin_Menu {
 	 */
 	private function render_whois_lookup_tab() {
 		global $aio_wp_security;
-
-		?>
-		<div class="aio_blue_box">
-			<p><?php echo __('The WHOIS lookup feature gives you a way to look up who owns an IP address or domain name.', 'all-in-one-wp-security-and-firewall').' '.__('You can use this to investigate users engaging in malicious activity on your site.', 'all-in-one-wp-security-and-firewall'); ?></p>
-		</div>
-		<div class="postbox">
-			<h3 class="hndle"><?php _e('WHOIS lookup on IP or domain', 'all-in-one-wp-security-and-firewall'); ?></h3>
-			<div class="inside">
-				<form method="post" action="">
-					<?php wp_nonce_field('aiowpsec-whois-lookup'); ?>
-					<table class="form-table">
-						<tr valign="top">
-							<th scope="row">
-								<label for="aiowps_whois_ip_or_domain"><?php _e('IP address or domain name:', 'all-in-one-wp-security-and-firewall'); ?></label>
-							</th>
-							<td>
-								<input id="aiowps_whois_ip_or_domain" type="text" name="aiowps_whois_ip_or_domain" value="" size="80">
-							</td>
-						</tr>
-					</table>
-					<input class="button-primary" type="submit" value="<?php _e('Look up IP or domain', 'all-in-one-wp-security-and-firewall'); ?>">
-				</form>
-			</div>
-		</div>
-		<?php
-
+		
+		$lookup = false;
+		$ip_or_domain = '';
+		
 		if (isset($_POST['aiowps_whois_ip_or_domain'])) {
 			$nonce = $_POST['_wpnonce'];
 
@@ -200,40 +178,11 @@ class AIOWPSecurity_Tools_Menu extends AIOWPSecurity_Admin_Menu {
 				$aio_wp_security->debug_logger->log_debug('Nonce check failed on WHOIS lookup.', 4);
 				die('Nonce check failed on WHOIS lookup.');
 			}
-
+			$lookup = true;
 			$ip_or_domain = stripslashes($_POST['aiowps_whois_ip_or_domain']);
-
-		?>
-			<div class="postbox">
-				<h3 class="hndle">
-					<table>
-						<tr valign="top">
-							<th scope="row">WHOIS: </th>
-							<td><?php echo htmlspecialchars($ip_or_domain); ?></td>
-						</tr>
-					</table>
-				</h3>
-				<div class="inside">
-					<pre><?php
-						if (empty($ip_or_domain) || !(filter_var($ip_or_domain, FILTER_VALIDATE_IP) || filter_var($ip_or_domain, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME))) {
-							$this->show_msg_error(__('Please enter a valid IP address or domain name to look up.', 'all-in-one-wp-security-and-firewall'));
-							_e('Nothing to show.', 'all-in-one-wp-security-and-firewall');
-						} else {
-							$result = $this->whois_lookup($ip_or_domain);
-
-							if (is_wp_error($result)) {
-								$this->show_msg_error(htmlspecialchars($result->get_error_message()));
-								_e('Nothing to show.', 'all-in-one-wp-security-and-firewall');
-							} else {
-								echo htmlspecialchars($result);
-							}
-						}
-					?></pre>
-				</div>
-			</div>
-		<?php
-
 		}
+
+		$aio_wp_security->include_template('wp-admin/tools/whois-lookup.php', false, array('AIOWPSecurity_Tools_Menu' => $this, 'lookup' => $lookup, 'ip_or_domain' => $ip_or_domain));
 	}
 
-}  // End of class
+} // End of class

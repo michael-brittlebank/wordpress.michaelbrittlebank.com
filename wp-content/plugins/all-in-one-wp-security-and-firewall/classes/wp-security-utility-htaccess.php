@@ -95,14 +95,14 @@ class AIOWPSecurity_Utility_Htaccess {
 	public static function write_to_htaccess() {
 		global $aio_wp_security;
 		//figure out what server is being used
-		if (AIOWPSecurity_Utility::get_server_type() == -1) {
-			$aio_wp_security->debug_logger->log_debug("Unable to write to .htaccess - server type not supported!", 4);
+		if (-1 == AIOWPSecurity_Utility::get_server_type() && !defined('WP_CLI')) {
+			$aio_wp_security->debug_logger->log_debug("Unable to write to .htaccess - server type not supported.", 4);
 			return false; //unable to write to the file
 		}
 
 		//clean up old rules first
-		if (AIOWPSecurity_Utility_Htaccess::delete_from_htaccess() == -1) {
-			$aio_wp_security->debug_logger->log_debug("Delete operation of .htaccess file failed!", 4);
+		if (-1 == AIOWPSecurity_Utility_Htaccess::delete_from_htaccess()) {
+			$aio_wp_security->debug_logger->log_debug("Delete operation of .htaccess file failed.", 4);
 			return false; //unable to write to the file
 		}
 
@@ -112,7 +112,7 @@ class AIOWPSecurity_Utility_Htaccess {
 		if (!$f = @fopen($htaccess, 'a+')) {// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged,Squiz.PHP.DisallowMultipleAssignments.FoundInControlStructure
 			@chmod($htaccess, 0644);// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
 			if (!$f = @fopen($htaccess, 'a+')) {// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged,Squiz.PHP.DisallowMultipleAssignments.FoundInControlStructure
-				$aio_wp_security->debug_logger->log_debug("chmod operation on .htaccess failed!", 4);
+				$aio_wp_security->debug_logger->log_debug("chmod operation on .htaccess failed.", 4);
 				return false;
 			}
 		}
@@ -126,7 +126,7 @@ class AIOWPSecurity_Utility_Htaccess {
 		$contents = array_merge($rulesarray, $ht);
 
 		if (!$f = @fopen($htaccess, 'w+')) {// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged,Squiz.PHP.DisallowMultipleAssignments.FoundInControlStructure
-			$aio_wp_security->debug_logger->log_debug("Write operation on .htaccess failed!", 4);
+			$aio_wp_security->debug_logger->log_debug("Write operation on .htaccess failed.", 4);
 			return false; //we can't write to the file
 		}
 
@@ -750,7 +750,7 @@ class AIOWPSecurity_Utility_Htaccess {
 		}
 
 		if ((strpos($file_contents, '# BEGIN WordPress') !== false) || (strpos($file_contents, '# BEGIN') !== false)) {
-			$is_htaccess = true; //It appears that we have some sort of .htacces file
+			$is_htaccess = true; // It appears that we have some sort of .htaccess file
 		} else {
 			//see if we're at the end of the section
 			$is_htaccess = false;

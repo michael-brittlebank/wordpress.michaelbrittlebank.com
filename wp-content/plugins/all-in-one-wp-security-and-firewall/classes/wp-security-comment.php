@@ -27,7 +27,10 @@ class AIOWPSecurity_Comment {
 	 */
 	public function pre_comment_user_ip($comment_user_ip) {
 		if (in_array($comment_user_ip, array('', '127.0.0.1', '::1'))) {
-			$comment_user_ip = AIOWPSecurity_Utility_IP::get_external_ip_address();
+			$external_ip_address = AIOS_Helper::get_external_ip_address();
+			if (false != $external_ip_address) {
+				$comment_user_ip = $external_ip_address;
+			}
 		}
 		return $comment_user_ip;
 	}

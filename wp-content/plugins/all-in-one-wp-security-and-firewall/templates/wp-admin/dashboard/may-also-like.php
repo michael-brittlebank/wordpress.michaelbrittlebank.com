@@ -117,7 +117,7 @@
 		</tr>
 		<tr>
 			<td class="aiowps-feature-text">
-				<h4><?php _e('Prevents blacklisting by search engines', 'all-in-one-wp-security-and-firewall'); ?></h4>
+				<h4><?php _e('Alerts you of blacklisting by search engines', 'all-in-one-wp-security-and-firewall'); ?></h4>
 				<p><?php echo __('AIOS monitors your site\'s blacklist status daily.', 'all-in-one-wp-security-and-firewall').' '.__('We\'ll notify you within 24 hours if something\'s amiss so you can take action, before it\'s too late.', 'all-in-one-wp-security-and-firewall'); ?></p>
 			</td>
 			<td>

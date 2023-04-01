@@ -61,6 +61,7 @@ class AIOWPSecurity_Installer {
 			$perm_block_tbl_name = AIOWPSEC_TBL_PERM_BLOCK;
 		}
 
+		$audit_log_tbl_name = AIOWPSEC_TBL_AUDIT_LOG;
 		$debug_log_tbl_name = AIOWPSEC_TBL_DEBUG_LOG;
 
 		$charset_collate = '';
@@ -161,6 +162,25 @@ class AIOWPSecurity_Installer {
 		)" . $charset_collate . ";";
 		dbDelta($pb_tbl_sql);
 
+		$audit_log_tbl_sql = "CREATE TABLE " . $audit_log_tbl_name . " (
+			id bigint(20) NOT NULL AUTO_INCREMENT,
+			network_id bigint(20) NOT NULL DEFAULT '0',
+			site_id bigint(20) NOT NULL DEFAULT '0',
+			username varchar(60) NOT NULL DEFAULT '',
+			ip VARCHAR(45) NOT NULL DEFAULT '',
+			level varchar(25) NOT NULL DEFAULT '',
+			event_type varchar(25) NOT NULL DEFAULT '',
+			details text NOT NULL DEFAULT '',
+			stacktrace text NOT NULL DEFAULT '',
+			created INTEGER UNSIGNED,
+			PRIMARY KEY  (id),
+			INDEX username (username),
+			INDEX ip (ip),
+			INDEX level (level),
+			INDEX event_type (event_type)
+			)" . $charset_collate . ";";
+		dbDelta($audit_log_tbl_sql);
+
 		$debug_log_tbl_sql = "CREATE TABLE " . $debug_log_tbl_name . " (
 			id bigint(20) NOT NULL AUTO_INCREMENT,
 			level varchar(25) NOT NULL DEFAULT '',
@@ -221,9 +241,10 @@ class AIOWPSecurity_Installer {
 			if (!$updated) {
 				if (get_option('aio_wp_security_configs') === $temp_configs) {
 					delete_option('aiowps_temp_configs');
+					return true;
 				}
 
-				$aio_wp_security->debug_logger->log_debug('AIOWPSecurity_Installer::reactivation_tasks() - Restoration of original config settings failed or nothing changed.', 4);
+				$aio_wp_security->debug_logger->log_debug('AIOWPSecurity_Installer::reactivation_tasks() - Restoration of original config settings failed.', 4);
 				return false;
 			}
 
@@ -292,6 +313,9 @@ class AIOWPSecurity_Installer {
 		}
 		if (!wp_next_scheduled('aiowps_daily_cron_event')) {
 			wp_schedule_event(time(), 'daily', 'aiowps_daily_cron_event'); //schedule an daily cron event
+		}
+		if (!wp_next_scheduled('aiowps_weekly_cron_event')) {
+			wp_schedule_event(time(), 'weekly', 'aiowps_weekly_cron_event'); //schedule an daily cron event
 		}
 	}
 }

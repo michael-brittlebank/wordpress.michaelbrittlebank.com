@@ -104,10 +104,10 @@ class AIOWPSecurity_List_Login_Failed_Attempts extends AIOWPSecurity_List_Table 
 		$failed_login_table = AIOWPSEC_TBL_FAILED_LOGINS;
 		if (is_array($entries)) {
 			if (isset($_REQUEST['_wp_http_referer'])) {
-				//Delete multiple records
+				// Delete multiple records
 				$tab = strip_tags($_REQUEST['tab']);
-				$entries = array_filter($entries, 'is_numeric'); //discard non-numeric ID values
-				$id_list = "(" .implode(",",$entries) .")"; //Create comma separate list for DB operation
+				$entries = array_filter($entries, 'is_numeric'); // discard non-numeric ID values
+				$id_list = "(" .implode(",",$entries) .")"; // Create comma separate list for DB operation
 				$delete_command = "DELETE FROM ".$failed_login_table." WHERE ID IN ".$id_list;
 				$result = $wpdb->query($delete_command);
 				if ($result) {
@@ -120,12 +120,7 @@ class AIOWPSecurity_List_Login_Failed_Attempts extends AIOWPSecurity_List_Table 
 			}
 			
 		} elseif ($entries != NULL) {
-			$nonce=isset($_GET['aiowps_nonce'])?$_GET['aiowps_nonce']:'';
-			if (!isset($nonce) ||!wp_verify_nonce($nonce, 'delete_failed_login_rec')) {
-				$aio_wp_security->debug_logger->log_debug("Nonce check failed for delete failed login record operation!",4);
-				die(__('Nonce check failed for delete failed login record operation!','all-in-one-wp-security-and-firewall'));
-			}
-			//Delete single record
+			// Delete single record
 			$delete_command = "DELETE FROM ".$failed_login_table." WHERE ID = '".absint($entries)."'";
 			$result = $wpdb->query($delete_command);
 			if ($result) {

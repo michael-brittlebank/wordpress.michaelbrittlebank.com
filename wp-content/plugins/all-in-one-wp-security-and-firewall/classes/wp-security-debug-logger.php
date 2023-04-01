@@ -36,7 +36,7 @@ class AIOWPSecurity_Logger {
 	public function clear_logs() {
 		global $wpdb;
 
-		$debug_log_tbl = $wpdb->prefix . 'aiowps_debug_log';
+		$debug_log_tbl = AIOWPSEC_TBL_DEBUG_LOG;
 
 		$query = "DELETE FROM $debug_log_tbl";
 

@@ -28,19 +28,17 @@ class AIOWPSecurity_Uninstallation_Tasks extends AIOWPSecurity_Base_Tasks {
 	 * @return void
 	 */
 	protected static function run_for_a_site() {
-		self::clear_cron_events();
 		// Drop db tables and configs
 		self::drop_database_tables_and_configs();
 	}
-	
+
 	/**
 	 * Function to drop database tables and remove configuration settings
 	 *
 	 * @return void
 	 */
 	public static function drop_database_tables_and_configs() {
-
-		global $wpdb, $aio_wp_security;
+		global $wpdb, $aio_wp_security, $simba_two_factor_authentication;
 
 		$database_tables = array(
 			$wpdb->prefix.'aiowps_login_lockdown',
@@ -50,7 +48,10 @@ class AIOWPSecurity_Uninstallation_Tasks extends AIOWPSecurity_Base_Tasks {
 			$wpdb->prefix.'aiowps_events',
 			$wpdb->prefix.'aiowps_permanent_block',
 			$wpdb->prefix.'aiowps_debug_log',
+			$wpdb->prefix.'aiowps_audit_log',
 		);
+
+		$aio_wp_security->configs->load_config();
 
 		// check and drop database tables
 		if ('1' == $aio_wp_security->configs->get_value('aiowps_on_uninstall_delete_db_tables')) {
@@ -61,18 +62,19 @@ class AIOWPSecurity_Uninstallation_Tasks extends AIOWPSecurity_Base_Tasks {
 
 		// check and delete configurations
 		if ('1' == $aio_wp_security->configs->get_value('aiowps_on_uninstall_delete_configs')) {
+			if (is_main_site()) {
+				$firewall_rules_path = AIOWPSecurity_Utility_Firewall::get_firewall_rules_path();
+				AIOWPSecurity_Utility_File::remove_local_directory($firewall_rules_path);
+
+				if (!empty($simba_two_factor_authentication->is_tfa_integrated)) {
+					$simba_two_factor_authentication->delete_configs();
+				}
+			}
+
 			delete_option('aio_wp_security_configs');
 			delete_option('aiowps_temp_configs');
 			delete_option('aiowpsec_db_version');
 			delete_option('aiowpsec_firewall_version');
 		}
-	}
-
-	/**
-	 * Helper function which clears aiowps cron events
-	 */
-	private static function clear_cron_events() {
-		wp_clear_scheduled_hook('aiowps_hourly_cron_event');
-		wp_clear_scheduled_hook('aiowps_daily_cron_event');
 	}
 }
