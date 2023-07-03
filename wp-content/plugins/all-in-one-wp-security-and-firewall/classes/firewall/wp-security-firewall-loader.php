@@ -169,6 +169,10 @@ class Loader {
 			}
 		});
 		
+		// Manually include needed files
+		if (Context::wordpress_safe()) {
+			include_once(dirname(AIOWPS_FIREWALL_DIR).'/wp-security-utility-file.php');
+		}
 	}
 
 	/**
