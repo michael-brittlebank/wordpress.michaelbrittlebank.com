@@ -1,11 +1,11 @@
 <?php
 /*
 Plugin Name: WP Reading List
-Plugin URI: https://mikestumpf.com
+Plugin URI: https://michaelbrittlebank.com
 Description: WP Reading List is a plugin designed to help organize and display books, magazines, articles, and anything else that you have read lately. 
 Version: 4.0.1
-Author: Mike Stumpf
-Author URI: https://mikestumpf.com
+Author: Michael Brittlebank
+Author URI: https://michaelbrittlebank.com
 License: GPL2
 */
 

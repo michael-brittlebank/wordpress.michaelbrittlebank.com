@@ -9,7 +9,7 @@ function themeScripts() {
     $scriptDate = '20220910';
     // js
     wp_enqueue_script(
-        'mstumpf-iframe-resizer',
+        'mbrittlebank-iframe-resizer',
         get_template_directory_uri() .'/js/iframeResizer.contentWindow.min.js',
         array(),
         $scriptDate,
@@ -18,7 +18,7 @@ function themeScripts() {
 
     //css
     wp_enqueue_style(
-        'mstumpf-wp-style',
+        'mbrittlebank-wp-style',
         get_template_directory_uri().'/css/style.css',
         array(),
         $scriptDate,

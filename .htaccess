@@ -38,11 +38,11 @@ Deny from all
 <IfModule mod_rewrite.c>
 RewriteEngine On
 RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
-RewriteBase /wordpress.mikestumpf.com/
+RewriteBase /wordpress.michaelbrittlebank.com/
 RewriteRule ^index\.php$ - [L]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule . /wordpress.mikestumpf.com/index.php [L]
+RewriteRule . /wordpress.michaelbrittlebank.com/index.php [L]
 </IfModule>
 
 # END WordPress

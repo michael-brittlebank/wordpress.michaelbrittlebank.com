@@ -1,5 +1,5 @@
 === Plugin Name ===
-Contributors: mstumpf
+Contributors: mbrittlebank
 Tags: reading-list, works, custom-post, plugin, posts, images, links, reading list, books, magazines, articles, journals, reading
 Requires at least: 3.0
 Tested up to: 5.7
@@ -11,7 +11,7 @@ WP Reading List is a plugin designed to help organize and display books, magazin
 
 == Description ==
 
-**WP Reading List** (or, **WPRL**) is a plugin designed to help organize and display books, magazines, articles, and anything else that you have read lately.  This plugin allows users to display what they have read, attach text like a review or notes to it, and provide a link to where visitors can find the piece.  The plugin comes bundled with two archive templates (as well as templates for single items and "author" & "type" archives) and is easily customizable with CSS.  View a working example at `https://mikestumpf.com`
+**WP Reading List** (or, **WPRL**) is a plugin designed to help organize and display books, magazines, articles, and anything else that you have read lately.  This plugin allows users to display what they have read, attach text like a review or notes to it, and provide a link to where visitors can find the piece.  The plugin comes bundled with two archive templates (as well as templates for single items and "author" & "type" archives) and is easily customizable with CSS.  View a working example at `https://michaelbrittlebank.com`
 
 == Installation ==
 
