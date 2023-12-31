@@ -20,8 +20,9 @@
 				<tr valign="top">
 					<th scope="row"><?php _e('Enable manual approval of new registrations', 'all-in-one-wp-security-and-firewall'); ?>:</th>
 					<td>
-					<input id="aiowps_enable_manual_registration_approval" name="aiowps_enable_manual_registration_approval" type="checkbox"<?php if ('1' == $aio_wp_security->configs->get_value('aiowps_enable_manual_registration_approval')) echo ' checked="checked"'; ?> value="1"/>
-					<label for="aiowps_enable_manual_registration_approval" class="description"><?php _e('Check this if you want to automatically disable all newly registered accounts so that you can approve them manually.', 'all-in-one-wp-security-and-firewall'); ?></label>
+						<div class="aiowps_switch_container">
+							<?php AIOWPSecurity_Utility_UI::setting_checkbox(__('Check this if you want to automatically disable all newly registered accounts so that you can approve them manually.', 'all-in-one-wp-security-and-firewall'), 'aiowps_enable_manual_registration_approval', '1' == $aio_wp_security->configs->get_value('aiowps_enable_manual_registration_approval')); ?>
+						</div>
 					</td>
 				</tr>
 			</table>

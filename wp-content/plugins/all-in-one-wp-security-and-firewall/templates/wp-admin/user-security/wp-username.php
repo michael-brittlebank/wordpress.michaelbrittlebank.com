@@ -12,7 +12,7 @@
 <?php
 // display a list of all administrator accounts for this site
 $postbox_title = __('List of administrator accounts', 'all-in-one-wp-security-and-firewall');
-$AIOWPSecurity_User_Accounts_Menu->postbox($postbox_title, $user_accounts);
+$AIOWPSecurity_User_Security_Menu->postbox($postbox_title, $user_accounts);
 
 if (!is_super_admin()) {
 	// Hide config settings if multisite and not super admin.

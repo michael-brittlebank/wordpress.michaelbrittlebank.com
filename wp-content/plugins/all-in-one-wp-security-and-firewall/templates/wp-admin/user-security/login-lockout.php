@@ -21,22 +21,24 @@
 				<tr valign="top">
 					<th scope="row"><?php _e('Enable login lockout feature', 'all-in-one-wp-security-and-firewall'); ?>:</th>
 					<td>
-					<input id="aiowps_enable_login_lockdown" name="aiowps_enable_login_lockdown" type="checkbox"<?php checked($aio_wp_security->configs->get_value('aiowps_enable_login_lockdown'), '1'); ?> value="1"/>
-					<label for="aiowps_enable_login_lockdown" class="description"><?php _e('Check this if you want to enable the login lockout feature and apply the settings below', 'all-in-one-wp-security-and-firewall'); ?></label>
+						<div class="aiowps_switch_container">
+							<?php AIOWPSecurity_Utility_UI::setting_checkbox(__('Check this if you want to enable the login lockout feature and apply the settings below', 'all-in-one-wp-security-and-firewall'), 'aiowps_enable_login_lockdown', '1' == $aio_wp_security->configs->get_value('aiowps_enable_login_lockdown')); ?>
+						</div>
 					</td>
 				</tr>
 				<tr valign="top">
 					<th scope="row"><?php _e('Allow unlock requests', 'all-in-one-wp-security-and-firewall'); ?>:</th>
 					<td>
-					<input id="aiowps_allow_unlock_requests" name="aiowps_allow_unlock_requests" type="checkbox"<?php checked($aio_wp_security->configs->get_value('aiowps_allow_unlock_requests'), '1'); ?> value="1"/>
-					<label for="aiowps_allow_unlock_requests" class="description"><?php _e('Check this if you want to allow users to generate an automated unlock request link which will unlock their account', 'all-in-one-wp-security-and-firewall'); ?></label>
+						<div class="aiowps_switch_container">
+							<?php AIOWPSecurity_Utility_UI::setting_checkbox(__('Check this if you want to allow users to generate an automated unlock request link which will unlock their account', 'all-in-one-wp-security-and-firewall'), 'aiowps_allow_unlock_requests', '1' == $aio_wp_security->configs->get_value('aiowps_allow_unlock_requests')); ?>
+						</div>
 					</td>
 				</tr>
 				<tr valign="top">
 					<th scope="row"><label for="aiowps_max_login_attempts"><?php _e('Max login attempts', 'all-in-one-wp-security-and-firewall'); ?>:</label></th>
 					<td><input id="aiowps_max_login_attempts" type="text" size="5" name="aiowps_max_login_attempts" value="<?php echo esc_html($aio_wp_security->configs->get_value('aiowps_max_login_attempts')); ?>" />
 					<span class="description"><?php _e('Set the value for the maximum login retries before IP address is locked out', 'all-in-one-wp-security-and-firewall'); ?></span>
-					</td> 
+					</td>
 				</tr>
 				<tr valign="top">
 					<th scope="row"><label for="aiowps_retry_time_period"><?php _e('Login retry time period (min)', 'all-in-one-wp-security-and-firewall'); ?>:</label></th>
@@ -55,7 +57,7 @@
 						echo __('Set the minimum time period in minutes of lockout.', 'all-in-one-wp-security-and-firewall') . ' ' . __('This failed login lockout time will be tripled on each failed login.', 'all-in-one-wp-security-and-firewall');
 						?>
 					</span>
-					</td> 
+					</td>
 				</tr>
 				<tr valign="top">
 					<th scope="row">
@@ -71,15 +73,17 @@
 				<tr valign="top">
 					<th scope="row"><?php _e('Display generic error message', 'all-in-one-wp-security-and-firewall'); ?>:</th>
 					<td>
-					<input id="aiowps_set_generic_login_msg" name="aiowps_set_generic_login_msg" type="checkbox"<?php checked($aio_wp_security->configs->get_value('aiowps_set_generic_login_msg'), '1'); ?> value="1"/>
-					<label for="aiowps_set_generic_login_msg" class="description"><?php _e('Check this if you want to show a generic error message when a login attempt fails', 'all-in-one-wp-security-and-firewall'); ?></label>
+						<div class="aiowps_switch_container">
+							<?php AIOWPSecurity_Utility_UI::setting_checkbox(__('Check this if you want to show a generic error message when a login attempt fails', 'all-in-one-wp-security-and-firewall'), 'aiowps_set_generic_login_msg', '1' == $aio_wp_security->configs->get_value('aiowps_set_generic_login_msg')); ?>
+						</div>
 					</td>
 				</tr>
 				<tr valign="top">
 					<th scope="row"><?php _e('Instantly lockout invalid usernames', 'all-in-one-wp-security-and-firewall'); ?>:</th>
 					<td>
-					<input id="aiowps_enable_invalid_username_lockdown" name="aiowps_enable_invalid_username_lockdown" type="checkbox"<?php checked($aio_wp_security->configs->get_value('aiowps_enable_invalid_username_lockdown'), '1'); ?> value="1"/>
-					<label for="aiowps_enable_invalid_username_lockdown" class="description"><?php _e('Check this if you want to instantly lockout login attempts with usernames which do not exist on your system', 'all-in-one-wp-security-and-firewall'); ?></label>
+						<div class="aiowps_switch_container">
+							<?php AIOWPSecurity_Utility_UI::setting_checkbox(__('Check this if you want to instantly lockout login attempts with usernames which do not exist on your system', 'all-in-one-wp-security-and-firewall'), 'aiowps_enable_invalid_username_lockdown', '1' == $aio_wp_security->configs->get_value('aiowps_enable_invalid_username_lockdown')); ?>
+						</div>
 					</td>
 				</tr>
 				<tr valign="top">
@@ -102,8 +106,9 @@
 						<label for="aiowps_email_address"><?php _e('Notify by email', 'all-in-one-wp-security-and-firewall'); ?>:</label>
 					</th>
 					<td>
-						<input id="aiowps_enable_email_notify" name="aiowps_enable_email_notify" type="checkbox"<?php checked($aio_wp_security->configs->get_value('aiowps_enable_email_notify'), '1'); ?> value="1"/>
-						<label for="aiowps_enable_email_notify" class="description"><?php _e('Check this if you want to receive an email when someone has been locked out due to maximum failed login attempts', 'all-in-one-wp-security-and-firewall'); ?></span></label>
+						<div class="aiowps_switch_container">
+							<?php AIOWPSecurity_Utility_UI::setting_checkbox(__('Check this if you want to receive an email when someone has been locked out due to maximum failed login attempts', 'all-in-one-wp-security-and-firewall'), 'aiowps_enable_email_notify', '1' == $aio_wp_security->configs->get_value('aiowps_enable_email_notify')); ?>
+						</div>
 						<br />
 						<textarea id="aiowps_email_address" name="aiowps_email_address" cols="50" rows="5"><?php echo esc_textarea(AIOWPSecurity_Utility::get_textarea_str_val($aio_wp_security->configs->get_value('aiowps_email_address'))); ?></textarea><br>
 						<span class="description"><?php _e('Fill in one email address per line.', 'all-in-one-wp-security-and-firewall'); ?></span>
@@ -123,8 +128,9 @@
 						<?php _e('Enable PHP backtrace in email', 'all-in-one-wp-security-and-firewall'); ?>:
 					</th>
 					<td>
-						<input name="aiowps_enable_php_backtrace_in_email" id="aiowps_enable_php_backtrace_in_email" type="checkbox"<?php checked($aio_wp_security->configs->get_value('aiowps_enable_php_backtrace_in_email'), '1'); ?> value="1"/>
-						<label for="aiowps_enable_php_backtrace_in_email"><?php _e('Check this if you want to include the PHP backtrace in notification emails.', 'all-in-one-wp-security-and-firewall'); ?> <?php _e('This is internal coding information which makes it easier to investigate where an issued occurred.', 'all-in-one-wp-security-and-firewall'); ?></label>
+						<div class="aiowps_switch_container">
+							<?php AIOWPSecurity_Utility_UI::setting_checkbox(__('Check this if you want to include the PHP backtrace in notification emails.', 'all-in-one-wp-security-and-firewall'), 'aiowps_enable_php_backtrace_in_email', '1' == $aio_wp_security->configs->get_value('aiowps_enable_php_backtrace_in_email')); ?>
+						</div>
 					</td>
 				</tr>
 			</table>
@@ -158,8 +164,9 @@
 				<tr valign="top">
 					<th scope="row"><label for="aiowps_lockdown_enable_whitelisting"><?php _e('Enable login lockout IP whitelist', 'all-in-one-wp-security-and-firewall'); ?></label>:</th>
 					<td>
-					<input id="aiowps_lockdown_enable_whitelisting" name="aiowps_lockdown_enable_whitelisting" type="checkbox"<?php checked($aio_wp_security->configs->get_value('aiowps_lockdown_enable_whitelisting'), '1'); ?> value="1"/>
-					<span class="description"><?php _e('Check this if you want to enable the whitelisting of selected IP addresses specified in the settings below', 'all-in-one-wp-security-and-firewall'); ?></span>
+						<div class="aiowps_switch_container">
+							<?php AIOWPSecurity_Utility_UI::setting_checkbox(__('Check this if you want to enable the whitelisting of selected IP addresses specified in the settings below', 'all-in-one-wp-security-and-firewall'), 'aiowps_lockdown_enable_whitelisting', '1' == $aio_wp_security->configs->get_value('aiowps_lockdown_enable_whitelisting')); ?>
+						</div>
 					</td>
 				</tr>
 				<tr valign="top">
