@@ -98,7 +98,7 @@
 						}
 						?>
 						<textarea id="aiowps_instantly_lockout_specific_usernames" name="aiowps_instantly_lockout_specific_usernames" cols="50" rows="5"><?php echo esc_textarea(implode("\n", $instant_lockout_users_list)); ?></textarea><br>
-						<span class="description"><?php _e('Insert one username per line. Existing usernames are not blocked even if present in the list.', 'all-in-one-wp-security-and-firewall'); ?></span>
+						<span class="description"><?php _e('Insert one username per line. ', 'all-in-one-wp-security-and-firewall') . _e('Existing usernames are not blocked even if present in the list.', 'all-in-one-wp-security-and-firewall'); ?></span>
 					</td>
 				</tr>
 				<tr valign="top">

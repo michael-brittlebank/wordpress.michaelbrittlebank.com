@@ -14,7 +14,7 @@
 	<?php
 		$brute_force_login_feature_link = '<a href="admin.php?page='.AIOWPSEC_BRUTE_FORCE_MENU_SLUG.'&tab=cookie-based-brute-force-prevention" target="_blank">' . __('Cookie-Based brute force login prevention', 'all-in-one-wp-security-and-firewall') . '</a>';
 		$rename_login_feature_link = '<a href="admin.php?page='.AIOWPSEC_BRUTE_FORCE_MENU_SLUG.'&tab=rename-login" target="_blank">' . __('Rename login page', 'all-in-one-wp-security-and-firewall') . '</a>';
-		echo '<p>' . sprintf(__('Attention: If in addition to enabling the white list feature, you also have one of the %s or %s features enabled, <strong>you will still need to use your secret word or special slug in the URL when trying to access your WordPress login page</strong>.', 'all-in-one-wp-security-and-firewall'), $brute_force_login_feature_link, $rename_login_feature_link) . '</p><p>' . __('These features are NOT functionally related. Having both of them enabled on your site means you are creating 2 layers of security.', 'all-in-one-wp-security-and-firewall') . '</p>';
+		echo '<p>' . sprintf(__('Attention: If in addition to enabling the white list feature, you also have one of the %s or %s features enabled, %s you will still need to use your secret word or special slug in the URL when trying to access your WordPress login page %s', 'all-in-one-wp-security-and-firewall'), $brute_force_login_feature_link, $rename_login_feature_link, '<strong>', '</strong>') . '</p><p>' . __('These features are NOT functionally related.', 'all-in-one-wp-security-and-firewall') . ' ' . __('Having both of them enabled on your site means you are creating 2 layers of security.', 'all-in-one-wp-security-and-firewall') . '</p>';
 	?>
 </div>
 <?php

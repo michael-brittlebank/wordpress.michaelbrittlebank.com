@@ -1,17 +1,15 @@
 <?php
-if(!defined('ABSPATH')){
+if (!defined('ABSPATH')) {
 	exit;//Exit if accessed directly
 }
 
-class AIOWPSecurity_List_Debug_Log extends AIOWPSecurity_List_Table
-{
+class AIOWPSecurity_List_Debug_Log extends AIOWPSecurity_List_Table {
 
 	/**
 	 * Sets up some table attributes (i.e: the plurals and whether it's ajax or not)
 	 */
-	public function __construct()
-	{
-		global $status, $page;
+	public function __construct() {
+
 
 		//Set parent defaults
 		parent::__construct(array(
@@ -21,16 +19,27 @@ class AIOWPSecurity_List_Debug_Log extends AIOWPSecurity_List_Table
 		));
 
 	}
+	
+	/**
+	 * Returns logtime column in datetime format as per user setting time zone.
+	 *
+	 * @param array $item - data for the columns on the current row
+	 *
+	 * @return string - the datetime
+	 */
+	public function column_logtime($item) {
+		return AIOWPSecurity_Utility::convert_timestamp($item['logtime']);
+	}
 
 	/**
-	 * Returns the default column item
+	 * This function renders a default column item
 	 *
-	 * @param object $item
-	 * @param string $column_name
-	 * @return void
+	 * @param array  $item        - Item object
+	 * @param string $column_name - Column name to be rendered from item object
+	 *
+	 * @return mixed - data to be rendered for column
 	 */
-	public function column_default($item, $column_name)
-	{
+	public function column_default($item, $column_name) {
 		return $item[$column_name];
 	}
 
@@ -39,18 +48,16 @@ class AIOWPSecurity_List_Debug_Log extends AIOWPSecurity_List_Table
 	 *
 	 * @return array
 	 */
-	public function get_columns()
-	{
-		$columns = array(
+	public function get_columns() {
+		return array(
 			'id' => 'ID',
-			'created' => __('Date and time', 'all-in-one-security-and-firewall'),
+			'logtime' => __('Date and time', 'all-in-one-wp-security-and-firewall'),
 			'level' => __('Level', 'all-in-one-wp-security-and-firewall'),
 			'network_id' => __('Network ID', 'all-in-one-wp-security-and-firewall'),
 			'site_id' => __('Site ID', 'all-in-one-wp-security-and-firewall'),
 			'message' => __('Message', 'all-in-one-wp-security-and-firewall'),
 			'type' => __('Type', 'all-in-one-wp-security-and-firewall')
 		);
-		return $columns;
 	}
 
 	/**
@@ -58,28 +65,25 @@ class AIOWPSecurity_List_Debug_Log extends AIOWPSecurity_List_Table
 	 *
 	 * @return array
 	 */
-	public function get_sortable_columns()
-	{
-		$sortable_columns = array(
-			'created' => array('created', false),
+	public function get_sortable_columns() {
+		return array(
+			'logtime' => array('logtime', false),
 			'level' => array('level', false),
 			'network_id' => array('network_id', false),
 			'site_id' => array('site_id', false),
 			'message'=>array('message', false),
 			'type' => array('type', false)
 		);
-		return $sortable_columns;
 	}
 
 	/**
 	 * Grabs the data from database and handles the pagination
 	 *
-	 *  @param boolean $ignore_pagination - whether to not paginate
+	 * @param boolean $ignore_pagination - whether to not paginate
 	 *
 	 * @return void
 	 */
-	public function prepare_items($ignore_pagination = false)
-	{
+	public function prepare_items($ignore_pagination = false) {
 		/**
 		 * First, lets decide how many records per page to show
 		 */
@@ -111,7 +115,7 @@ class AIOWPSecurity_List_Debug_Log extends AIOWPSecurity_List_Table
 		isset($_GET["order"]) ? $order = strip_tags($_GET["order"]) : $order = '';
 
 		// By default show the most recent debug log entries.
-		$orderby = !empty($orderby) ? esc_sql($orderby) : 'created';
+		$orderby = !empty($orderby) ? esc_sql($orderby) : 'logtime';
 		$order = !empty($order) ? esc_sql($order) : 'DESC';
 
 		$orderby = AIOWPSecurity_Utility::sanitize_value_by_array($orderby, $sortable);

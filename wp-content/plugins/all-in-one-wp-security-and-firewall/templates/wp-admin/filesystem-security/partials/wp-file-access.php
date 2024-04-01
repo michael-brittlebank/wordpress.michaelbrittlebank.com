@@ -21,6 +21,17 @@
 						</div>
 					</td>
 				</tr>
+				<tr valign="top">
+					<th scope="row">
+						<?php _e('Delete readme.html and wp-config-sample.php:', 'all-in-one-wp-security-and-firewall'); ?>
+					</th>
+					<td>
+						<div class="aiowps_switch_container">
+							<input style="margin-right: 15px" type="submit" name="aiowps_delete_default_wp_files" value="<?php _e('Delete', 'all-in-one-wp-security-and-firewall'); ?>" class="button-primary">
+							<?php AIOWPSecurity_Utility_UI::setting_checkbox(__('Automatically delete the files after a WP core update.', 'all-in-one-wp-security-and-firewall'), 'aiowps_auto_delete_default_wp_files', '1' == $aio_wp_security->configs->get_value('aiowps_auto_delete_default_wp_files')); ?>
+						</div>
+					</td>
+				</tr>
 			</table>
 	</div>
 </div>

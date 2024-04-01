@@ -189,12 +189,12 @@ class AIOWPSecurity_Process_Renamed_Login_Page {
 				//if user is already logged in but tries to access the renamed login page, send them to the dashboard
 				// or to requested redirect-page, filtered in 'login_redirect'.
 				if (isset($_REQUEST['redirect_to'])) {
-				  $redirect_to = wp_sanitize_redirect($_REQUEST['redirect_to']);
-				  $redirect_to = wp_validate_redirect($redirect_to, apply_filters('wp_safe_redirect_fallback', admin_url(), 302));
-				  $requested_redirect_to = $redirect_to;
+					$redirect_to = wp_sanitize_redirect($_REQUEST['redirect_to']);
+					$redirect_to = wp_validate_redirect($redirect_to, apply_filters('wp_safe_redirect_fallback', admin_url(), 302));
+					$requested_redirect_to = $redirect_to;
 				} else {
-				  $redirect_to = admin_url();
-				  $requested_redirect_to = '';
+					$redirect_to = admin_url();
+					$requested_redirect_to = '';
 				}
 				$redirect_to = apply_filters('login_redirect', $redirect_to, $requested_redirect_to, wp_get_current_user());
 				AIOWPSecurity_Utility::redirect_to_url($redirect_to);

@@ -26,13 +26,9 @@ class AIOWPSecurity_User_Security_Menu extends AIOWPSecurity_Admin_Menu {
 	 */
 	protected function setup_menu_tabs() {
 		$menu_tabs = array(
-			'wp-username' => array(
-				'title' => __('WP username', 'all-in-one-wp-security-and-firewall'),
-				'render_callback' => array($this, 'render_wp_username'),
-			),
-			'display-name' => array(
-				'title' => __('Display name', 'all-in-one-wp-security-and-firewall'),
-				'render_callback' => array($this, 'render_display_name'),
+			'wp-user_accounts' => array(
+				'title' => __('User accounts', 'all-in-one-wp-security-and-firewall'),
+				'render_callback' => array($this, 'render_wp_user_account'),
 			),
 			'login-lockout' => array(
 				'title' => __('Login lockout', 'all-in-one-wp-security-and-firewall'),
@@ -50,6 +46,11 @@ class AIOWPSecurity_User_Security_Menu extends AIOWPSecurity_Admin_Menu {
 				'title' => __('Manual approval', 'all-in-one-wp-security-and-firewall'),
 				'render_callback' => array($this, 'render_manual_approval'),
 			),
+			'salt' => array(
+				'title' => __('Salt', 'all-in-one-wp-security-and-firewall'),
+				'render_callback' => array($this, 'render_salt_tab'),
+				'display_condition_callback' => array('AIOWPSecurity_Utility_Permissions', 'is_main_site_and_super_admin'),
+			),
 			'additional' => array(
 				'title' => __('Additional settings', 'all-in-one-wp-security-and-firewall'),
 				'render_callback' => array($this, 'render_additional'),
@@ -60,11 +61,11 @@ class AIOWPSecurity_User_Security_Menu extends AIOWPSecurity_Admin_Menu {
 	}
 	
 	/**
-	 * Renders the submenu's WP Username tab
+	 * Renders the submenu's WP User Account tab
 	 *
 	 * @return Void
 	 */
-	protected function render_wp_username() {
+	protected function render_wp_user_account() {
 		global $aio_wp_security, $aiowps_feature_mgr;
 
 		if (isset($_POST['aiowps_change_admin_username'])) { // Do form submission tasks
@@ -79,19 +80,28 @@ class AIOWPSecurity_User_Security_Menu extends AIOWPSecurity_Admin_Menu {
 		} else {
 			$user_accounts = $this->get_all_admin_accounts();
 		}
+
+		if (isset($_POST['aiowpsec_save_users_enumeration'])) {
+			$result = AIOWPSecurity_Utility_Permissions::check_nonce_and_user_cap($_REQUEST['_wpnonce'], 'aiowpsec-users-enumeration');
+			if (is_wp_error($result)) {
+				$aio_wp_security->debug_logger->log_debug($result->get_error_message(), 4);
+				die("Nonce check failed on prevent user enumeration feature settings save.");
+			}
+
+			// Save settings
+			$aio_wp_security->configs->set_value('aiowps_prevent_users_enumeration', isset($_POST["aiowps_prevent_users_enumeration"]) ? '1' : '', true);
+
+			$this->show_msg_updated(__('User Enumeration Prevention feature settings saved!', 'all-in-one-wp-security-and-firewall'));
+
+			//Recalculate points after the feature status/options have been altered
+			$aiowps_feature_mgr->check_feature_status_and_recalculate_points();
+		}
 		
 		$aio_wp_security->include_template('wp-admin/user-security/wp-username.php', false, array('aiowps_feature_mgr' => $aiowps_feature_mgr, 'user_accounts' => $user_accounts, 'AIOWPSecurity_User_Security_Menu' => $this));
-	}
-	
-	/**
-	 * Renders the submenu's display name tab
-	 *
-	 * @return Void
-	 */
-	protected function render_display_name() {
-		global $aio_wp_security, $aiowps_feature_mgr;
 		
 		$aio_wp_security->include_template('wp-admin/user-security/display-name.php', false, array('aiowps_feature_mgr' => $aiowps_feature_mgr));
+
+		$aio_wp_security->include_template('wp-admin/user-security/user-enumeration.php', false, array());
 	}
 
 	/**
@@ -123,7 +133,7 @@ class AIOWPSecurity_User_Security_Menu extends AIOWPSecurity_Admin_Menu {
 						$username_is_admin = false;
 					}
 					// Now let's change the username
-					$sql = $wpdb->prepare( "UPDATE `" . $wpdb->users . "` SET user_login = '" . esc_sql($new_username) . "' WHERE user_login=%s", "admin" );
+					$sql = $wpdb->prepare("UPDATE `" . $wpdb->users . "` SET user_login = '" . esc_sql($new_username) . "' WHERE user_login=%s", "admin");
 					$result = $wpdb->query($sql);
 					if (!$result) {
 						// There was an error updating the users table
@@ -145,7 +155,7 @@ class AIOWPSecurity_User_Security_Menu extends AIOWPSecurity_Admin_Menu {
 						// Lets logout the user
 						$aio_wp_security->debug_logger->log_debug("Logging user out with login ".$user_login. " because they changed their username.");
 						$after_logout_url = AIOWPSecurity_Utility::get_current_page_url();
-						$after_logout_payload = array('redirect_to'=>$after_logout_url, 'msg'=>$aio_wp_security->user_login_obj->key_login_msg.'=admin_user_changed', );
+						$after_logout_payload = array('redirect_to' => $after_logout_url, 'msg' => $aio_wp_security->user_login_obj->key_login_msg.'=admin_user_changed');
 						//Save some of the logout redirect data to a transient
 						is_multisite() ? set_site_transient('aiowps_logout_payload', $after_logout_payload, 30 * 60) : set_transient('aiowps_logout_payload', $after_logout_payload, 30 * 60);
 						
@@ -185,7 +195,7 @@ class AIOWPSecurity_User_Security_Menu extends AIOWPSecurity_Admin_Menu {
 		}
 		// now let's put the results in an HTML table
 		$account_output = "";
-		if ($admin_users != NULL) {
+		if (null == $admin_users) {
 			$account_output .= '<table>';
 			$account_output .= '<tr><th>'.__('Account login name', 'all-in-one-wp-security-and-firewall').'</th></tr>';
 			foreach ($admin_users as $entry) {
@@ -206,7 +216,7 @@ class AIOWPSecurity_User_Security_Menu extends AIOWPSecurity_Admin_Menu {
 
 	/**
 	 * Login Lockout configuration to set.
-	 * 
+	 *
 	 * @global AIO_WP_Security $aio_wp_security
 	 * @global AIOWPSecurity_Feature_Item_Manager $aiowps_feature_mgr
 	 *
@@ -250,27 +260,27 @@ class AIOWPSecurity_User_Security_Menu extends AIOWPSecurity_Admin_Menu {
 			}
 			
 			if ($lockout_time_length >= $max_lockout_time_length) {
-				$error .= '<br />'.__('You entered an invalid minimum lockout time length, it must be less than the maximum lockout time length value.', 'all-in-one-wp-security-and-firewall') . ' ' . __('Both have been set to the default values.','all-in-one-wp-security-and-firewall');
+				$error .= '<br />'.__('You entered an invalid minimum lockout time length, it must be less than the maximum lockout time length value.', 'all-in-one-wp-security-and-firewall') . ' ' . __('Both have been set to the default values.', 'all-in-one-wp-security-and-firewall');
 				$lockout_time_length = '5'; // Set it to the default value for this field
 				$max_lockout_time_length = '60'; // Set it to the default value for this field
 			}
 			
 			$email_addresses = isset($_POST['aiowps_email_address']) ? stripslashes($_POST['aiowps_email_address']) : get_bloginfo('admin_email');
-			$email_addresses_trimmed =  AIOWPSecurity_Utility::explode_trim_filter_empty($email_addresses, "\n");
+			$email_addresses_trimmed = AIOWPSecurity_Utility::explode_trim_filter_empty($email_addresses, "\n");
 			// Read into array, sanitize, filter empty and keep only unique usernames.
-			$email_address_list
-				= array_unique(
-					array_filter(
-						array_map(
-							'sanitize_email',
-							$email_addresses_trimmed
-						),
-						'is_email'
-					)
-				);
+			$email_address_list = array_unique(
+				array_filter(
+					array_map(
+						'sanitize_email',
+						$email_addresses_trimmed
+					),
+					'is_email'
+				)
+			);
+
 			if (isset($_POST['aiowps_enable_email_notify']) && 1 == $_POST['aiowps_enable_email_notify'] && 0 == count($email_addresses_trimmed)) {
 				$error .= '<br />' . __('Please fill in one or more email addresses to notify.', 'all-in-one-wp-security-and-firewall');
-			} else if (isset($_POST['aiowps_enable_email_notify']) && 1 == $_POST['aiowps_enable_email_notify'] && (0 == count($email_address_list) || count($email_address_list) != count($email_addresses_trimmed))) {
+			} elseif (isset($_POST['aiowps_enable_email_notify']) && 1 == $_POST['aiowps_enable_email_notify'] && (0 == count($email_address_list) || count($email_address_list) != count($email_addresses_trimmed))) {
 				$error .= '<br />' . __('You have entered one or more invalid email addresses.', 'all-in-one-wp-security-and-firewall');
 			}
 			if (0 == count($email_address_list)) {
@@ -281,16 +291,15 @@ class AIOWPSecurity_User_Security_Menu extends AIOWPSecurity_Admin_Menu {
 			// Instantly lockout specific usernames
 			$instantly_lockout_specific_usernames = isset($_POST['aiowps_instantly_lockout_specific_usernames']) ? $_POST['aiowps_instantly_lockout_specific_usernames'] : '';
 			// Read into array, sanitize, filter empty and keep only unique usernames.
-			$instantly_lockout_specific_usernames
-				= array_unique(
-					array_filter(
-						array_map(
-							'sanitize_user',
-							AIOWPSecurity_Utility::explode_trim_filter_empty($instantly_lockout_specific_usernames)
-						),
-						'strlen'
-					)
-				);
+			$instantly_lockout_specific_usernames = array_unique(
+				array_filter(
+					array_map(
+						'sanitize_user',
+						AIOWPSecurity_Utility::explode_trim_filter_empty($instantly_lockout_specific_usernames)
+					),
+					'strlen'
+				)
+			);
 
 			if ($error) {
 				$this->show_msg_error(__('Attention:', 'all-in-one-wp-security-and-firewall') . ' ' . $error);
@@ -334,17 +343,14 @@ class AIOWPSecurity_User_Security_Menu extends AIOWPSecurity_Admin_Menu {
 				if (!empty($_POST['aiowps_lockdown_allowed_ip_addresses'])) {
 					$ip_addresses = stripslashes($_POST['aiowps_lockdown_allowed_ip_addresses']);
 					$ip_list_array = AIOWPSecurity_Utility_IP::create_ip_list_array_from_string_with_newline($ip_addresses);
-					$payload = AIOWPSecurity_Utility_IP::validate_ip_list($ip_list_array, 'whitelist');
-					if (1 == $payload[0]) {
-						// success case
-						$list = $payload[1];
-						$allowed_ip_data = implode("\n", $list);
-						$aio_wp_security->configs->set_value('aiowps_lockdown_allowed_ip_addresses', $allowed_ip_data);
-						$_POST['aiowps_lockdown_allowed_ip_addresses'] = ''; // Clear the post variable for the allowed address list
-					} else {
+					$validated_ip_list_array = AIOWPSecurity_Utility_IP::validate_ip_list($ip_list_array, 'whitelist');
+					if (is_wp_error($validated_ip_list_array)) {
 						$result = -1;
-						$error_msg = $payload[1][0];
-						$this->show_msg_error($error_msg);
+						$this->show_msg_error(nl2br($validated_ip_list_array->get_error_message()));
+					} else {
+						$allowed_ip_data = implode("\n", $validated_ip_list_array);
+						$aio_wp_security->configs->set_value('aiowps_lockdown_allowed_ip_addresses', $allowed_ip_data);
+						$_POST['aiowps_lockdown_allowed_ip_addresses'] = ''; // Clear the post variable for the allowed address list.
 					}
 				} else {
 					$aio_wp_security->configs->set_value('aiowps_lockdown_allowed_ip_addresses', ''); //Clear the IP address config value
@@ -369,7 +375,7 @@ class AIOWPSecurity_User_Security_Menu extends AIOWPSecurity_Admin_Menu {
 	/**
 	 * Force logged user to logout afte x mins.
 	 *
-	 * @global AIO_WP_Security $aio_wp_security
+	 * @global AIO_WP_Security                    $aio_wp_security
 	 * @global AIOWPSecurity_Feature_Item_Manager $aiowps_feature_mgr
 	 * @return void
 	 */
@@ -385,7 +391,7 @@ class AIOWPSecurity_User_Security_Menu extends AIOWPSecurity_Admin_Menu {
 
 			$logout_time_period = sanitize_text_field($_POST['aiowps_logout_time_period']);
 			if (!is_numeric($logout_time_period)) {
-				$error .= '<br />'.__('You entered a non numeric value for the logout time period field. It has been set to the default value.','all-in-one-wp-security-and-firewall');
+				$error .= '<br />'.__('You entered a non numeric value for the logout time period field, it has been set to the default value.', 'all-in-one-wp-security-and-firewall');
 				$logout_time_period = '1'; // Set it to the default value for this field
 			} else {
 				if ($logout_time_period < 1) {
@@ -470,32 +476,25 @@ class AIOWPSecurity_User_Security_Menu extends AIOWPSecurity_Admin_Menu {
 			$this->show_msg_updated(__('Settings were successfully saved', 'all-in-one-wp-security-and-firewall'));
 		}
 
-		if (isset($_REQUEST['action'])) { // Do list table form row action tasks
-			if ('approve_acct' == $_REQUEST['action']) { // Approve link was clicked for a row in list table
-				$nonce = isset($_REQUEST['aiowps_nonce']) ? $_REQUEST['aiowps_nonce'] : '';
-				if (!isset($nonce) ||!wp_verify_nonce($nonce, 'approve_user_acct')) {
-					$aio_wp_security->debug_logger->log_debug("Nonce check failed for approve registered user account operation.", 4);
-					die(__('Nonce check failed for approve registered user account operation.','all-in-one-wp-security-and-firewall'));
-				}
-				$user_list->approve_selected_accounts(strip_tags($_REQUEST['user_id']));
+		if (isset($_GET['action'])) { // Do list table form row action tasks
+			$nonce = isset($_GET['aiowps_nonce']) ? $_GET['aiowps_nonce'] : '';
+			$nonce_user_cap_result = AIOWPSecurity_Utility_Permissions::check_nonce_and_user_cap($nonce, 'registered_user_item_action');
+			
+			if (is_wp_error($nonce_user_cap_result)) {
+				$aio_wp_security->debug_logger->log_debug($nonce_user_cap_result->get_error_message(), 4);
+				die($nonce_user_cap_result->get_error_message());
 			}
 
-			if ('delete_acct' == $_REQUEST['action']) { // Delete link was clicked for a row in list table
-				$nonce = isset($_REQUEST['aiowps_nonce']) ? $_REQUEST['aiowps_nonce'] : '';
-				if (!wp_verify_nonce($nonce, 'delete_user_acct')) {
-					$aio_wp_security->debug_logger->log_debug("Nonce check failed for delete registered user account operation.", 4);
-					die(__('Nonce check failed for delete registered user account operation.','all-in-one-wp-security-and-firewall'));
-				}
-				$user_list->delete_selected_accounts(strip_tags($_REQUEST['user_id']));
+			if ('approve_acct' == $_GET['action']) { // Approve link was clicked for a row in list table
+				$user_list->approve_selected_accounts(strip_tags($_GET['user_id']));
 			}
 
-			if ('block_ip' == $_REQUEST['action']) { // Block IP link was clicked for a row in list table
-				$nonce = isset($_REQUEST['aiowps_nonce']) ? $_REQUEST['aiowps_nonce'] : '';
-				if (!isset($nonce) || !wp_verify_nonce($nonce, 'block_ip')) {
-					$aio_wp_security->debug_logger->log_debug("Nonce check failed for block IP operation of registered user.", 4);
-					die(__('Nonce check failed for block IP operation of registered user.','all-in-one-wp-security-and-firewall'));
-				}
-				$user_list->block_selected_ips(strip_tags($_REQUEST['ip_address']));
+			if ('delete_acct' == $_GET['action']) { // Delete link was clicked for a row in list table
+				$user_list->delete_selected_accounts(strip_tags($_GET['user_id']));
+			}
+
+			if ('block_ip' == $_GET['action']) { // Block IP link was clicked for a row in list table
+				$user_list->block_selected_ips(strip_tags($_GET['ip_address']));
 			}
 		}
 
@@ -503,6 +502,64 @@ class AIOWPSecurity_User_Security_Menu extends AIOWPSecurity_Admin_Menu {
 		$tab = isset($_REQUEST["tab"]) ? $_REQUEST["tab"] : '';
 
 		$aio_wp_security->include_template('wp-admin/user-security/manual-approval.php', false, array('user_list' => $user_list, 'aiowps_feature_mgr' => $aiowps_feature_mgr, 'page' => $page, 'tab' => $tab));
+	}
+
+	/**
+	 * Renders the submenu's salt tab
+	 *
+	 * @return Void
+	 */
+	protected function render_salt_tab() {
+		global $aio_wp_security, $aiowps_feature_mgr;
+		if (isset($_POST['aios_save_salt_postfix_settings'])) {
+			$nonce_user_cap_result = AIOWPSecurity_Utility_Permissions::check_nonce_and_user_cap($_POST['_wpnonce'], 'aios-salt-postfix-settings');
+
+			if (is_wp_error($nonce_user_cap_result)) {
+				$aio_wp_security->debug_logger->log_debug($nonce_user_cap_result->get_error_message(), 4);
+				die($nonce_user_cap_result->get_error_message());
+			}
+			//Save settings
+			$aiowps_enable_salt_postfix = isset($_POST['aiowps_enable_salt_postfix']) ? '1' : '';
+			if ($aiowps_enable_salt_postfix == $aio_wp_security->configs->get_value('aiowps_enable_salt_postfix')) {
+				$is_setting_changed = true;
+			} else {
+				$is_setting_changed = false;
+			}
+
+			$aio_wp_security->configs->set_value('aiowps_enable_salt_postfix', $aiowps_enable_salt_postfix, true);
+			$ret_schedule = $this->schedule_change_auth_keys_and_salt();
+
+			if (is_wp_error($ret_schedule)) {
+				$aio_wp_security->debug_logger->log_debug($ret_schedule->get_error_message(), 4);
+			}
+
+			if ('1' == $aiowps_enable_salt_postfix && $is_setting_changed) {
+				AIOWPSecurity_Utility::change_salt_postfixes();
+			}
+
+			$this->show_msg_updated(__('Salt postfix feature settings saved.', 'all-in-one-wp-security-and-firewall'));
+			//Recalculate points after the feature status/options have been altered
+			$aiowps_feature_mgr->check_feature_status_and_recalculate_points();
+		}
+
+		$aio_wp_security->include_template('wp-admin/miscellaneous/salt.php');
+	}
+
+	/**
+	 * Schedule weekly aios_change_auth_keys_and_salt cron event.
+	 *
+	 * @return Boolean|WP_Error  True if event successfully scheduled. False or WP_Error on failure.
+	 */
+	private function schedule_change_auth_keys_and_salt() {
+		$previous_time = wp_next_scheduled('aios_change_auth_keys_and_salt');
+
+		if (false !== $previous_time) {
+			// Clear schedule so that we don't stack up scheduled backups
+			wp_clear_scheduled_hook('aios_change_auth_keys_and_salt');
+		}
+		$gmt_offset_in_seconds = floatval(get_option('gmt_offset')) * 3600;
+		$first_time = strtotime('next Sunday '.apply_filters('aios_salt_change_schedule_time', '3:00 am')) + $gmt_offset_in_seconds;
+		return wp_schedule_event($first_time, 'weekly', 'aios_change_auth_keys_and_salt');
 	}
 	
 	/**
@@ -532,4 +589,4 @@ class AIOWPSecurity_User_Security_Menu extends AIOWPSecurity_Admin_Menu {
 
 		$aio_wp_security->include_template('wp-admin/user-security/additional.php', false, array('aiowps_feature_mgr' => $aiowps_feature_mgr));
 	}
-} //end class
+}

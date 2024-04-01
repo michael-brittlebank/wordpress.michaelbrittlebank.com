@@ -29,7 +29,7 @@
 			<?php wp_nonce_field('aiowpsec-enable-cookie-based-brute-force-prevention'); ?>
 			<div class="aio_orange_box">
 				<p>
-				<?php echo sprintf(__('This feature can lock you out of admin if it doesn\'t work correctly on your site. Before activating this feature you must read the following %s.', 'all-in-one-wp-security-and-firewall'), '<a href="https://aiosplugin.com/important-note-on-intermediate-and-advanced-features" target="_blank">'.__('message', 'all-in-one-wp-security-and-firewall').'</a>'); ?>
+				<?php echo __('This feature can lock you out of admin if it doesn\'t work correctly on your site.', 'all-in-one-wp-security-and-firewall').' ' . sprintf(__('Before activating this feature you must read the following %s.', 'all-in-one-wp-security-and-firewall'), '<a href="https://aiosplugin.com/important-note-on-intermediate-and-advanced-features" target="_blank">'.__('message', 'all-in-one-wp-security-and-firewall').'</a>'); ?>
 				</p>
 			</div>
 			<?php
@@ -40,7 +40,7 @@
 				if ('1' == $cookie_test_value || '1' == $aio_wp_security->configs->get_value('aiowps_enable_brute_force_attack_prevention')) {
 					if (!empty($aiowps_cookie_test)) { // Cookie test was just performed and the test succeeded
 						echo '<div class="aio_green_box"><p>';
-						_e('The cookie test was successful. You can now enable this feature.', 'all-in-one-wp-security-and-firewall');
+						_e('The cookie test was successful, you can now enable this feature.', 'all-in-one-wp-security-and-firewall');
 						echo '</p></div>';
 					}
 					$disable_brute_force_feature_input = false;
@@ -48,7 +48,7 @@
 					// Cookie test needs to be performed
 					if (!empty($aiowps_cookie_test) && '1' != $cookie_test_value) { // Test failed
 						echo '<div class="aio_red_box"><p>';
-						_e('The cookie test failed on this server. Consequently, this feature cannot be used on this site.', 'all-in-one-wp-security-and-firewall');
+						echo __('The cookie test failed on this server.', 'all-in-one-wp-security-and-firewall') .' '. __('Consequently, this feature cannot be used on this site.', 'all-in-one-wp-security-and-firewall');
 						echo '</p></div>';
 					}
 			?>
@@ -98,7 +98,7 @@
 				<tr valign="top">
 					<th scope="row"><label for="aiowps_brute_force_secret_word"><?php _e('Secret word', 'all-in-one-wp-security-and-firewall'); ?>:</label></th>
 					<td><input id="aiowps_brute_force_secret_word" type="text" size="40" name="aiowps_brute_force_secret_word" value="<?php echo $aio_wp_security->configs->get_value('aiowps_brute_force_secret_word'); ?>"<?php disabled($disable_brute_force_sub_fields); ?>>
-					<span class="description"><?php _e('Choose a secret word consisting of alphanumeric characters which you can use to access your special URL. Your are highly encouraged to choose a word which will be difficult to guess.', 'all-in-one-wp-security-and-firewall'); ?></span>
+					<span class="description"><?php echo __('Choose a secret word consisting of alphanumeric characters which you can use to access your special URL.', 'all-in-one-wp-security-and-firewall') . ' ' . __('You are highly encouraged to choose a word which will be difficult to guess.', 'all-in-one-wp-security-and-firewall'); ?></span>
 					</td>
 				</tr>
 				<tr valign="top">

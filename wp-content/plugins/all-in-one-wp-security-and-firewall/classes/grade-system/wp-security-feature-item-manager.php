@@ -244,12 +244,11 @@ class AIOWPSecurity_Feature_Item_Manager {
 					'aiowps_advanced_char_string_filter'
 				)
 			),
-			'firewall-enable-5g-6g-blacklist' => array(
-				'name' => __('5G/6G blacklist', 'all-in-one-wp-security-and-firewall'),
+			'firewall-enable-6g' => array(
+				'name' => __('6G firewall', 'all-in-one-wp-security-and-firewall'),
 				'points' => $this->feature_point_4,
 				'level' => $this->sec_level_advanced,
 				'options' => array(
-					'aiowps_enable_5g_firewall',
 					'aiowps_enable_6g_firewall',
 				)
 			),
@@ -472,6 +471,15 @@ class AIOWPSecurity_Feature_Item_Manager {
 					'aiowps_ban_post_blank_headers'
 				)
 			),
+			'contact-form-7-captcha' => array(
+				'name' => sprintf(__('%s CAPTCHA', 'all-in-one-wp-security-and-firewall'), 'Contact Form 7'),
+				'points' => $this->feature_point_1,
+				'level' => $this->sec_level_basic,
+				'options' => array(
+					'aiowps_enable_contact_form_7_captcha'
+				),
+				'feature_condition_callback' => array('AIOWPSecurity_Utility', 'is_contact_form_7_plugin_active'),
+			)
 		);
 
 		$feature_list = apply_filters('aiowpsecurity_feature_list', $feature_list);

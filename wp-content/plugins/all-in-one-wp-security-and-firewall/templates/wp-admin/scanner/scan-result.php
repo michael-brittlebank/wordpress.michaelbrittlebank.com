@@ -26,7 +26,7 @@
 					$output .= '<tr>';
 					$output .= '<td>' . esc_html($key) . '</td>';
 					$output .= '<td>' . esc_html($value['filesize']) . '</td>';
-					$last_modified = function_exists('wp_date') ? wp_date('Y-m-d H:i:s', $value['last_modified']) : get_date_from_gmt(gmdate('Y-m-d H:i:s', $value['last_modified']), 'Y-m-d H:i:s');
+					$last_modified = AIOWPSecurity_Utility::convert_timestamp($value['last_modified']);
 					$output .= '<td>' . esc_html($last_modified) . '</td>';
 					$output .= '</tr>';
 				}

@@ -21,7 +21,7 @@
 								echo '<br />';
 								_e('This feature will prevent the listing of contents for all directories.', 'all-in-one-wp-security-and-firewall');
 								echo '<br />';
-								_e('NOTE: In order for this feature to work "AllowOverride" of the Indexes directive must be enabled in your httpd.conf file. Ask your hosting provider to check this if you don\'t have access to httpd.conf', 'all-in-one-wp-security-and-firewall');
+								_e('NOTE: In order for this feature to work "AllowOverride" of the Indexes directive must be enabled in your httpd.conf file. ', 'all-in-one-wp-security-and-firewall') . _e('Ask your hosting provider to check this if you don\'t have access to httpd.conf', 'all-in-one-wp-security-and-firewall');
 								?>
 							</p>
 						</div>

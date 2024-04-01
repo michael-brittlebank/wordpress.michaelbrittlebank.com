@@ -99,7 +99,7 @@
 			$spammer_ip_list->prepare_items();
 			// echo "put table of locked entries here";
 		?>
-		<form id="tables-filter" method="get">
+		<form id="tables-filter" method="post">
 			<!-- For plugins, we also need to ensure that the form posts back to our current page -->
 			<input type="hidden" name="page" value="<?php echo esc_attr($page); ?>" />
 			<input type="hidden" name="tab" value="<?php echo esc_attr($tab); ?>" />

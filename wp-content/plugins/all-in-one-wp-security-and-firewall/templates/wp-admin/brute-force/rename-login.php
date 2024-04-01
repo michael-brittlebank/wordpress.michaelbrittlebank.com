@@ -33,7 +33,7 @@
 			<?php wp_nonce_field('aiowpsec-rename-login-page-nonce'); ?>
 			<div class="aio_orange_box">
 				<?php
-				echo sprintf(__('This feature can lock you out of admin if it doesn\'t work correctly on your site. Before activating this feature you must read the following %s.', 'all-in-one-wp-security-and-firewall'), '<a href="https://aiosplugin.com/important-note-on-intermediate-and-advanced-features" target="_blank">'.__('message', 'all-in-one-wp-security-and-firewall').'</a>');
+				echo __('This feature can lock you out of admin if it doesn\'t work correctly on your site.', 'all-in-one-wp-security-and-firewall') . ' '. sprintf(__('Before activating this feature you must read the following %s.', 'all-in-one-wp-security-and-firewall'), '<a href="https://aiosplugin.com/important-note-on-intermediate-and-advanced-features" target="_blank">'.__('message', 'all-in-one-wp-security-and-firewall').'</a>');
 				echo '<p>' . __("NOTE: If you are hosting your site on WPEngine or a provider which performs server caching, you will need to ask the host support people to NOT cache your renamed login page.", "all-in-one-wp-security-and-firewall") . '</p>';
 				?>
 			</div>
@@ -49,7 +49,7 @@
 				<tr valign="top">
 					<th scope="row"><label for="aiowps_login_page_slug"><?php _e('Login page URL', 'all-in-one-wp-security-and-firewall'); ?>:</label></th>
 					<td><code><?php echo $home_url; ?></code><input id="aiowps_login_page_slug" type="text" size="15" name="aiowps_login_page_slug" value="<?php echo $aio_wp_security->configs->get_value('aiowps_login_page_slug'); ?>">
-					<span class="description"><?php _e('Enter a string which will represent your secure login page slug. You are encouraged to choose something which is hard to guess and only you will remember.', 'all-in-one-wp-security-and-firewall'); ?></span>
+					<span class="description"><?php echo __('Enter a string which will represent your secure login page slug.', 'all-in-one-wp-security-and-firewall') . ' ' . __('You are encouraged to choose something which is hard to guess and only you will remember.', 'all-in-one-wp-security-and-firewall'); ?></span>
 					</td>
 				</tr>
 			</table>

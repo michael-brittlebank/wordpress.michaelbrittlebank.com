@@ -8,9 +8,9 @@ if (!class_exists('AIO_WP_Security')) {
 
 	class AIO_WP_Security {
 
-		public $version = '5.2.5';
+		public $version = '5.2.9';
 
-		public $db_version = '2.0.7';
+		public $db_version = '2.0.10';
 
 		public $firewall_version = '1.0.6';
 
@@ -145,14 +145,13 @@ if (!class_exists('AIO_WP_Security')) {
 			define('AIOWPSEC_USER_SECURITY_MENU_SLUG', 'aiowpsec_usersec');
 			define('AIOWPSEC_DB_SEC_MENU_SLUG', 'aiowpsec_database');
 			define('AIOWPSEC_FILESYSTEM_MENU_SLUG', 'aiowpsec_filesystem');
-			define('AIOWPSEC_BLACKLIST_MENU_SLUG', 'aiowpsec_blacklist');
 			define('AIOWPSEC_FIREWALL_MENU_SLUG', 'aiowpsec_firewall');
 			define('AIOWPSEC_SPAM_MENU_SLUG', 'aiowpsec_spam');
 			define('AIOWPSEC_FILESCAN_MENU_SLUG', 'aiowpsec_filescan');
 			define('AIOWPSEC_BRUTE_FORCE_MENU_SLUG', 'aiowpsec_brute_force');
-			define('AIOWPSEC_MISC_MENU_SLUG', 'aiowpsec_misc');
 			define('AIOWPSEC_TWO_FACTOR_AUTH_MENU_SLUG', 'aiowpsec_two_factor_auth_user');
 			define('AIOWPSEC_TOOLS_MENU_SLUG', 'aiowpsec_tools');
+			define('AIOWPSEC_CAPTCHA_SHORTCODE', 'aios_captcha');
 			
 			if (!defined('AIOS_TFA_PREMIUM_LATEST_INCOMPATIBLE_VERSION')) define('AIOS_TFA_PREMIUM_LATEST_INCOMPATIBLE_VERSION', '1.14.7');
 			
@@ -263,15 +262,14 @@ if (!class_exists('AIO_WP_Security')) {
 		/**
 		 * Activation handler function.
 		 *
-		 * @param boolean $networkwide whether activate plugin network wide.
 		 * @return void
 		 */
-		public static function activate_handler($networkwide) {
+		public static function activate_handler() {
 			// Only runs when the plugin activates
 			global $wpdb;// phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable -- Used for the include below
 			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-installer.php');
-			AIOWPSecurity_Installer::run_installer($networkwide);
-			AIOWPSecurity_Installer::set_cron_tasks_upon_activation($networkwide);
+			AIOWPSecurity_Installer::run_installer();
+			AIOWPSecurity_Installer::set_cron_tasks_upon_activation();
 		}
 
 		/**
@@ -385,21 +383,19 @@ if (!class_exists('AIO_WP_Security')) {
 		}
 
 		public function db_upgrade_handler() {
-			if (is_admin()) {//Check if DB needs to be upgraded
-				if (get_option('aiowpsec_db_version') != AIO_WP_SECURITY_DB_VERSION) {
-					require_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-installer.php');
-					AIOWPSecurity_Installer::run_installer();
-					AIOWPSecurity_Installer::set_cron_tasks_upon_activation();
-					AIOWPSecurity_Utility_Htaccess::write_to_htaccess();
+			if (get_option('aiowpsec_db_version') != AIO_WP_SECURITY_DB_VERSION) {
+				require_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-installer.php');
+				AIOWPSecurity_Installer::run_installer();
+				AIOWPSecurity_Installer::set_cron_tasks_upon_activation();
+				AIOWPSecurity_Utility_Htaccess::write_to_htaccess();
 
-					/**
-					 * Update our config file's header if needed.
-					 */
-					if (is_main_site()) {
-						require_once(AIO_WP_SECURITY_PATH.'/classes/firewall/libs/wp-security-firewall-config.php');
-						$config = new \AIOWPS\Firewall\Config(AIOWPSecurity_Utility_Firewall::get_firewall_rules_path() . 'settings.php');
-						$config->update_prefix();
-					}
+				/**
+				 * Update our config file's header if needed.
+				 */
+				if (is_main_site()) {
+					require_once(AIO_WP_SECURITY_PATH.'/classes/firewall/libs/wp-security-firewall-config.php');
+					$config = new \AIOWPS\Firewall\Config(AIOWPSecurity_Utility_Firewall::get_firewall_rules_path() . 'settings.php');
+					$config->update_prefix();
 				}
 			}
 		}
@@ -430,9 +426,10 @@ if (!class_exists('AIO_WP_Security')) {
 			// Add filter for 'cron_schedules' must be run before $this->db_upgrade_handler()
 			// so, AIOWPSecurity_Cronjob_Handler __construct runs this filter so the object should be initialized here.
 			$this->cron_handler = new AIOWPSecurity_Cronjob_Handler();
+			// DB upgrade handler - run outside admin interface
+			$this->db_upgrade_handler();
 			if (is_admin()) {
 				//Do plugins_loaded operations for admin side
-				$this->db_upgrade_handler();
 				$this->firewall_upgrade_handler();
 				$this->admin_init = new AIOWPSecurity_Admin_Init();
 				$this->notices = new AIOWPSecurity_Notices();

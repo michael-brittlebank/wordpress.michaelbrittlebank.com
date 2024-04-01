@@ -1,6 +1,7 @@
 <?php
-
-/* Parent class for all admin menu classes */
+/**
+ * Parent class for all admin menu classes
+ */
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -24,6 +25,8 @@ abstract class AIOWPSecurity_Admin_Menu {
 
 	/**
 	 * Constructor adds a admin menu
+	 *
+	 * @param string $title - Title of menu to be rendered
 	 */
 	public function __construct($title) {
 		$this->setup_menu_tabs();
@@ -108,9 +111,9 @@ abstract class AIOWPSecurity_Admin_Menu {
 	/**
 	 * Shows postbox for settings menu
 	 *
-	 * @param string $id css ID for postbox
-	 * @param string $title title of the postbox section
-	 * @param string $content the content of the postbox
+	 * @param string $id      - css ID for postbox
+	 * @param string $title   - title of the postbox section
+	 * @param string $content - the content of the postbox
 	 **/
 	protected function postbox_toggle($id, $title, $content) {
 		//Always send string with translation markers in it
@@ -125,7 +128,20 @@ abstract class AIOWPSecurity_Admin_Menu {
 		<?php
 	}
 	
-	public function postbox($title, $content)  {
+	/**
+	 * Display a postbox with a title and content.
+	 *
+	 * This function generates and outputs HTML markup for a postbox with a specified title
+	 * and content. The title and content should be provided as parameters, and they will be
+	 * automatically escaped for security. The function ensures that translation markers are
+	 * included in the output strings.
+	 *
+	 * @param string $title   - The title of the postbox.
+	 * @param string $content - The content to be displayed inside the postbox.
+	 *
+	 * @return void
+	 */
+	public function postbox($title, $content) {
 		// Always send string with translation markers in it
 		?>
 		<div class="postbox">
@@ -135,18 +151,18 @@ abstract class AIOWPSecurity_Admin_Menu {
 			</div>
 		</div>
 		<?php
-	} 
+	}
 	
 	/**
 	 * Render settings successfully updated message
 	 *
 	 * @param bool $return_instead_of_echo - This is used for when the function needs to return the message
 	 *
-	 * @return mixed
+	 * @return string|void
 	 */
 	public function show_msg_settings_updated($return_instead_of_echo = false) {
 		$message = '<div id="aios_message" class="updated fade"><p><strong>';
-		$message .= __('The settings have been successfully updated.','all-in-one-wp-security-and-firewall');
+		$message .= __('The settings have been successfully updated.', 'all-in-one-wp-security-and-firewall');
 		$message .= '</strong></p></div>';
 		if ($return_instead_of_echo) return $message;
 		echo $message;
@@ -175,10 +191,10 @@ abstract class AIOWPSecurity_Admin_Menu {
 	/**
 	 * Render successfully updated message
 	 *
-	 * @param string $msg - This contain the message to show
-	 * @param bool $return_instead_of_echo - This is used for when the function needs to return the message
+	 * @param string $msg                    - This contains the message to show
+	 * @param bool   $return_instead_of_echo - This is used for when the function needs to return the message
 	 *
-	 * @return mixed
+	 * @return string|void
 	 */
 	public function show_msg_updated($msg, $return_instead_of_echo = false) {
 		$message = '<div id="aios_message" class="updated fade"><p><strong>';
@@ -191,10 +207,10 @@ abstract class AIOWPSecurity_Admin_Menu {
 	/**
 	 * Render successfully updated message
 	 *
-	 * @param string $msg - This contain the message to show
-	 * @param bool $return_instead_of_echo - This is used for when the function needs to return the message
+	 * @param string $msg                    - This contains the message to show
+	 * @param bool   $return_instead_of_echo - This is used for when the function needs to return the message
 	 *
-	 * @return mixed
+	 * @return string|void
 	 */
 	public static function show_msg_updated_st($msg, $return_instead_of_echo = false) {
 		$message = '<div id="aios_message" class="updated fade"><p><strong>';
@@ -207,10 +223,10 @@ abstract class AIOWPSecurity_Admin_Menu {
 	/**
 	 * Render error message
 	 *
-	 * @param string $msg - This contain the message to show
-	 * @param bool $return_instead_of_echo - This is used for when the function needs to return the message
+	 * @param string $error_msg              - This contains the message to show
+	 * @param bool   $return_instead_of_echo - This is used for when the function needs to return the message
 	 *
-	 * @return mixed
+	 * @return string|void
 	 */
 	public function show_msg_error($error_msg, $return_instead_of_echo = false) {
 		$message = '<div id="aios_message" class="error"><p><strong>';
@@ -219,14 +235,14 @@ abstract class AIOWPSecurity_Admin_Menu {
 		if ($return_instead_of_echo) return $message;
 		echo $message;
 	}
-	
+
 	/**
 	 * Render error message
 	 *
-	 * @param string $msg - This contain the message to show
-	 * @param bool $return_instead_of_echo - This is used for when the function needs to return the message
+	 * @param string $error_msg              - This contains the message to show
+	 * @param bool   $return_instead_of_echo - This is used for when the function needs to return the message
 	 *
-	 * @return mixed
+	 * @return string|void
 	 */
 	public static function show_msg_error_st($error_msg, $return_instead_of_echo = false) {
 		$message = '<div id="aios_message" class="error"><p><strong>';

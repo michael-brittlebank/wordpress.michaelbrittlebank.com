@@ -6,7 +6,7 @@
 		<div class="aio_blue_box">
 			<?php
 			echo '<p>'.__('If your site allows people to create their own accounts via the WordPress registration form, then you can minimize spam or bogus registrations by manually approving each registration.', 'all-in-one-wp-security-and-firewall').
-			'<br>'.__('This feature will automatically set a newly registered account to "pending" until the administrator activates it. Therefore undesirable registrants will be unable to log in without your express approval.', 'all-in-one-wp-security-and-firewall').
+			'<br>'.__('This feature will automatically set a newly registered account to "pending" until the administrator activates it.', 'all-in-one-wp-security-and-firewall') . ' ' . __(' Therefore undesirable registrants will be unable to log in without your express approval.', 'all-in-one-wp-security-and-firewall').
 			'<br>'.__('You can view all accounts which have been newly registered via the handy table below and you can also perform bulk activation/deactivation/deletion tasks on each account.', 'all-in-one-wp-security-and-firewall').'</p>';
 			?>
 		</div>
@@ -37,7 +37,7 @@
 		// Fetch, prepare, sort, and filter our data...
 		$user_list->prepare_items();
 		?>
-		<form id="tables-filter" method="get">
+		<form id="tables-filter" method="post">
 			<!-- For plugins, we also need to ensure that the form posts back to our current page -->
 			<input type="hidden" name="page" value="<?php echo esc_attr($page); ?>" />
 			<?php

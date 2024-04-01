@@ -73,8 +73,10 @@ trait Action_Permblock_and_Exit_Trait {
 
 		// If it does exist, no point adding it again so just forbid and exit
 		if (!is_null($already_exists)) $this->do_action_forbid_and_exit();
+		
+		$sql = $wpdb->prepare("INSERT INTO ".$table." (blocked_ip, block_reason, blocked_date, created) VALUES ('%s', '%s', '%s', UNIX_TIMESTAMP())", $data['blocked_ip'], $data['block_reason'], $data['blocked_date']);
 
-		if (false === $wpdb->insert($table, $data)) {
+		if (false === $wpdb->query($sql)) {
 			error_log('AIOS: Unable to insert IP address into table.');
 		}
 

@@ -62,7 +62,7 @@ if (!is_super_admin()) {
 			<?php wp_nonce_field('aiowpsec-disable-all-firewall-rules'); ?>
 			<div class="aio_blue_box">
 				<?php
-				echo '<p>'.__('This feature will disable all firewall rules which are currently active in this plugin and it will also delete these rules from your .htacess file. Use it if you think one of the firewall rules is causing an issue on your site.', 'all-in-one-wp-security-and-firewall').'</p>';
+				echo '<p>'.__('This feature will disable all firewall rules which are currently active in this plugin and it will also delete these rules from your .htaccess file.', 'all-in-one-wp-security-and-firewall') . ' ' . __('Use it if you think one of the firewall rules is causing an issue on your site.', 'all-in-one-wp-security-and-firewall').'</p>';
 				?>
 			</div>
 			<div class="submit">

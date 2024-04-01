@@ -77,13 +77,12 @@ class AIOWPSecurity_Logger {
 			'message' => $message,
 			'type' => $type,
 		);
-
-		$ret = $wpdb->insert($debug_tbl_name, $data);
+		$sql = $wpdb->prepare("INSERT INTO ".$debug_tbl_name." (created, logtime, level, network_id, site_id, message,  type) VALUES ('%s', UNIX_TIMESTAMP(), '%s', '%d', '%d', '%s', '%s')", $data['created'], $data['level'], $data['network_id'], $data['site_id'], $data['message'], $data['type']);
+		$ret = $wpdb->query($sql);
 		if (false === $ret) {
 			$error_msg = empty($wpdb->last_error) ? 'Could not write to the debug log' : $wpdb->last_error;
 			error_log("All In One WP Security : {$error_msg}");
 		}
-
 	}
  
 	/**

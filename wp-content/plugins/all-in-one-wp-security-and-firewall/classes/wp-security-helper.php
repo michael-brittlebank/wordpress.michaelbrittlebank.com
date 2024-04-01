@@ -258,11 +258,11 @@ class AIOS_Helper {
 					case 'ip-api':
 						$fields_to_copy = array('org', 'as');
 						foreach ($fields_to_copy as $field) {
-							$reverse_lookup_data[$field] = empty($data[$field]) ? 'Not found' : $data[$field];
+							$reverse_lookup_data[$field] = empty($data[$field]) ? null : $data[$field];
 						}
 						break;
 					case 'ipinfo':
-						$reverse_lookup_data['org'] = empty($data['org']) ? 'Not Found' : $data['org'];
+						$reverse_lookup_data['org'] = empty($data['org']) ? null : $data['org'];
 						$reverse_lookup_data['as'] = $reverse_lookup_data['org'];
 						break;
 					default:

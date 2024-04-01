@@ -64,12 +64,14 @@ class AIOWPSecurity_Dashboard_Menu extends AIOWPSecurity_Admin_Menu {
 	 * @return Void
 	 */
 	protected function render_dashboard() {
-		/** Load WordPress dashboard API */
+		/**
+		 * Load WordPress dashboard API
+		 */
 		require_once(ABSPATH . 'wp-admin/includes/dashboard.php');
 		$this->wp_dashboard_setup();
 
 		wp_enqueue_script('dashboard');
-		if (wp_is_mobile()) wp_enqueue_script( 'jquery-touch-punch' );
+		if (wp_is_mobile()) wp_enqueue_script('jquery-touch-punch');
 		?>
 		<script type='text/javascript' src='https://www.google.com/jsapi'></script>
 		<div id="dashboard-widgets-wrap">
@@ -84,7 +86,7 @@ class AIOWPSecurity_Dashboard_Menu extends AIOWPSecurity_Admin_Menu {
 	 * @return Void
 	 */
 	protected function render_locked_ip() {
-		global $aio_wp_security, $wpdb;
+		global $aio_wp_security;
 		include_once 'wp-security-list-locked-ip.php';
 		$locked_ip_list = new AIOWPSecurity_List_Locked_IP();
 		$tab = isset($_REQUEST["tab"]) ? $_REQUEST["tab"] : '';
@@ -99,13 +101,14 @@ class AIOWPSecurity_Dashboard_Menu extends AIOWPSecurity_Admin_Menu {
 	 * @return Void
 	 */
 	protected function render_permanent_block() {
-		global $aio_wp_security, $wpdb;
+		global $aio_wp_security;
 		include_once 'wp-security-list-permanent-blocked-ip.php'; // For rendering the AIOWPSecurity_List_Table
 		$blocked_ip_list = new AIOWPSecurity_List_Blocked_IP(); // For rendering the AIOWPSecurity_List_Table
 		$tab = isset($_REQUEST["tab"]) ? $_REQUEST["tab"] : '';
 		$page = $_REQUEST['page'];
 
-		$aio_wp_security->include_template('wp-admin/dashboard/permanent-block.php', false, array('blocked_ip_list' => $blocked_ip_list, 'page' => $page, 'tab' => $tab));	}
+		$aio_wp_security->include_template('wp-admin/dashboard/permanent-block.php', false, array('blocked_ip_list' => $blocked_ip_list, 'page' => $page, 'tab' => $tab));
+	}
 
 	/**
 	 * Renders the submenu's audit logs tab
@@ -121,7 +124,8 @@ class AIOWPSecurity_Dashboard_Menu extends AIOWPSecurity_Admin_Menu {
 		$tab = isset($_REQUEST["tab"]) ? $_REQUEST["tab"] : '';
 		$page = $_REQUEST['page'];
 
-		$aio_wp_security->include_template('wp-admin/dashboard/audit-logs.php', false, array('audit_log_list' => $audit_log_list, 'page' => $page, 'tab' => $tab));	}
+		$aio_wp_security->include_template('wp-admin/dashboard/audit-logs.php', false, array('audit_log_list' => $audit_log_list, 'page' => $page, 'tab' => $tab));
+	}
 
 	/**
 	 * Renders the submenu's debug logs tab
@@ -130,7 +134,7 @@ class AIOWPSecurity_Dashboard_Menu extends AIOWPSecurity_Admin_Menu {
 	 */
 	protected function render_debug_logs() {
 		// Needed for rendering the debug log table
-		include_once 'wp-security-list-debug.php'; 
+		include_once 'wp-security-list-debug.php';
 		$debug_log_list = new AIOWPSecurity_List_Debug_Log();
 		global $aio_wp_security;
 		$aio_wp_security->include_template('wp-admin/dashboard/debug-logs.php', false, array('debug_log_list' => $debug_log_list));
@@ -153,39 +157,43 @@ class AIOWPSecurity_Dashboard_Menu extends AIOWPSecurity_Admin_Menu {
 		echo '</div><!-- END .postbox -->';
 	}
 
+	/**
+	 * Function to customize the layout of the WordPress dashboard.
+	 * Organizes meta-boxes into different containers based on screen columns.
+	 */
 	private function wp_dashboard() {
 		$screen = get_current_screen();
-		$columns = absint( $screen->get_columns() );
+		$columns = absint($screen->get_columns());
 		$columns_css = '';
-		if ( $columns ) {
+		if ($columns) {
 			$columns_css = " columns-$columns";
 		}
 
 		?>
 		<div id="dashboard-widgets" class="metabox-holder<?php echo $columns_css; ?>">
 			<div id="postbox-container-1" class="postbox-container">
-			<?php do_meta_boxes( $screen->id, 'normal', '' ); ?>
+			<?php do_meta_boxes($screen->id, 'normal', ''); ?>
 			</div>
 			<div id="postbox-container-2" class="postbox-container">
-			<?php do_meta_boxes( $screen->id, 'side', '' ); ?>
+			<?php do_meta_boxes($screen->id, 'side', ''); ?>
 			</div>
 			<div id="postbox-container-3" class="postbox-container">
-			<?php do_meta_boxes( $screen->id, 'column3', '' ); ?>
+			<?php do_meta_boxes($screen->id, 'column3', ''); ?>
 			</div>
 			<div id="postbox-container-4" class="postbox-container">
-			<?php do_meta_boxes( $screen->id, 'column4', '' ); ?>
+			<?php do_meta_boxes($screen->id, 'column4', ''); ?>
 			</div>
 		</div>
 
 		<?php
-		wp_nonce_field( 'closedpostboxes', 'closedpostboxesnonce', false );
-		wp_nonce_field( 'meta-box-order', 'meta-box-order-nonce', false );
+		wp_nonce_field('closedpostboxes', 'closedpostboxesnonce', false);
+		wp_nonce_field('meta-box-order', 'meta-box-order-nonce', false);
 	}
 
 	private function wp_dashboard_setup() {
 		global $aio_wp_security, $wp_registered_widgets, $wp_registered_widget_controls, $wp_dashboard_control_callbacks;
 		$wp_dashboard_control_callbacks = array();
-		$screen = get_current_screen();
+		get_current_screen();
 
 		// Add widgets
 		wp_add_dashboard_widget('security_strength_meter', __('Security strength meter', 'all-in-one-wp-security-and-firewall'), array($this, 'widget_security_strength_meter'));
@@ -195,27 +203,27 @@ class AIOWPSecurity_Dashboard_Menu extends AIOWPSecurity_Admin_Menu {
 		wp_add_dashboard_widget('critical_feature_status', __('Critical feature status', 'all-in-one-wp-security-and-firewall'), array($this, 'widget_critical_feature_status'));
 		wp_add_dashboard_widget('last_5_logins', __('Last 5 logins', 'all-in-one-wp-security-and-firewall'), array($this, 'widget_last_5_logins'));
 		wp_add_dashboard_widget('maintenance_mode_status', __('Maintenance mode status', 'all-in-one-wp-security-and-firewall'), array($this, 'widget_maintenance_mode_status'));
-		if ($aio_wp_security->configs->get_value('aiowps_enable_brute_force_attack_prevention') == '1' ||
-				$aio_wp_security->configs->get_value('aiowps_enable_rename_login_page') == '1') {
+		if ('1' == $aio_wp_security->configs->get_value('aiowps_enable_brute_force_attack_prevention')
+			|| '1' == $aio_wp_security->configs->get_value('aiowps_enable_rename_login_page')
+		) {
 			wp_add_dashboard_widget('brute_force', __('Brute force prevention login page'), array($this, 'widget_brute_force'));
 		}
 		wp_add_dashboard_widget('logged_in_users', __('Logged in users', 'all-in-one-wp-security-and-firewall'), array($this, 'widget_logged_in_users'));
 		wp_add_dashboard_widget('locked_ip_addresses', __('Locked IP addresses', 'all-in-one-wp-security-and-firewall'), array($this, 'widget_locked_ip_addresses'));
 
-		do_action( 'aiowps_dashboard_setup' );
-		$dashboard_widgets = apply_filters( 'aiowps_dashboard_widgets', array() );
+		do_action('aiowps_dashboard_setup');
+		$dashboard_widgets = apply_filters('aiowps_dashboard_widgets', array());
 
-		foreach ( $dashboard_widgets as $widget_id ) {
-			$name = empty( $wp_registered_widgets[$widget_id]['all_link'] ) ? $wp_registered_widgets[$widget_id]['name'] : $wp_registered_widgets[$widget_id]['name'] . " <a href='{$wp_registered_widgets[$widget_id]['all_link']}' class='edit-box open-box'>" . __('View all') . '</a>';
-			wp_add_dashboard_widget( $widget_id, $name, $wp_registered_widgets[$widget_id]['callback'], $wp_registered_widget_controls[$widget_id]['callback'] );
+		foreach ($dashboard_widgets as $widget_id) {
+			$name = empty($wp_registered_widgets[$widget_id]['all_link']) ? $wp_registered_widgets[$widget_id]['name'] : $wp_registered_widgets[$widget_id]['name'] . " <a href='{$wp_registered_widgets[$widget_id]['all_link']}' class='edit-box open-box'>" . __('View all') . '</a>';
+			wp_add_dashboard_widget($widget_id, $name, $wp_registered_widgets[$widget_id]['callback'], $wp_registered_widget_controls[$widget_id]['callback']);
 		}
 	}
 
 	public function widget_security_strength_meter() {
-		global $aiowps_feature_mgr, $aio_wp_security;
+		global $aiowps_feature_mgr;
 		$total_site_security_points = $aiowps_feature_mgr->get_total_site_points();
 		$total_security_points_achievable = $aiowps_feature_mgr->get_total_achievable_points();
-
 		?>
 		<script type='text/javascript'>
 			google.load('visualization', '1', {packages: ['gauge']});
@@ -252,10 +260,8 @@ class AIOWPSecurity_Dashboard_Menu extends AIOWPSecurity_Admin_Menu {
 	}
 
 	public function widget_security_points_breakdown() {
-		global $aiowps_feature_mgr, $aio_wp_security;
+		global $aiowps_feature_mgr;
 		$feature_mgr = $aiowps_feature_mgr;
-		$total_site_security_points = $feature_mgr->get_total_site_points();
-		$total_security_points_achievable = $feature_mgr->get_total_achievable_points();
 		$feature_items = $feature_mgr->feature_items;
 		$pt_src_chart_data = "";
 		$pt_src_chart_data .= "['Feature Name', 'Points'],";
@@ -294,7 +300,7 @@ class AIOWPSecurity_Dashboard_Menu extends AIOWPSecurity_Admin_Menu {
 
 	public function widget_spread_the_word() {
 		?>
-		<p><?php _e('We are working hard to make your WordPress site more secure. Please support us, here is how:', 'all-in-one-wp-security-and-firewall');?></p>
+		<p><?php _e('We are working hard to make your WordPress site more secure. ', 'all-in-one-wp-security-and-firewall'). _e('Please support us, here is how:', 'all-in-one-wp-security-and-firewall');?></p>
 		<p><a href="https://twitter.com/intent/user?screen_name=UpdraftPlus" target="_blank"><?php _e('Follow us on', 'all-in-one-wp-security-and-firewall');?> Twitter</a>
 		</p>
 		<p>
@@ -321,22 +327,21 @@ class AIOWPSecurity_Dashboard_Menu extends AIOWPSecurity_Admin_Menu {
 	 * @return void
 	 */
 	public function widget_critical_feature_status() {
-		global $aiowps_feature_mgr, $aio_wp_security;
-		$feature_mgr = $aiowps_feature_mgr;
+		global $aiowps_feature_mgr;
+
 
 		_e('Below is the current status of the critical features that you should activate on your site to achieve a minimum level of recommended security', 'all-in-one-wp-security-and-firewall');
-		$feature_items = $aiowps_feature_mgr->feature_items;
 		$username_admin_feature = $aiowps_feature_mgr->get_feature_item_by_id("user-accounts-change-admin-user");
 		echo '<div class="aiowps_feature_status_container">';
 		echo '<div class="aiowps_feature_status_name">' . __('Admin username', 'all-in-one-wp-security-and-firewall') . '</div>';
 		echo '<a href="admin.php?page=' . AIOWPSEC_USER_SECURITY_MENU_SLUG . '">';
 		echo '<div class="aiowps_feature_status_bar">';
 		if ($username_admin_feature->is_active()) {
-			echo '<div class="aiowps_feature_status_label aiowps_feature_status_on">On</div>';
-			echo '<div class="aiowps_feature_status_label">Off</div>';
+			echo '<div class="aiowps_feature_status_label aiowps_feature_status_on">' . __('On', 'all-in-one-wp-security-and-firewall') . '</div>';
+			echo '<div class="aiowps_feature_status_label">' . __('Off', 'all-in-one-wp-security-and-firewall') . '</div>';
 		} else {
-			echo '<div class="aiowps_feature_status_label">On</div>';
-			echo '<div class="aiowps_feature_status_label aiowps_feature_status_off">Off</div>';
+			echo '<div class="aiowps_feature_status_label">' . __('On', 'all-in-one-wp-security-and-firewall') . '</div>';
+			echo '<div class="aiowps_feature_status_label aiowps_feature_status_off">' . __('Off', 'all-in-one-wp-security-and-firewall') . '</div>';
 		}
 		echo '</div></div></a>';
 		echo '<div class="aio_clear_float"></div>';
@@ -344,29 +349,31 @@ class AIOWPSecurity_Dashboard_Menu extends AIOWPSecurity_Admin_Menu {
 		$login_lockdown_feature = $aiowps_feature_mgr->get_feature_item_by_id("user-login-login-lockdown");
 		echo '<div class="aiowps_feature_status_container">';
 		echo '<div class="aiowps_feature_status_name">' . __('Login lockout', 'all-in-one-wp-security-and-firewall') . '</div>';
-		echo '<a href="admin.php?page=' . AIOWPSEC_USER_SECURITY_MENU_SLUG . '">';
+		echo '<a href="admin.php?page=' . AIOWPSEC_USER_SECURITY_MENU_SLUG . '&tab=login-lockout">';
 		echo '<div class="aiowps_feature_status_bar">';
 		if ($login_lockdown_feature->is_active()) {
-			echo '<div class="aiowps_feature_status_label aiowps_feature_status_on">On</div>';
-			echo '<div class="aiowps_feature_status_label">Off</div>';
+			echo '<div class="aiowps_feature_status_label aiowps_feature_status_on">' . __('On', 'all-in-one-wp-security-and-firewall') . '</div>';
+			echo '<div class="aiowps_feature_status_label">' . __('Off', 'all-in-one-wp-security-and-firewall') . '</div>';
 		} else {
-			echo '<div class="aiowps_feature_status_label">On</div>';
-			echo '<div class="aiowps_feature_status_label aiowps_feature_status_off">Off</div>';
+			echo '<div class="aiowps_feature_status_label">' . __('On', 'all-in-one-wp-security-and-firewall') . '</div>';
+			echo '<div class="aiowps_feature_status_label aiowps_feature_status_off">' . __('Off', 'all-in-one-wp-security-and-firewall') . '</div>';
 		}
 		echo '</div></div></a>';
 		echo '<div class="aio_clear_float"></div>';
 
+		if (!is_main_site()) return;
+		
 		$filesystem_feature = $aiowps_feature_mgr->get_feature_item_by_id("filesystem-file-permissions");
 		echo '<div class="aiowps_feature_status_container">';
 		echo '<div class="aiowps_feature_status_name">' . __('File permission', 'all-in-one-wp-security-and-firewall') . '</div>';
 		echo '<a href="admin.php?page=' . AIOWPSEC_FILESYSTEM_MENU_SLUG . '">';
 		echo '<div class="aiowps_feature_status_bar">';
 		if ($filesystem_feature->is_active()) {
-			echo '<div class="aiowps_feature_status_label aiowps_feature_status_on">On</div>';
-			echo '<div class="aiowps_feature_status_label">Off</div>';
+			echo '<div class="aiowps_feature_status_label aiowps_feature_status_on">' . __('On', 'all-in-one-wp-security-and-firewall') . '</div>';
+			echo '<div class="aiowps_feature_status_label">' . __('Off', 'all-in-one-wp-security-and-firewall') . '</div>';
 		} else {
-			echo '<div class="aiowps_feature_status_label">On</div>';
-			echo '<div class="aiowps_feature_status_label aiowps_feature_status_off">Off</div>';
+			echo '<div class="aiowps_feature_status_label">' . __('On', 'all-in-one-wp-security-and-firewall') . '</div>';
+			echo '<div class="aiowps_feature_status_label aiowps_feature_status_off">' . __('Off', 'all-in-one-wp-security-and-firewall') . '</div>';
 		}
 		echo '</div></div></a>';
 		echo '<div class="aio_clear_float"></div>';
@@ -374,14 +381,14 @@ class AIOWPSecurity_Dashboard_Menu extends AIOWPSecurity_Admin_Menu {
 		$basic_firewall_feature = $aiowps_feature_mgr->get_feature_item_by_id("firewall-basic-rules");
 		echo '<div class="aiowps_feature_status_container">';
 		echo '<div class="aiowps_feature_status_name">' . __('Basic firewall', 'all-in-one-wp-security-and-firewall') . '</div>';
-		echo '<a href="admin.php?page=' . AIOWPSEC_FIREWALL_MENU_SLUG . '">';
+		echo '<a href="admin.php?page=' . AIOWPSEC_FIREWALL_MENU_SLUG . '&tab=htaccess-rules">';
 		echo '<div class="aiowps_feature_status_bar">';
 		if ($basic_firewall_feature->is_active()) {
-			echo '<div class="aiowps_feature_status_label aiowps_feature_status_on">On</div>';
-			echo '<div class="aiowps_feature_status_label">Off</div>';
+			echo '<div class="aiowps_feature_status_label aiowps_feature_status_on">' . __('On', 'all-in-one-wp-security-and-firewall') . '</div>';
+			echo '<div class="aiowps_feature_status_label">' . __('Off', 'all-in-one-wp-security-and-firewall') . '</div>';
 		} else {
-			echo '<div class="aiowps_feature_status_label">On</div>';
-			echo '<div class="aiowps_feature_status_label aiowps_feature_status_off">Off</div>';
+			echo '<div class="aiowps_feature_status_label">' . __('On', 'all-in-one-wp-security-and-firewall') . '</div>';
+			echo '<div class="aiowps_feature_status_label aiowps_feature_status_off">' . __('Off', 'all-in-one-wp-security-and-firewall') . '</div>';
 		}
 		echo '</div></div></a>';
 		echo '<div class="aio_clear_float"></div>';
@@ -396,10 +403,10 @@ class AIOWPSecurity_Dashboard_Menu extends AIOWPSecurity_Admin_Menu {
 		global $wpdb;
 		$audit_log_table = AIOWPSEC_TBL_AUDIT_LOG;
 
-		/* -- Ordering parameters -- */
+
 		//Parameters that are going to be used to order the result
-		isset($_GET["orderby"]) ? $orderby = strip_tags($_GET["orderby"]) : $orderby = '';
-		isset($_GET["order"]) ? $order = strip_tags($_GET["order"]) : $order = '';
+		$orderby = isset($_GET["orderby"]) ? strip_tags($_GET["orderby"]) : '';
+		$order = isset($_GET["order"]) ? strip_tags($_GET["order"]) : '';
 
 		$orderby = !empty($orderby) ? $orderby : 'login_date';
 		$order = !empty($order) ? $order : 'DESC';
@@ -436,7 +443,7 @@ class AIOWPSecurity_Dashboard_Menu extends AIOWPSecurity_Admin_Menu {
 	public function widget_maintenance_mode_status() {
 		global $aio_wp_security;
 		if ($aio_wp_security->configs->get_value('aiowps_site_lockout') == '1') {
-			echo '<p>' . __('Maintenance mode is currently enabled. Remember to turn it off when you are done', 'all-in-one-wp-security-and-firewall') . '</p>';
+			echo '<p>' . __('Maintenance mode is currently enabled.', 'all-in-one-wp-security-and-firewall') . ' ' . __('Remember to turn it off when you are done', 'all-in-one-wp-security-and-firewall') . '</p>';
 		} else {
 			echo '<p>' . __('Maintenance mode is currently off.', 'all-in-one-wp-security-and-firewall') . '</p>';
 		}
@@ -547,4 +554,4 @@ class AIOWPSecurity_Dashboard_Menu extends AIOWPSecurity_Admin_Menu {
 		}
 	}
 
-} //end class
+}

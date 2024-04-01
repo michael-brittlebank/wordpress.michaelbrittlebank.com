@@ -137,30 +137,17 @@ class AIOWPSecurity_Comment {
 	/**
 	 * Comment Form to post back hidden fields for antibot check
 	 *
-	 * @return void
+	 * @return string
 	 */
 	public static function insert_antibot_keys_in_comment_form() {
-		
+		$html_antibot_hidden_fields = '<p class="comment-form-aios-antibot-keys">%1$s</p>';
+		$antibot_hidden_fields = '';
 		$key_map_arr = self::generate_antibot_keys();
-		
-		if (empty($key_map_arr)) {
-			return;
+		foreach ($key_map_arr[0] as $key) {
+			$antibot_hidden_fields .='<input type="hidden" name="' . esc_attr($key[0]) . '" value="'.esc_attr($key[1]).'" >';
 		}
-		
-		?>
-		<script>
-			document.addEventListener('DOMContentLoaded', function (event) {
-				for (let i = 0; i < document.forms.length; ++i) {
-					let form = document.forms[i];
-					<?php
-						foreach ($key_map_arr[0] as $key) {
-							echo 'if (form.method != "get") {  var input' . esc_attr($key[0]) . ' = document.createElement("input"); input' . esc_attr($key[0]) . '.setAttribute("type", "hidden"); input' . esc_attr($key[0]) . '.setAttribute("name", "' . esc_attr($key[0]) . '");  input' . esc_attr($key[0]) . '.setAttribute("value", "' . esc_attr($key[1]) . '"); form.appendChild(input' . esc_attr($key[0]) . '); }' . "\n";
-						}
-					?>
-				}
-			});
-		</script>
-		<?php
+		$html_antibot_hidden_fields = sprintf($html_antibot_hidden_fields, $antibot_hidden_fields);
+		return $html_antibot_hidden_fields;
 	}
 	
 	/**

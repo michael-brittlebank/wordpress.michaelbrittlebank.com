@@ -35,7 +35,7 @@ function aios_send_command(action, data, callback, options) {
 
 	var ajax_data = {
 		action: options.action,
-		subaction: action,
+		subaction: action
 	};
 
 	ajax_data[options.nonce_key] = options.nonce;
@@ -210,10 +210,9 @@ jQuery(function($) {
 		$(this).next(".aiowps_more_info_body").animate({ "height": "toggle"});
 		var toggle_char_ref = $(this).find(".aiowps_more_info_toggle_char");
 		var toggle_char_value = toggle_char_ref.text();
-		if(toggle_char_value === "+"){
+		if (toggle_char_value === "+") {
 			toggle_char_ref.text("-");
-		}
-		else{
+		} else {
 			 toggle_char_ref.text("+");
 		}
 	});
@@ -307,9 +306,9 @@ jQuery(function($) {
 	jQuery('.copy-to-clipboard').on('click', function(event) {
 		if (navigator.clipboard) {
 			navigator.clipboard.writeText(event.target.value).then(function() {
-				alert(aios_trans.copied);
-			}, function() {
-				deprecated_copy(event.target.value);
+					alert(aios_trans.copied);
+				}, function() {
+					deprecated_copy(event.target.value);
 			});
 		} else {
 			deprecated_copy(event.target.value);
@@ -334,7 +333,7 @@ jQuery(function($) {
 	// Dashboard menu ajaxify
 	jQuery("#locked-ip-list-table .aios-unlock-ip-button").on('click', function(e) {
 		e.preventDefault();
-		confirm(jQuery(this).data('message')) ? aios_send_command('unlocked_ip', {id: jQuery(this).data('id')}, function(response){
+		confirm(jQuery(this).data('message')) ? aios_send_command('unlocked_ip', {id: jQuery(this).data('id')}, function(response) {
 			jQuery('#aios_message').remove();
 			jQuery('#wpbody-content .wrap h2:first').after(response.message);
 			if (response.status === 'success') $('#locked-ip-list-table').load(' #locked-ip-list-table > *');
@@ -343,7 +342,7 @@ jQuery(function($) {
 
 	jQuery("#locked-ip-list-table .aios-delete-ip-button").on('click', function(e) {
 		e.preventDefault();
-		confirm(jQuery(this).data('message')) ? aios_send_command('delete_locked_ip', {id: jQuery(this).data('id')}, function(response){
+		confirm(jQuery(this).data('message')) ? aios_send_command('delete_locked_ip', {id: jQuery(this).data('id')}, function(response) {
 			jQuery('#aios_message').remove();
 			jQuery('#wpbody-content .wrap h2:first').after(response.message);
 			if (response.status === 'success') $('#locked-ip-list-table').load(' #locked-ip-list-table > *');
@@ -352,7 +351,7 @@ jQuery(function($) {
 
 	jQuery("#permanent-ip-list-table .aios-unblock-permanent-ip").on('click', function(e) {
 		e.preventDefault();
-		confirm(jQuery(this).data('message')) ? aios_send_command('unblock_ip', {id: jQuery(this).data('id')}, function(response){
+		confirm(jQuery(this).data('message')) ? aios_send_command('unblock_ip', {id: jQuery(this).data('id')}, function(response) {
 			jQuery('#aios_message').remove();
 			jQuery('#wpbody-content .wrap h2:first').after(response.message)
 			if (response.status === 'success') $('#permanent-ip-list-table').load(' #permanent-ip-list-table > *');
@@ -361,22 +360,20 @@ jQuery(function($) {
 
 	jQuery("#audit-log-list-table .aios-delete-audit-log").on('click', function(e) {
 		e.preventDefault();
-		confirm(jQuery(this).data('message')) ? aios_send_command('delete_audit_log', {id: jQuery(this).data('id')}, function(response){
+		confirm(jQuery(this).data('message')) ? aios_send_command('delete_audit_log', {id: jQuery(this).data('id')}, function(response) {
 			jQuery('#aios_message').remove();
 			jQuery('#wpbody-content .wrap h2:first').after(response.message);
-			if (response.status === 'success') $('#audit-log-list-table').load(' #audit-log-list-table > *'); 
+			if (response.status === 'success') $('#audit-log-list-table').load(' #audit-log-list-table > *');
 		}): false;
-	
 	});
 
 	jQuery("#aios-clear-debug-logs").on('submit', function(e) {
 		e.preventDefault();
-		aios_send_command('clear_debug_logs', {}, function(response){
+		aios_send_command('clear_debug_logs', {}, function(response) {
 			jQuery('#aios_message').remove();
 			jQuery('#wpbody-content .wrap h2:first').after(response.message);
-			if ("success" === response.status) $('#debug-list-table').load(' #debug-list-table > *');  
+			if ("success" === response.status) $('#debug-list-table').load(' #debug-list-table > *');
 		})
-	
 	});
 	// End of dashboard menu ajaxify
 	// Start of file scan handling
@@ -393,8 +390,7 @@ jQuery(function($) {
 		
 		var reset_change_detected = $(this).data('reset_change_detected') ? 1 : 0;
 		
-		aios_send_command('get_last_scan_results', { reset_change_detected: reset_change_detected
-		}, function(resp) {
+		aios_send_command('get_last_scan_results', { reset_change_detected: reset_change_detected}, function(resp) {
 			if (resp.hasOwnProperty('content')) {
 				if (reset_change_detected) jQuery('#aiowps_fcds_change_detected').remove();
 				jQuery('#aiowps_previous_scan_wrapper').html(resp.content);
@@ -408,8 +404,7 @@ jQuery(function($) {
 		jQuery('#aiowps_activejobs_table').html('<p><span class="aiowps_spinner spinner">'+ aios_trans.processing + '</span></p>');
 		jQuery('#aiowps_activejobs_table .aiowps_spinner').addClass('visible');
 
-		aios_send_command('perform_file_scan', {
-		}, function (resp) {
+		aios_send_command('perform_file_scan', {}, function (resp) {
 			if (resp.hasOwnProperty('content')) {
 				jQuery('#aiowps-previous-files-scan-inner').html(resp.content.last_scan);
 			}
@@ -420,7 +415,6 @@ jQuery(function($) {
 				});
 			}
 		});
-
 	});
 	// End of file scan handling
 	
@@ -456,4 +450,9 @@ jQuery(function($) {
 		});
 	}
 	// End of login whitelist suggests both IPv4 and IPv6
+
+	// Click the 'show/hide advanced options' button
+	jQuery('button.button-link.aios-toggle-advanced-options').on('click', function() {
+		if (!jQuery(this).hasClass('advanced-options-disabled')) jQuery(this).toggleClass('opened');
+	});
 });

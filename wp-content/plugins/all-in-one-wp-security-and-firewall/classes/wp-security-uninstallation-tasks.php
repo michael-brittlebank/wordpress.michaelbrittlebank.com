@@ -68,7 +68,6 @@ class AIOWPSecurity_Uninstallation_Tasks extends AIOWPSecurity_Base_Tasks {
 			}
 
 			delete_option('aio_wp_security_configs');
-			delete_option('aiowps_temp_configs');
 			delete_option('aiowpsec_db_version');
 			delete_option('aiowpsec_firewall_version');
 			delete_option('aios_antibot_key_map_info');

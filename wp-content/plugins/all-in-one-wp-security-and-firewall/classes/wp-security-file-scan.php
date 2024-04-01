@@ -47,7 +47,7 @@ class AIOWPSecurity_Scan {
 			$scan_result['initial_scan'] = '1';
 			return $scan_result;
 		} else {
-		  
+		
 			$scan_result = $this->compare_scan_data($fcd_data['file_scan_data'], $scanned_data);
 			
 			$scan_result['initial_scan'] = '';
@@ -170,9 +170,20 @@ class AIOWPSecurity_Scan {
 		$aiowps_backup_dir = WP_CONTENT_DIR.'/'.AIO_WP_SECURITY_BACKUPS_DIR_NAME;
 		
 		$fcd_filename = $aio_wp_security->configs->get_value('aiowps_fcd_filename');
+		if (empty($fcd_filename)) {
+			// means that we haven't done a scan before, or,
+			// the fcd file containing the results doesn't exist
+			$random_suffix = AIOWPSecurity_Utility::generate_alpha_numeric_random_string(10);
+			$fcd_filename = 'aiowps_fcd_data_' . $random_suffix;
+			$aio_wp_security->configs->set_value('aiowps_fcd_filename', $fcd_filename, true);
+		}
 		$results_file = $aiowps_backup_dir. '/'. $fcd_filename;
 		
-		if (!file_exists($results_file)) {
+		if (!is_file($results_file)) {
+			if (is_dir($results_file)) {
+				$new_dir_name = $results_file . '_backup';
+				rename($results_file, $new_dir_name); //Rename the folder to create backup of the folder. This condition should not really happen, but if it does (user sets some non-sensible value), then it's better to not nuke the existing folder
+			}
 			$fp = @fopen($results_file, 'w'); //open for write - will create file if doesn't exist
 			return array();
 		}
@@ -302,34 +313,13 @@ class AIOWPSecurity_Scan {
 		);
 	}
 
-	public static function get_file_change_data() {
-		global $wpdb, $aio_wp_security;
-		//Let's get the results array from the DB
-		$tbl_name = AIOWPSEC_TBL_GLOBAL_META_DATA;
-		$key = 'file_change_detection';
-		$sql_prep = $wpdb->prepare("SELECT * FROM $tbl_name WHERE meta_key1 = %s", $key);
-		$scan_db_data = $wpdb->get_row($sql_prep, ARRAY_A);
-		if (null === $scan_db_data) {
-			$aio_wp_security->debug_logger->log_debug(__METHOD__ . " - DB query for scan results data from global meta table returned null!", 4);
-			return false;
-		}
-		$scan_results_unserialized = maybe_unserialize($scan_db_data['meta_value5']);
-		if (empty($scan_results_unserialized['files_added']) && empty($scan_results_unserialized['files_removed']) && empty($scan_results_unserialized['files_changed'])) {
-			//No file change detected
-			return false;
-		} else {
-			return $scan_results_unserialized;
-		}
-
-	}
-
 	public static function get_file_change_summary($scan_result) {
 		$scan_summary = "";
 		if (!empty($scan_result['files_added'])) {
 			//Output of files added
 			$scan_summary .= "\r\n".__('The following files were added to your host', 'all-in-one-wp-security-and-firewall').":\r\n";
 			foreach ($scan_result['files_added'] as $key => $value) {
-				$scan_summary .= "\r\n".$key.' ('.__('modified on: ', 'all-in-one-wp-security-and-firewall').date('Y-m-d H:i:s', $value['last_modified']).')';
+				$scan_summary .= "\r\n".$key.' ('.__('modified on: ', 'all-in-one-wp-security-and-firewall').AIOWPSecurity_Utility::convert_timestamp($value['last_modified']).')';
 			}
 			$scan_summary .= "\r\n======================================\r\n";
 		}
@@ -337,7 +327,7 @@ class AIOWPSecurity_Scan {
 			//Output of files removed
 			$scan_summary .= "\r\n".__('The following files were removed from your host', 'all-in-one-wp-security-and-firewall').":\r\n";
 			foreach ($scan_result['files_removed'] as $key => $value) {
-				$scan_summary .= "\r\n".$key.' ('.__('modified on: ', 'all-in-one-wp-security-and-firewall').date('Y-m-d H:i:s', $value['last_modified']).')';
+				$scan_summary .= "\r\n".$key.' ('.__('modified on: ', 'all-in-one-wp-security-and-firewall').AIOWPSecurity_Utility::convert_timestamp($value['last_modified']).')';
 			}
 			$scan_summary .= "\r\n======================================\r\n";
 		}
@@ -346,7 +336,7 @@ class AIOWPSecurity_Scan {
 			//Output of files changed
 			$scan_summary .= "\r\n".__('The following files were changed on your host', 'all-in-one-wp-security-and-firewall').":\r\n";
 			foreach ($scan_result['files_changed'] as $key => $value) {
-				$scan_summary .= "\r\n".$key.' ('.__('modified on: ', 'all-in-one-wp-security-and-firewall').date('Y-m-d H:i:s', $value['last_modified']).')';
+				$scan_summary .= "\r\n".$key.' ('.__('modified on: ', 'all-in-one-wp-security-and-firewall').AIOWPSecurity_Utility::convert_timestamp($value['last_modified']).')';
 			}
 			$scan_summary .= "\r\n======================================\r\n";
 		}
@@ -379,6 +369,6 @@ class AIOWPSecurity_Scan {
 		$fp = fopen($results_file, 'w');
 		fwrite($fp, json_encode($data));
 		fclose($fp);
-	   
+
 	}
 }

@@ -2,10 +2,10 @@
 <h2><?php _e('WP generator meta tag and version info', 'all-in-one-wp-security-and-firewall'); ?></h2>
 <div class="aio_blue_box">
 	<?php
-	echo '<p>'.__('WordPress generator automatically adds some meta information inside the "head" tags of every page on your site\'s front end. Below is an example of this:', 'all-in-one-wp-security-and-firewall');
+	echo '<p>'.__('WordPress generator automatically adds some meta information inside the "head" tags of every page on your site\'s front end, below is an example of this:', 'all-in-one-wp-security-and-firewall');
 	echo '<br /><strong>&lt;meta name="generator" content="WordPress 3.5.1" /&gt;</strong>';
 	echo '<br />'.__('The above meta information shows which version of WordPress your site is currently running and thus can help hackers or crawlers scan your site to see if you have an older version of WordPress or one with a known exploit.', 'all-in-one-wp-security-and-firewall').'
-	<br /><br />'.__('There are also other ways wordpress reveals version info such as during style and script loading. An example of this is:', 'all-in-one-wp-security-and-firewall').'
+	<br /><br />'.__('There are also other ways Wordpress reveals version info such as during style and script loading, an example of this is:', 'all-in-one-wp-security-and-firewall').'
 	<br /><strong>&lt;link rel="stylesheet" id="jquery-ui-style-css"  href="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.0/themes/smoothness/jquery-ui.css?ver=4.5.2" type="text/css" media="all" /&gt;</strong>
 	<br /><br />'.__('This feature will allow you to remove the WP generator meta info and other version info from your site\'s pages.', 'all-in-one-wp-security-and-firewall').'
 	</p>';

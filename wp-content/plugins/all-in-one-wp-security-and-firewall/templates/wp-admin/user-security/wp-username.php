@@ -26,7 +26,7 @@ if (!is_super_admin()) {
 			$aiowps_feature_mgr->output_feature_details_badge("user-accounts-change-admin-user");
 
 			if (AIOWPSecurity_Utility::check_user_exists('admin') || AIOWPSecurity_Utility::check_user_exists('Admin')) {
-				echo '<div class="aio_red_box"><p>'.__('Your site currently has an account which uses the "admin" username. It is highly recommended that you change this name to something else. Use the following field to change the admin username.', 'all-in-one-wp-security-and-firewall').'</p></div>';
+				echo '<div class="aio_red_box"><p>'.__('Your site currently has an account which uses the "admin" username.', 'all-in-one-wp-security-and-firewall') . ' ' . __(' It is highly recommended that you change this name to something else.', 'all-in-one-wp-security-and-firewall') . ' ' .__('Use the following field to change the admin username.', 'all-in-one-wp-security-and-firewall').'</p></div>';
 		?>
 		<form action="" method="POST">
 			<?php wp_nonce_field('aiowpsec-change-admin-nonce'); ?>
