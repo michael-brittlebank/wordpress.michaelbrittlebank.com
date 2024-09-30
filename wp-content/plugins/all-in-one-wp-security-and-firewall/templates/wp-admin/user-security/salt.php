@@ -3,12 +3,13 @@
 <div class="postbox">
 	<h3 class="hndle"><label for="title"><?php _e('Add salt postfix', 'all-in-one-wp-security-and-firewall'); ?></label></h3>
 	<div class="inside">
-		<?php
-		//Display security info badge
-		$aiowps_feature_mgr->output_feature_details_badge("enable-salt-postfix");
-		?>
-		<form action="" method="POST">
-			<?php wp_nonce_field('aios-salt-postfix-settings'); ?>
+		<div id="enable-salt-postfix-badge">
+			<?php
+			//Display security info badge
+			$aiowps_feature_mgr->output_feature_details_badge("enable-salt-postfix");
+			?>
+		</div>
+		<form action="" method="POST" id="aios-enable-salt-postfix-form">
 			<div class="aio_blue_box">
 				<?php
 				echo '<p>'.htmlspecialchars(__('WordPress "salts" are secret phrases which are combined with user passwords when those passwords are stored, with the end result that they become much harder for an attacker to crack even if he managed to steal the database of your website.', 'all-in-one-wp-security-and-firewall')).' <a href="https://aiosplugin.com/wordpress-salts-adding-extra-security/" target="_blank">'.__('For more information about WordPress salts, follow this link.', 'all-in-one-wp-security-and-firewall').'</a></p>';

@@ -57,6 +57,7 @@ class AIOWPSecurity_Configure_Settings {
 		$aio_wp_security->configs->set_value('aiowps_enable_woo_login_captcha', '');//Checkbox
 		$aio_wp_security->configs->set_value('aiowps_enable_woo_lostpassword_captcha', '');//Checkbox
 		$aio_wp_security->configs->set_value('aiowps_enable_woo_register_captcha', '');//Checkbox
+		$aio_wp_security->configs->set_value('aiowps_enable_woo_checkout_captcha', '');//Checkbox
 		$aio_wp_security->configs->set_value('aiowps_enable_lost_password_captcha', '');//Checkbox
 		$aio_wp_security->configs->set_value('aiowps_enable_contact_form_7_captcha', '');//Checkbox
 		$aio_wp_security->configs->set_value('aiowps_captcha_secret_key', AIOWPSecurity_Utility::generate_alpha_numeric_random_string(20)); // Hidden secret value which will be used to do some CAPTCHA processing. This will be assigned a random string generated when CAPTCHA settings saved
@@ -250,6 +251,7 @@ class AIOWPSecurity_Configure_Settings {
 		$aio_wp_security->configs->add_value('aiowps_enable_password_protected_captcha', '');//Checkbox
 		$aio_wp_security->configs->add_value('aiowps_enable_woo_login_captcha', '');//Checkbox
 		$aio_wp_security->configs->add_value('aiowps_enable_woo_register_captcha', '');//Checkbox
+		$aio_wp_security->configs->add_value('aiowps_enable_woo_checkout_captcha', '');//Checkbox
 		$aio_wp_security->configs->add_value('aiowps_enable_woo_lostpassword_captcha', '');//Checkbox
 		$aio_wp_security->configs->add_value('aiowps_enable_contact_form_7_captcha', '');//Checkbox
 		$aio_wp_security->configs->add_value('aiowps_captcha_secret_key', AIOWPSecurity_Utility::generate_alpha_numeric_random_string(20)); // Hidden secret value which will be used to do some CAPTCHA processing. This will be assigned a random string generated when CAPTCHA settings saved
@@ -406,7 +408,7 @@ class AIOWPSecurity_Configure_Settings {
 		}
 
 		if (is_main_site()) {
-			AIOWPSecurity_Utility_Htaccess::write_to_htaccess();
+			AIOWPSecurity_Utility_Htaccess::write_to_htaccess(false);
 		}
 
 		AIOWPSecurity_Comment::generate_antibot_keys(true);
@@ -625,7 +627,12 @@ class AIOWPSecurity_Configure_Settings {
 		AIOWPSecurity_Configure_Settings::set_default_settings();
 
 		//Refresh the .htaccess file based on the new settings
-		$res = AIOWPSecurity_Utility_Htaccess::write_to_htaccess();
+		$serverType = AIOWPSecurity_Utility::get_server_type();
+		if (!in_array($serverType, array('-1', 'nginx', 'iis'))) {
+			$res = AIOWPSecurity_Utility_Htaccess::write_to_htaccess();
+		} else {
+			$res = true;
+		}
 		if (!$res) {
 			$aio_wp_security->debug_logger->log_debug(__METHOD__ . " - Could not write to the .htaccess file. Please check the file permissions.", 4);
 		}

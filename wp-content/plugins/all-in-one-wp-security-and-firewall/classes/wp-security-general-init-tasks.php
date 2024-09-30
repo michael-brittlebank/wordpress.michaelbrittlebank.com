@@ -140,6 +140,10 @@ class AIOWPSecurity_General_Init_Tasks {
 		if ($aio_wp_security->configs->get_value('aiowps_enable_login_captcha') == '1') {
 			if (!is_user_logged_in()) {
 				add_action('login_form', array($aio_wp_security->captcha_obj, 'insert_captcha_question_form'));
+				if (AIOWPSecurity_Utility::is_memberpress_plugin_active()) {
+					add_action('mepr-login-form-before-submit', array($aio_wp_security->captcha_obj, 'add_captcha_script'));
+					add_action('mepr-login-form-before-submit', array($aio_wp_security->captcha_obj, 'insert_captcha_question_form')); // for memberpress login form
+				}
 			}
 		}
 
@@ -161,6 +165,11 @@ class AIOWPSecurity_General_Init_Tasks {
 			if (isset($_POST['woocommerce-register-nonce'])) {
 				add_filter('woocommerce_process_registration_errors', array($this, 'aiowps_validate_woo_login_or_reg_captcha'), 10, 3);
 			}
+		}
+		
+		if ('1' == $aio_wp_security->configs->get_value('aiowps_enable_woo_checkout_captcha') && !is_user_logged_in()) {
+			add_action('woocommerce_after_checkout_billing_form', array($aio_wp_security->captcha_obj, 'insert_captcha_question_form'));
+			add_action('woocommerce_after_checkout_validation', array($this, 'aiowps_validate_woo_checkout_captcha'), 10, 2);
 		}
 
 		if ($aio_wp_security->configs->get_value('aiowps_enable_woo_lostpassword_captcha') == '1') {
@@ -229,6 +238,12 @@ class AIOWPSecurity_General_Init_Tasks {
 			if (!is_user_logged_in()) {
 				add_action('lostpassword_form', array($aio_wp_security->captcha_obj, 'insert_captcha_question_form'));
 				add_action('lostpassword_post', array($this, 'process_lost_password_form_post'));
+
+				if (AIOWPSecurity_Utility::is_memberpress_plugin_active()) {
+					add_action('mepr-forgot-password-form', array($aio_wp_security->captcha_obj, 'add_captcha_script'));
+					add_action('mepr-forgot-password-form', array($aio_wp_security->captcha_obj, 'insert_captcha_question_form')); // for memberpress forgot password form
+					add_filter('mepr-validate-forgot-password', array($aio_wp_security->captcha_obj, 'verify_memberpress_form')); // for memberpress forgot password form
+				}
 			}
 		}
 
@@ -254,6 +269,14 @@ class AIOWPSecurity_General_Init_Tasks {
 				if (!is_user_logged_in()) {
 					add_action('register_form', array($aio_wp_security->captcha_obj, 'insert_captcha_question_form'));
 				}
+			}
+		}
+
+		if ($aio_wp_security->configs->get_value('aiowps_enable_registration_page_captcha') == '1') {
+			if (AIOWPSecurity_Utility::is_memberpress_plugin_active()) {
+				add_action('mepr-checkout-after-password-fields', array($aio_wp_security->captcha_obj, 'add_captcha_script'));
+				add_action('mepr-checkout-after-password-fields', array($aio_wp_security->captcha_obj, 'insert_captcha_question_form')); // for memberpress register form
+				add_filter('mepr-validate-signup', array($aio_wp_security->captcha_obj, 'verify_memberpress_form')); // for memberpress register form
 			}
 		}
 
@@ -615,6 +638,30 @@ class AIOWPSecurity_General_Init_Tasks {
 
 	}
 
+	/**
+	 * Process the WooCommerce checkout validation
+	 * Called by WooCommerce hook "woocommerce_after_checkout_validation"
+	 *
+	 * @param array    $data   An array of posted data
+	 * @param WP_ERROR $errors Validation errors
+	 */
+	public function aiowps_validate_woo_checkout_captcha($data, $errors) {
+		global $aio_wp_security;
+		$locked = $aio_wp_security->user_login_obj->check_locked_user();
+		if (!empty($locked)) {
+			$errors->add('authentication_failed', sprintf(__('%s: Your IP address is currently locked.', 'all-in-one-wp-security-and-firewall') . ' ' . __('Please contact the administrator.', 'all-in-one-wp-security-and-firewall'), '<strong>' . __('ERROR', 'all-in-one-wp-security-and-firewall') . '</strong>'));
+			return $errors;
+		}
+
+		$verify_captcha = $aio_wp_security->captcha_obj->verify_captcha_submit();
+		if (false === $verify_captcha) {
+			// wrong answer was entered
+			$errors->add('authentication_failed', sprintf(__('%s: Your answer was incorrect - please try again.', 'all-in-one-wp-security-and-firewall'), '<strong>' . __('ERROR', 'all-in-one-wp-security-and-firewall') . '</strong>'));
+		}
+		return $errors;
+
+	}
+	
 	/**
 	 * Process the WooCommerce lost password login form post
 	 * Called by wp hook "lostpassword_post"
