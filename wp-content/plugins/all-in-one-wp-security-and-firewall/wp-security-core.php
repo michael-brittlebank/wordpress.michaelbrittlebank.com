@@ -8,9 +8,9 @@ if (!class_exists('AIO_WP_Security')) {
 
 	class AIO_WP_Security {
 
-		public $version = '5.3.3';
+		public $version = '5.3.8';
 
-		public $db_version = '2.0.10';
+		public $db_version = '2.1.2';
 
 		public $firewall_version = '1.0.8';
 
@@ -86,6 +86,7 @@ if (!class_exists('AIO_WP_Security')) {
 			$this->loader_operations();
 
 			add_action('init', array($this, 'wp_security_plugin_init'), 0);
+			add_action('init', array($this, 'load_plugin_textdomain'));
 			add_action('wp_loaded', array($this, 'aiowps_wp_loaded_handler'));
 
 			$add_update_action_prefixes = array(
@@ -190,6 +191,8 @@ if (!class_exists('AIO_WP_Security')) {
 			if (!class_exists('Updraft_Semaphore_3_0')) {
 				include_once AIO_WP_SECURITY_PATH.'/vendor/team-updraft/common-libs/src/updraft-semaphore/class-updraft-semaphore.php';
 			}
+			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-firewall-resource-unavailable.php');
+			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-firewall-resource.php');
 			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-audit-event-handler.php');
 			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-debug-logger.php');
 			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-abstract-ids.php');
@@ -200,6 +203,7 @@ if (!class_exists('AIO_WP_Security')) {
 			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-utility-file.php');
 			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-utility-permissions.php');
 			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-utility-ui.php');
+			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-utility-api.php');
 			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-general-init-tasks.php');
 			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-wp-loaded-tasks.php');
 
@@ -215,7 +219,6 @@ if (!class_exists('AIO_WP_Security')) {
 			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-wp-footer-content.php');
 			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-blocking.php');
 			include_once(AIO_WP_SECURITY_PATH .'/classes/wp-security-two-factor-login.php');
-
 
 			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-utility-firewall.php');
 			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-block-file.php');
@@ -239,14 +242,13 @@ if (!class_exists('AIO_WP_Security')) {
 
 		public function loader_operations() {
 			add_action('plugins_loaded', array($this, 'plugins_loaded_handler'));//plugins loaded hook
-			add_action('plugins_loaded', array($this, 'load_plugin_textdomain'));
+			add_action('plugins_loaded', array($this, 'set_pagenow_for_renamed_loginpage'));
 
 			$debug_config = $this->configs->get_value('aiowps_enable_debug');
 			$debug_enabled = empty($debug_config) ? false : true;
 			$this->debug_logger = new AIOWPSecurity_Logger($debug_enabled);
 
 			$this->load_ajax_handler();
-			$this->set_pagenow_for_renamed_loginpage();
 		}
 
 		/**
@@ -337,7 +339,7 @@ if (!class_exists('AIO_WP_Security')) {
 			} else {
 				extract($extract_these);
 				global $wpdb;// phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable -- Bring variable into the included template's scope
-				global $aiowps_firewall_config; // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable -- Bring variable into the included template's scope
+				$aiowps_firewall_config = AIOS_Firewall_Resource::request(AIOS_Firewall_Resource::CONFIG); // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable -- Bring variable into the included template's scope
 				global $aiowps_feature_mgr; // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable -- Bring variable into the included template's scope
 				$aio_wp_security = $this;// phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable -- Bring variable into the included template's scope
 				include $template_file;
@@ -369,7 +371,7 @@ if (!class_exists('AIO_WP_Security')) {
 			AIOWPSecurity_Uninstallation_Tasks::run();
 			do_action('aiowps_uninstallation_complete');
 		}
-		
+
 		/**
 		 * Firewall configs upgrade.
 		 *
@@ -382,7 +384,14 @@ if (!class_exists('AIO_WP_Security')) {
 			}
 		}
 
+		/**
+		 * Upgrades the database.
+		 *
+		 * @return void
+		 */
 		public function db_upgrade_handler() {
+			$aiowps_firewall_config = AIOS_Firewall_Resource::request(AIOS_Firewall_Resource::CONFIG);
+
 			if (get_option('aiowpsec_db_version') != AIO_WP_SECURITY_DB_VERSION) {
 				require_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-installer.php');
 				AIOWPSecurity_Installer::run_installer();
@@ -393,9 +402,7 @@ if (!class_exists('AIO_WP_Security')) {
 				 * Update our config file's header if needed.
 				 */
 				if (is_main_site()) {
-					require_once(AIO_WP_SECURITY_PATH.'/classes/firewall/libs/wp-security-firewall-config.php');
-					$config = new \AIOWPS\Firewall\Config(AIOWPSecurity_Utility_Firewall::get_firewall_rules_path() . 'settings.php');
-					$config->update_prefix();
+					$aiowps_firewall_config->update_prefix();
 				}
 			}
 		}
@@ -410,9 +417,8 @@ if (!class_exists('AIO_WP_Security')) {
 			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-utility-firewall.php');
 			$firewall_path = AIOWPSecurity_Utility_Firewall::get_firewall_path();
 
-			clearstatcache();
-			if (file_exists($firewall_path)) {
-				include_once($firewall_path);
+			if (!(@include_once($firewall_path))) {
+				error_log('AIOS firewall error: failed to load the firewall. Unable to include wp-security-firewall.php.');
 			}
 		}
 

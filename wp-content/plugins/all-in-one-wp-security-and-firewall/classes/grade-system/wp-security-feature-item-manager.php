@@ -134,6 +134,15 @@ class AIOWPSecurity_Feature_Item_Manager {
 					'aiowps_enable_registration_honeypot'
 				)
 			),
+			'http-authentication-admin-frontend' => array(
+				'name' => __('HTTP authentication for admin and frontend', 'all-in-one-wp-security-and-firewall'),
+				'points' => $this->feature_point_2,
+				'level' => $this->sec_level_basic,
+				'options' => array(
+					'aiowps_http_authentication_admin',
+					'aiowps_http_authentication_frontend',
+				)
+			),
 			// Database Security menu features
 			'db-security-db-prefix' => array(
 				'name' => __('Database prefix', 'all-in-one-wp-security-and-firewall'),
@@ -658,7 +667,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 	 * @return void
 	 */
 	private function is_feature_enabled($item) {
-		global $aio_wp_security, $aiowps_firewall_config;
+		global $aio_wp_security;
+		$aiowps_firewall_config = AIOS_Firewall_Resource::request(AIOS_Firewall_Resource::CONFIG);
 
 		$enabled = false;
 		foreach ($item->feature_options as $option) {
@@ -711,7 +721,9 @@ class AIOWPSecurity_Feature_Item_Manager {
 	 */
 	private function check_db_security_db_prefix_feature($item) {
 		global $wpdb;
-		if ('wp_' == $wpdb->prefix) {
+		$site_id = get_current_blog_id();
+		$default_prefix = (1 === $site_id) ? 'wp_' : "wp_{$site_id}_";
+		if ($default_prefix === $wpdb->prefix) {
 			 $item->set_feature_status($this->feature_inactive);
 		} else {
 			$item->set_feature_status($this->feature_active);

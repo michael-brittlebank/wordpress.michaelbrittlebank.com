@@ -83,3 +83,5 @@ if (!defined('AIOWPSECURITY_NOADS_B') || !AIOWPSECURITY_NOADS_B) {
 		</form>
 	</div>
 </div>
+<?php
+$aio_wp_security->include_template('wp-admin/firewall/partials/allowlist.php', false, compact('allowlist'));

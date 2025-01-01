@@ -1,5 +1,5 @@
 <?php if (!defined('ABSPATH')) die('No direct access.'); ?>
-<div class="postbox">
+<div class="postbox aio_hidden" data-template="wp-rest-api">
 	<h3 class="hndle"><label for="title"><?php _e('WP REST API settings', 'all-in-one-wp-security-and-firewall'); ?></label></h3>
 	<div class="inside">
 		<div>
@@ -9,7 +9,6 @@
 				$aiowps_feature_mgr->output_feature_details_badge("disallow-unauthorised-requests");
 				?>
 			</div>
-			<form action="" id="aios-rest-api-settings-form">
 				<div class="aio_blue_box">
 					<?php
 					echo '<p>'.__('This feature allows you to block WordPress REST API access for unauthorized requests.', 'all-in-one-wp-security-and-firewall').'</p>';
@@ -33,10 +32,6 @@
 						</td>
 					</tr>
 				</table>
-				<div class="submit">
-					<input type="submit" class="button-primary" name="aiowpsec_save_rest_settings" value="<?php _e('Save settings', 'all-in-one-wp-security-and-firewall'); ?>">
-				</div>
-			</form>
 		</div>
 	</div>
 </div>

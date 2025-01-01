@@ -311,8 +311,10 @@ class AIOWPSecurity_General_Init_Tasks {
 		}
 
 		// For antibot post page set cookies.
-		if ('1' == $aio_wp_security->configs->get_value('aiowps_enable_spambot_detecting')) {
-			add_action('template_redirect', array($this, 'post_antibot_cookie'));
+		if ('1' == $aio_wp_security->configs->get_value('aiowps_enable_spambot_detecting') && !is_user_logged_in()) {
+			if ('1' == $aio_wp_security->configs->get_value('aiowps_spambot_detect_usecookies')) {
+				add_action('template_redirect', array($this, 'post_antibot_cookie'));
+			}
 			add_filter('comment_form_submit_field', array($this, 'comment_form_submit_field'), 10, 1);
 		}
 
@@ -321,8 +323,17 @@ class AIOWPSecurity_General_Init_Tasks {
 			add_action('upgrader_process_complete', array($this, 'delete_unneeded_files_after_upgrade'), 10, 2);
 		}
 
+		// filter php firewall templates array
+		add_filter('aiowps_modify_php_firewall_rules_template', array($this, 'filter_templates'), 10, 1);
+		
+		// For HTTP authentication.
+		if ('1' == $aio_wp_security->configs->get_value('aiowps_http_authentication_admin') || '1' == $aio_wp_security->configs->get_value('aiowps_http_authentication_frontend')) {
+			$this->http_authentication();
+		}
+
 		// Add more tasks that need to be executed at init time
 
+		add_filter('aiowps_modify_captcha_settings_template', array($this, 'filter_captcha_settings_templates'), 10, 1);
 	} // end _construct()
 
 	public function aiowps_disable_xmlrpc_pingback_methods($methods) {
@@ -610,6 +621,61 @@ class AIOWPSecurity_General_Init_Tasks {
 		}
 	}
 
+	/**
+	 * Sends WWW-Authenticate header for frontend or admin protection according to user configuration.
+	 *
+	 * @global AIO_WP_Security $aio_wp_security
+	 *
+	 * @return void
+	 */
+	private function http_authentication() {
+		global $aio_wp_security;
+		
+		if (defined('AIOS_DISABLE_HTTP_AUTHENTICATION') && AIOS_DISABLE_HTTP_AUTHENTICATION) return;
+
+		$request_uri = parse_url(urldecode($_SERVER['REQUEST_URI']));
+
+		$request_path = $request_uri['path'];
+		$request_query = isset($request_uri['query']) ? $request_uri['query'] : '';
+
+		$non_logged_in_admin_ajax_request = !is_user_logged_in() && defined('DOING_AJAX') && DOING_AJAX;
+
+		// Can't use defined('REST_REQUEST') && REST_REQUEST because REST_REQUEST isn't defined until after init.
+		$logged_in_rest_request = is_user_logged_in() && (1 === preg_match('/^\/'.rest_get_url_prefix().'(?:\/.*)?$/', $request_path) || 1 === preg_match('/^rest_route=.+$/', $request_query));
+
+		$is_login_page = 'wp-login.php' == $GLOBALS['pagenow'];
+
+		if ('cli' == PHP_SAPI || (defined('WP_CLI') && WP_CLI)) {
+			// CLI
+			return;
+		} elseif ((is_admin() && !$non_logged_in_admin_ajax_request) || $logged_in_rest_request || $is_login_page) {
+			// Admin
+			if ('1' != $aio_wp_security->configs->get_value('aiowps_http_authentication_admin')) {
+				return;
+			}
+		} else {
+			// Frontend
+			if ('1' != $aio_wp_security->configs->get_value('aiowps_http_authentication_frontend')) {
+				return;
+			}
+		}
+
+		$username = $aio_wp_security->configs->get_value('aiowps_http_authentication_username');
+		$password = $aio_wp_security->configs->get_value('aiowps_http_authentication_password');
+
+		// Check that the user hasn't already logged in with credentials.
+		if (!(isset($_SERVER['PHP_AUTH_USER']) && $_SERVER['PHP_AUTH_USER'] == $username && isset($_SERVER['PHP_AUTH_PW']) && $_SERVER['PHP_AUTH_PW'] == $password)) {
+			header('WWW-Authenticate: Basic charset="UTF-8"');
+			header('HTTP/1.0 401 Unauthorized');
+
+			// Show failure message when the user clicks on the cancel button of the login prompt.
+			$aiowps_failure_message = $aio_wp_security->configs->get_value('aiowps_http_authentication_failure_message');
+			$aiowps_failure_message_raw = html_entity_decode($aiowps_failure_message, ENT_COMPAT, 'UTF-8');
+			echo $aiowps_failure_message_raw;
+			exit;
+		}
+	}
+
 	public function buddy_press_signup_validate_captcha() {
 		global $bp, $aio_wp_security;
 		// Check CAPTCHA if required
@@ -727,7 +793,7 @@ class AIOWPSecurity_General_Init_Tasks {
 		$rest_user = wp_get_current_user();
 		if (empty($rest_user->ID)) {
 			$error_message = apply_filters('aiowps_rest_api_error_message', __('You are not authorized to perform this action.', 'all-in-one-wp-security-and-firewall'));
-			wp_die($error_message);
+			wp_die($error_message, '', 403);
 		}
 	}
 
@@ -787,7 +853,7 @@ class AIOWPSecurity_General_Init_Tasks {
 	 * @return void
 	 */
 	public function post_antibot_cookie() {
-		if (is_singular() || is_archive()) {
+		if (is_single()) {
 			AIOWPSecurity_Comment::insert_antibot_keys_in_cookie();
 		}
 	}
@@ -801,5 +867,43 @@ class AIOWPSecurity_General_Init_Tasks {
 	 */
 	public function comment_form_submit_field($submit_field) {
 		return $submit_field . " " . AIOWPSecurity_Comment::insert_antibot_keys_in_comment_form();
+	}
+
+	/**
+	 * Filters the captcha settings templates based on specific conditions.
+	 *
+	 * This function checks if certain conditions (like login lockdown) are active, and filters the templates accordingly.
+	 * If a template contains a display condition callback, it ensures the callback is callable and invokes it to determine
+	 * whether the template should be included in the result.
+	 *
+	 * @param array $templates An array of captcha setting templates to filter.
+	 *
+	 * @return array The filtered array of captcha setting templates.
+	 */
+	public function filter_captcha_settings_templates($templates) {
+		global $aio_wp_security;
+
+		if (empty($templates) || $aio_wp_security->is_login_lockdown_by_const()) return array();
+
+		return $this->filter_templates($templates);
+	}
+
+
+	/**
+	 * Filters the provided templates array based on a specified callback condition.
+	 *
+	 * This function applies a filter to the input templates array, checking for each template
+	 * if a 'display_condition_callback' is set and callable. If the condition passes, the template is retained.
+	 *
+	 * @param array $templates An array of templates to filter. Each template should have a 'display_condition_callback' key.
+	 *
+	 * @return array Filtered array of templates where the 'display_condition_callback' is valid.
+	 */
+	public function filter_templates($templates) {
+		if (empty($templates)) return array();
+
+		return array_filter($templates, function ($template) {
+			return AIOWPSecurity_Utility::apply_callback_filter($template, 'display_condition_callback');
+		});
 	}
 }
