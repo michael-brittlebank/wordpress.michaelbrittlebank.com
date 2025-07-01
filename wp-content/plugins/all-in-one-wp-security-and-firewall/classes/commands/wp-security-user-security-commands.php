@@ -435,6 +435,7 @@ trait AIOWPSecurity_User_Security_Commands_Trait {
 				);
 			}
 			$user_id = strip_tags($data['logged_in_id']);
+			$error = '';
 
 			if (!is_numeric($user_id)) {
 				$error = __("Invalid user ID provided.", 'all-in-one-wp-security-and-firewall');

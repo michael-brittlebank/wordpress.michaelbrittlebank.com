@@ -42,6 +42,18 @@ class Rule_Cookie_Prevent_Bruteforce extends Rule {
 	 */
 	public function is_satisfied() {
 		global $aiowps_firewall_config;
+		/**
+		 * This rule is not applied at AIOS plugin activation time.
+		 */
+		$is_plugins_page = isset($_SERVER['SCRIPT_FILENAME']) && 1 === preg_match('#/wp-admin/(network/)?plugins\.php$#i', $_SERVER['SCRIPT_FILENAME']);
+		$is_activation_action = isset($_GET['action']) && 'activate' === $_GET['action'];
+		$is_target_plugin = isset($_GET['plugin']) && 'all-in-one-wp-security-and-firewall/wp-security.php' === $_GET['plugin'];
+		
+
+		if ($is_plugins_page && $is_activation_action && $is_target_plugin) {
+			return Rule::NOT_SATISFIED;
+		}
+
 		$brute_force_secret_word = $aiowps_firewall_config->get_value('aios_brute_force_secret_word');
 		$brute_force_secret_cookie_name = $aiowps_firewall_config->get_value('aios_brute_force_secret_cookie_name');
 		$login_page_slug = $aiowps_firewall_config->get_value('aios_login_page_slug');
@@ -65,10 +77,10 @@ class Rule_Cookie_Prevent_Bruteforce extends Rule {
 				$is_admin_ajax_request = ('1' == $prevent_ajax_exception && false != strpos($request_uri, 'wp-admin/admin-ajax.php')) ? intval($prevent_ajax_exception) : 0;
 				
 				// password protected page called
-				$is_password_protected_access = ('1' == $pw_protected_exception && isset($_GET['action']) && 'postpass' == sanitize_text_field(wp_unslash($_GET['action']))) ? 1 : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- PCP warning. No nonce.
+				$is_password_protected_access = ('1' == $pw_protected_exception && isset($_GET['action']) && 'postpass' == $_GET['action']) ? 1 : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- PCP warning. No nonce.
 				
 				// logout action called
-				$is_logout_action = (isset($_GET['action']) && 'logout' == sanitize_text_field(wp_unslash($_GET['action']))) ? 1 : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- PCP warning. No nonce.
+				$is_logout_action = (isset($_GET['action']) && 'logout' == $_GET['action']) ? 1 : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- PCP warning. No nonce.
 				
 				// cookie based brute force on and accessing admin without ajax and password protected then redirect
 				if ($is_admin_or_login && !$is_admin_ajax_request && !$is_password_protected_access && !$is_logout_action) {

@@ -337,6 +337,7 @@ class AIOWPSecurity_Notices extends Updraft_Notices_1_2 {
 			'collection' => array(
 				'prefix' => '',
 				'title' => __('The Updraft Plugin Collection Sale', 'all-in-one-wp-security-and-firewall'),
+				/* translators: %s: Checkout code */
 				'text' => $this->safe_sprintf(__('Visit any of our websites and use code %s at checkout to get 20%% off all our plugins.', 'all-in-one-wp-security-and-firewall') .' '.__('Be quick, offer ends 30 September.', 'all-in-one-wp-security-and-firewall'), '<b>AIOS2024</b>'),
 				'image' => 'plugin-logos/updraft_logo.png',
 				'button_link' => 'https://teamupdraft.com',
@@ -398,6 +399,7 @@ class AIOWPSecurity_Notices extends Updraft_Notices_1_2 {
 			return false;
 		}
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- No nonce to check.
 		$is_firewall_page = ('admin.php' == $GLOBALS['pagenow'] && isset($_GET['page']) && AIOWPSEC_FIREWALL_MENU_SLUG == $_GET['page']);
 		if ($is_firewall_page) return false;
 
@@ -429,6 +431,7 @@ class AIOWPSecurity_Notices extends Updraft_Notices_1_2 {
 	 * @return Boolean True if the current page is the database security admin page, otherwise false.
 	 */
 	private function is_database_security_admin_page() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- No nonce to check.
 		return ('admin.php' == $GLOBALS['pagenow'] && isset($_GET['page']) && 'aiowpsec_database' == $_GET['page']);
 	}
 
@@ -438,6 +441,7 @@ class AIOWPSecurity_Notices extends Updraft_Notices_1_2 {
 	 * @return Boolean True if the current tab is the database backup tab, otherwise false.
 	 */
 	private function is_database_backup_tab() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- No nonce to check.
 		return (isset($_GET['tab']) && 'database-backup' == $_GET['tab']);
 	}
 
@@ -508,6 +512,7 @@ class AIOWPSecurity_Notices extends Updraft_Notices_1_2 {
 	 * @return Boolean True if the current page is the AIOS settings admin page, otherwise false.
 	 */
 	private function is_settings_admin_page() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- No nonce to check.
 		return ('admin.php' == $GLOBALS['pagenow'] && isset($_GET['page']) && 'aiowpsec_settings' == $_GET['page']);
 	}
 
@@ -517,6 +522,7 @@ class AIOWPSecurity_Notices extends Updraft_Notices_1_2 {
 	 * @return Boolean True if the current tab is the advanced settings tab, otherwise false.
 	 */
 	private function is_advanced_settings_tab() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- No nonce to check.
 		return (isset($_GET['tab']) && 'advanced-settings' == $_GET['tab']);
 	}
 
@@ -572,6 +578,7 @@ class AIOWPSecurity_Notices extends Updraft_Notices_1_2 {
 	 * @return Boolean True if the current page is the AIOS blacklist admin page, otherwise false.
 	 */
 	private function is_blacklist_admin_page() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- No nonce to check.
 		return ('admin.php' == $GLOBALS['pagenow'] && isset($_GET['page']) && AIOWPSEC_FIREWALL_MENU_SLUG == $_GET['page'] && isset($_GET['tab']) && 'blacklist' == $_GET['tab']);
 	}
 
@@ -617,6 +624,7 @@ class AIOWPSecurity_Notices extends Updraft_Notices_1_2 {
 	 * @return Boolean True if the current page is the AIOS settings admin page, otherwise false.
 	 */
 	private function is_brute_force_admin_page() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- No nonce to check.
 		return ('admin.php' == $GLOBALS['pagenow'] && isset($_GET['page']) && AIOWPSEC_BRUTE_FORCE_MENU_SLUG == $_GET['page']);
 	}
 
@@ -626,6 +634,7 @@ class AIOWPSecurity_Notices extends Updraft_Notices_1_2 {
 	 * @return Boolean True if the current tab is the advanced settings tab, otherwise false.
 	 */
 	private function is_login_whitelist_tab() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- No nonce to check.
 		return (isset($_GET['tab']) && 'login-whitelist' == $_GET['tab']);
 	}
 

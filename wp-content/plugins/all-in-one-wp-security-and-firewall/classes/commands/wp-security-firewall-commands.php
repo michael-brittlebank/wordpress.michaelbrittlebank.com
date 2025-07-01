@@ -292,10 +292,6 @@ trait AIOWPSecurity_Firewall_Commands_Trait {
 
 		$res = true;
 
-		if ($is_5G_firewall_option_changed) {
-			$res = AIOWPSecurity_Utility_Htaccess::write_to_htaccess(); // let's write the applicable rules to the .htaccess file
-		}
-
 		if (isset($data['aiowps_enable_6g_firewall'])) {
 			$aiowps_6g_block_request_methods = array_filter(AIOS_Abstracted_Ids::get_firewall_block_request_methods(), function($block_request_method) {
 				return ('PUT' != $block_request_method);
@@ -333,6 +329,11 @@ trait AIOWPSecurity_Firewall_Commands_Trait {
 
 		// Commit the config settings
 		$this->save_settings($options);
+		
+		// The save settings call above updates the 5G option, write the htaccess only after that. Do not move it above the save settings call.
+		if ($is_5G_firewall_option_changed) {
+			$res = AIOWPSecurity_Utility_Htaccess::write_to_htaccess(); // let's write the applicable rules to the .htaccess file
+		}
 
 		if ($res) {
 			$block_request_methods = array_map('strtolower', AIOS_Abstracted_Ids::get_firewall_block_request_methods());

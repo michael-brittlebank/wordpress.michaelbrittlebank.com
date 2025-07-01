@@ -8,7 +8,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language-Team: Team Updraft <mail@example.com>\n"
 "Last-Translator: Team Updraft <mail@example.com>\n"
-"POT-Creation-Date: 2025-03-27 12:08+0000\n"
+"POT-Creation-Date: 2025-05-22 14:04+0000\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/all-in-one-wp-security-and-firewall\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-KeywordsList: __;_e;_ex:1,2c;_n:1,2;_n_noop:1,2;_nx:1,2,4c;_nx_noop:1,2,3c;_x:1,2c;esc_attr__;esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c\n"
@@ -269,7 +269,7 @@ msgstr ""
 msgid "Press to toggle"
 msgstr ""
 
-#: src/admin/wp-security-admin-menu.php:160, src/admin/wp-security-admin-menu.php:176, src/classes/wp-security-commands.php:262, src/classes/commands/wp-brute-force-commands.php:51, src/classes/commands/wp-brute-force-commands.php:123, src/classes/commands/wp-security-tools-commands.php:129, src/classes/commands/wp-security-user-security-commands.php:29, src/classes/commands/wp-security-user-security-commands.php:207, src/classes/commands/wp-security-user-security-commands.php:285, src/classes/commands/wp-security-user-security-commands.php:330, src/classes/commands/wp-security-user-security-commands.php:358, src/classes/commands/wp-security-user-security-commands.php:399, src/classes/commands/wp-security-user-security-commands.php:489
+#: src/admin/wp-security-admin-menu.php:160, src/admin/wp-security-admin-menu.php:176, src/classes/wp-security-commands.php:262, src/classes/commands/wp-brute-force-commands.php:51, src/classes/commands/wp-brute-force-commands.php:123, src/classes/commands/wp-security-tools-commands.php:129, src/classes/commands/wp-security-user-security-commands.php:29, src/classes/commands/wp-security-user-security-commands.php:207, src/classes/commands/wp-security-user-security-commands.php:285, src/classes/commands/wp-security-user-security-commands.php:330, src/classes/commands/wp-security-user-security-commands.php:358, src/classes/commands/wp-security-user-security-commands.php:399, src/classes/commands/wp-security-user-security-commands.php:490
 msgid "The settings have been successfully updated."
 msgstr ""
 
@@ -318,7 +318,7 @@ msgid "Please enter the correct Cloudflare Turnstile keys below to use the Turns
 msgstr ""
 
 #. translators: %s: Admin Dashboard > WP Security > Brute Force > Login CAPTCHA Tab Link
-#: src/admin/wp-security-brute-force-menu.php:120, src/classes/wp-security-general-init-tasks.php:758, src/classes/commands/wp-brute-force-commands.php:318
+#: src/admin/wp-security-brute-force-menu.php:120, src/classes/wp-security-general-init-tasks.php:760, src/classes/commands/wp-brute-force-commands.php:318
 msgid "Your Google reCAPTCHA configuration is invalid."
 msgstr ""
 
@@ -952,7 +952,7 @@ msgstr ""
 msgid "Site ID"
 msgstr ""
 
-#: src/admin/wp-security-list-audit.php:180, src/admin/wp-security-list-locked-ip.php:128, src/other-includes/wp-security-rename-login-feature-pre-5-2.php:813, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1088, src/classes/commands/wp-security-log-commands.php:108
+#: src/admin/wp-security-list-audit.php:180, src/admin/wp-security-list-locked-ip.php:128, src/classes/commands/wp-security-log-commands.php:108
 msgid "Username"
 msgstr ""
 
@@ -1036,7 +1036,7 @@ msgstr ""
 msgid "There is no IP lookup result available."
 msgstr ""
 
-#: src/admin/wp-security-list-locked-ip.php:107, src/classes/wp-security-user-login.php:413, src/classes/wp-security-user-login.php:414
+#: src/admin/wp-security-list-locked-ip.php:107, src/classes/wp-security-user-login.php:414, src/classes/wp-security-user-login.php:415
 msgid "Not Found"
 msgstr ""
 
@@ -1140,7 +1140,7 @@ msgstr ""
 msgid "blocked"
 msgstr ""
 
-#: src/admin/wp-security-list-registered-users.php:82, src/other-includes/wp-security-rename-login-feature-pre-5-2.php:817, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1092
+#: src/admin/wp-security-list-registered-users.php:82
 msgid "Email"
 msgstr ""
 
@@ -1180,7 +1180,7 @@ msgstr ""
 msgid "The selected IP addresses were successfully added to the permanent block list."
 msgstr ""
 
-#: src/admin/wp-security-list-registered-users.php:266, src/classes/commands/wp-security-user-security-commands.php:582
+#: src/admin/wp-security-list-registered-users.php:266, src/classes/commands/wp-security-user-security-commands.php:583
 msgid "View Blocked IPs"
 msgstr ""
 
@@ -1256,7 +1256,7 @@ msgstr ""
 msgid "WHOIS lookup"
 msgstr ""
 
-#: src/admin/wp-security-tools-menu.php:40, src/templates/wp-admin/tools/custom-htaccess.php:27
+#: src/admin/wp-security-tools-menu.php:40, src/templates/wp-admin/tools/custom-htaccess.php:28
 msgid "Custom .htaccess rules"
 msgstr ""
 
@@ -1673,7 +1673,7 @@ msgstr ""
 msgid "twenty"
 msgstr ""
 
-#: src/classes/wp-security-captcha.php:811, src/classes/wp-security-general-init-tasks.php:685
+#: src/classes/wp-security-captcha.php:811, src/classes/wp-security-general-init-tasks.php:687
 msgid "Your CAPTCHA answer was incorrect - please try again."
 msgstr ""
 
@@ -1690,11 +1690,11 @@ msgid "Insert tag"
 msgstr ""
 
 #. translators: %s: Error notification with strong HTML tag.
-#: src/classes/wp-security-captcha.php:931, src/classes/wp-security-general-init-tasks.php:727, src/classes/wp-security-user-login.php:150
+#: src/classes/wp-security-captcha.php:931, src/classes/wp-security-general-init-tasks.php:729, src/classes/wp-security-user-login.php:151
 msgid "%s: Your answer was incorrect - please try again."
 msgstr ""
 
-#: src/classes/wp-security-captcha.php:931, src/classes/wp-security-general-init-tasks.php:719, src/classes/wp-security-general-init-tasks.php:727, src/classes/wp-security-user-login.php:110, src/classes/wp-security-user-login.php:150, src/other-includes/wp-security-rename-login-feature-pre-5-2.php:929, src/other-includes/wp-security-rename-login-feature-pre-5-2.php:925, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:480, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1254, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1242
+#: src/classes/wp-security-captcha.php:931, src/classes/wp-security-general-init-tasks.php:721, src/classes/wp-security-general-init-tasks.php:729, src/classes/wp-security-user-login.php:110, src/classes/wp-security-user-login.php:151
 msgid "ERROR"
 msgstr ""
 
@@ -1772,11 +1772,11 @@ msgstr ""
 msgid "Unable to clear the logs"
 msgstr ""
 
-#: src/classes/wp-security-debug.php:509
+#: src/classes/wp-security-debug.php:516
 msgid "Enter your email address"
 msgstr ""
 
-#: src/classes/wp-security-debug.php:510
+#: src/classes/wp-security-debug.php:518
 msgid "Send report"
 msgstr ""
 
@@ -1816,73 +1816,81 @@ msgstr ""
 msgid "The following files were changed on your host"
 msgstr ""
 
-#: src/classes/wp-security-general-init-tasks.php:228, src/classes/wp-security-general-init-tasks.php:535
+#: src/classes/wp-security-general-init-tasks.php:230, src/classes/wp-security-general-init-tasks.php:537
 msgid "Application passwords have been disabled by All-In-One Security plugin."
 msgstr ""
 
-#: src/classes/wp-security-general-init-tasks.php:506, src/classes/wp-security-general-init-tasks.php:595, src/classes/wp-security-general-init-tasks.php:701, src/classes/wp-security-user-registration.php:86
+#: src/classes/wp-security-general-init-tasks.php:508, src/classes/wp-security-general-init-tasks.php:597, src/classes/wp-security-general-init-tasks.php:703, src/classes/wp-security-user-registration.php:86
 msgid "<strong>ERROR</strong>: Your answer was incorrect - please try again."
 msgstr ""
 
-#: src/classes/wp-security-general-init-tasks.php:517
+#: src/classes/wp-security-general-init-tasks.php:519
 msgid "Enter something special:"
 msgstr ""
 
-#: src/classes/wp-security-general-init-tasks.php:530
+#: src/classes/wp-security-general-init-tasks.php:532
 msgid "Application passwords"
 msgstr ""
 
-#: src/classes/wp-security-general-init-tasks.php:534
+#: src/classes/wp-security-general-init-tasks.php:536
 msgid "Disabled"
 msgstr ""
 
-#: src/classes/wp-security-general-init-tasks.php:541
+#: src/classes/wp-security-general-init-tasks.php:543
 msgid "Site admin can only change this setting."
 msgstr ""
 
-#: src/classes/wp-security-general-init-tasks.php:539
+#: src/classes/wp-security-general-init-tasks.php:541
 msgid "Change setting"
 msgstr ""
 
-#: src/classes/wp-security-general-init-tasks.php:570
+#: src/classes/wp-security-general-init-tasks.php:572
 msgid "Error: You entered an incorrect CAPTCHA answer, please go back and try again."
 msgstr ""
 
-#: src/classes/wp-security-general-init-tasks.php:694
+#: src/classes/wp-security-general-init-tasks.php:696
 msgid "<strong>ERROR</strong>: Your IP address is currently locked please contact the administrator!"
 msgstr ""
 
 #. translators: %s: Error notification with strong HTML tag.
-#: src/classes/wp-security-general-init-tasks.php:719
+#: src/classes/wp-security-general-init-tasks.php:721
 msgid "%s: Your IP address is currently locked."
 msgstr ""
 
-#: src/classes/wp-security-general-init-tasks.php:719, src/classes/wp-security-user-login.php:110
+#: src/classes/wp-security-general-init-tasks.php:721, src/classes/wp-security-user-login.php:110
 msgid "Please contact the administrator."
 msgstr ""
 
-#: src/classes/wp-security-general-init-tasks.php:758
+#: src/classes/wp-security-general-init-tasks.php:760
 msgid "Please enter the correct reCAPTCHA keys %s to use the Google reCAPTCHA feature."
 msgstr ""
 
-#: src/classes/wp-security-general-init-tasks.php:758, src/templates/wp-admin/general/moved.php:12, src/templates/wp-admin/scanner/malware-scan.php:7
+#: src/classes/wp-security-general-init-tasks.php:760, src/templates/wp-admin/general/moved.php:12, src/templates/wp-admin/scanner/malware-scan.php:7
 msgid "here"
 msgstr ""
 
-#: src/classes/wp-security-general-init-tasks.php:778
+#: src/classes/wp-security-general-init-tasks.php:780
 msgid "Your registration is pending approval."
 msgstr ""
 
-#: src/classes/wp-security-general-init-tasks.php:815
+#: src/classes/wp-security-general-init-tasks.php:817
 msgid "You are not authorized to perform this action."
 msgstr ""
 
-#: src/classes/wp-security-general-init-tasks.php:850
+#: src/classes/wp-security-general-init-tasks.php:852
 msgid "Accessing user details is forbidden."
 msgstr ""
 
-#: src/classes/wp-security-general-init-tasks.php:845
+#: src/classes/wp-security-general-init-tasks.php:847
 msgid "Listing users is forbidden."
+msgstr ""
+
+#: src/classes/wp-security-general-init-tasks.php:948, src/classes/wp-security-process-renamed-login-page.php:145
+msgid "You do not have permission to access this page."
+msgstr ""
+
+#: src/classes/wp-security-general-init-tasks.php:949, src/classes/wp-security-process-renamed-login-page.php:145
+msgid "Please log in and try again."
 msgstr ""
 
 #: src/classes/wp-security-notices.php:30
@@ -2155,27 +2163,20 @@ msgstr ""
 msgid "The Updraft Plugin Collection Sale"
 msgstr ""
 
-#: src/classes/wp-security-notices.php:340
+#. translators: %s: Checkout code
+#: src/classes/wp-security-notices.php:341
 msgid "Visit any of our websites and use code %s at checkout to get 20%% off all our plugins."
 msgstr ""
 
-#: src/classes/wp-security-notices.php:340
+#: src/classes/wp-security-notices.php:341
 msgid "Be quick, offer ends 30 September."
 msgstr ""
 
-#: src/classes/wp-security-process-renamed-login-page.php:145
-msgid "You do not have permission to access this page."
-msgstr ""
-
-#: src/classes/wp-security-process-renamed-login-page.php:145
-msgid "Please log in and try again."
-msgstr ""
-
-#: src/classes/wp-security-process-renamed-login-page.php:159, src/other-includes/wp-security-rename-login-feature-pre-5-2.php:858
+#: src/classes/wp-security-process-renamed-login-page.php:159
 msgid "Invalid key"
 msgstr ""
 
-#: src/classes/wp-security-process-renamed-login-page.php:167, src/other-includes/wp-security-rename-login-feature-pre-5-2.php:881, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1191
+#: src/classes/wp-security-process-renamed-login-page.php:167
 msgid "User action confirmed."
 msgstr ""
 
@@ -2257,101 +2258,99 @@ msgstr ""
 msgid "%s: Access from your IP address has been blocked for security reasons."
 msgstr ""
 
-#: src/classes/wp-security-user-login.php:118
+#: src/classes/wp-security-user-login.php:119
 msgid "Service temporarily unavailable"
 msgstr ""
 
 #. translators: %s: Notification with strong HTML tag.
-#: src/classes/wp-security-user-login.php:177
+#: src/classes/wp-security-user-login.php:178
 msgid "%s: Your account is currently not active."
 msgstr ""
 
-#: src/classes/wp-security-user-login.php:177
+#: src/classes/wp-security-user-login.php:178
 msgid "ACCOUNT PENDING"
 msgstr ""
 
-#: src/classes/wp-security-user-login.php:177
+#: src/classes/wp-security-user-login.php:178
 msgid "An administrator needs to activate your account before you can login."
 msgstr ""
 
-#: src/classes/wp-security-user-login.php:255
+#: src/classes/wp-security-user-login.php:256
 msgid "<strong>ERROR</strong>: Invalid login credentials."
 msgstr ""
 
-#: src/classes/wp-security-user-login.php:397
+#: src/classes/wp-security-user-login.php:398
 msgid "Site Lockout Notification"
 msgstr ""
 
-#: src/classes/wp-security-user-login.php:398
+#: src/classes/wp-security-user-login.php:399
 msgid "User login lockout events had occurred due to too many failed login attempts or invalid username:"
 msgstr ""
 
 #. translators: %s: User name.
-#. translators: %s: user login
-#. translators: %s: User login.
-#: src/classes/wp-security-user-login.php:402, src/other-includes/wp-security-rename-login-feature-pre-5-2.php:375, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:430
+#: src/classes/wp-security-user-login.php:403
 msgid "Username: %s"
 msgstr ""
 
 #. translators: %s: IP Address.
-#: src/classes/wp-security-user-login.php:405
+#: src/classes/wp-security-user-login.php:406
 msgid "IP address: %s"
 msgstr ""
 
 #. translators: %s: IP Range.
-#: src/classes/wp-security-user-login.php:408
+#: src/classes/wp-security-user-login.php:409
 msgid "IP range: %s"
 msgstr ""
 
 #. translators: %s: Org.
-#: src/classes/wp-security-user-login.php:417
+#: src/classes/wp-security-user-login.php:418
 msgid "Org: %s"
 msgstr ""
 
 #. translators: %s: AS.
-#: src/classes/wp-security-user-login.php:419
+#: src/classes/wp-security-user-login.php:420
 msgid "AS: %s"
 msgstr ""
 
-#: src/classes/wp-security-user-login.php:426
+#: src/classes/wp-security-user-login.php:427
 msgid "Log into your site WordPress administration panel to see the duration of the lockout or to unlock the user."
 msgstr ""
 
-#: src/classes/wp-security-user-login.php:543
+#: src/classes/wp-security-user-login.php:544
 msgid "Unlock request notification"
 msgstr ""
 
 #. translators: 1: Email 2: Link
-#: src/classes/wp-security-user-login.php:545
+#: src/classes/wp-security-user-login.php:546
 msgid "You have requested for the account with email address %s to be unlocked."
 msgstr ""
 
-#: src/classes/wp-security-user-login.php:545
+#: src/classes/wp-security-user-login.php:546
 msgid "Please press the link below to unlock your account:"
 msgstr ""
 
-#: src/classes/wp-security-user-login.php:545
+#: src/classes/wp-security-user-login.php:546
 msgid "Unlock link: %s"
 msgstr ""
 
-#: src/classes/wp-security-user-login.php:545
+#: src/classes/wp-security-user-login.php:546
 msgid "After pressing the above link you will be able to login to the WordPress administration panel."
 msgstr ""
 
 #. translators: %s: Minute count
-#: src/classes/wp-security-user-login.php:745
+#: src/classes/wp-security-user-login.php:746
 msgid "Your session has expired because it has been over %d minutes since your last login."
 msgstr ""
 
-#: src/classes/wp-security-user-login.php:746, src/classes/wp-security-user-login.php:750
+#: src/classes/wp-security-user-login.php:747, src/classes/wp-security-user-login.php:751
 msgid "Please log back in to continue."
 msgstr ""
 
-#: src/classes/wp-security-user-login.php:749
+#: src/classes/wp-security-user-login.php:750
 msgid "You were logged out because you just changed the \"admin\" username."
 msgstr ""
 
-#: src/classes/wp-security-user-login.php:780
+#: src/classes/wp-security-user-login.php:781
 msgid "Request unlock"
 msgstr ""
 
@@ -2429,375 +2428,12 @@ msgstr ""
 msgid "Successfully deleted the %s file."
 msgstr ""
 
-#. translators: Login screen title. 1: Login screen name, 2: Network or site name
-#. translators: Login screen title. 1: Login screen name, 2: Network or site name.
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:60, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:72
-msgid "%1$s &lsaquo; %2$s &#8212; WordPress"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:116, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:152, src/other-includes/wp-security-unlock-request.php:14
-msgid "Powered by WordPress"
-msgstr ""
-
-#. translators: %s: site title
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:253
-msgctxt "site"
-msgid "&larr; Back to %s"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:326
-msgid "<strong>ERROR</strong>: There is no user registered with that email address."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:322
-msgid "<strong>ERROR</strong>: Enter a username or email address."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:348
-msgid "<strong>ERROR</strong>: Invalid username or email."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:371, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:426
-msgid "Someone has requested a password reset for the following account:"
-msgstr ""
-
-#. translators: %s: site name
-#. translators: %s: Site name.
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:373, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:428
-msgid "Site Name: %s"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:376
-msgid "If this was a mistake, just ignore this email and nothing will happen."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:377, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:432
-msgid "To reset your password, visit the following address:"
-msgstr ""
-
-#. translators: Password reset email subject. %s: Site name
-#. translators: Password reset notification email subject. %s: Site title.
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:381, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:445
-msgid "[%s] Password Reset"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:411
-msgid "The email could not be sent."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:411
-msgid "Possible reason: your host may have disabled the mail() function."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:566, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:826
-msgid "Your password reset link has expired."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:566, src/other-includes/wp-security-rename-login-feature-pre-5-2.php:564, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:826, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:824
-msgid "Please request a new link below."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:564, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:824
-msgid "Your password reset link appears to be invalid."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:587, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:851
-msgid "Lost Password"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:587, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:851
-msgid "Please enter your username or email address."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:587
-msgid "You will receive a link to create a new password via email."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:599, src/other-includes/wp-security-rename-login-feature-pre-5-2.php:1039, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:863, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1418
-msgid "Username or Email Address"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:610, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:877
-msgid "Get new password"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:614, src/other-includes/wp-security-rename-login-feature-pre-5-2.php:685, src/other-includes/wp-security-rename-login-feature-pre-5-2.php:742, src/other-includes/wp-security-rename-login-feature-pre-5-2.php:835, src/other-includes/wp-security-rename-login-feature-pre-5-2.php:1056, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:882, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:957, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1015, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1115, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1442
-msgid "Log in"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:617, src/other-includes/wp-security-rename-login-feature-pre-5-2.php:745, src/other-includes/wp-security-rename-login-feature-pre-5-2.php:831, src/other-includes/wp-security-rename-login-feature-pre-5-2.php:1073, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:886, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1019, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1110, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1474
-msgid "Register"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:669, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:941
-msgid "The passwords do not match."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:685, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:957
-msgid "Password Reset"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:685, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:957
-msgid "Your password has been reset."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:693, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:965
-msgid "Reset Password"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:693, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:965
-msgid "Enter your new password below."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:700, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:972
-msgid "New password"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:710, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:981
-msgid "Strength indicator"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:715, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:985
-msgid "Confirm use of weak password"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:720, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:990
-msgid "Confirm new password"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:738, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1010
-msgid "Reset password"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:808, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1084
-msgid "Registration Form"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:808, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1084
-msgid "Register For This Site"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:828, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1105
-msgid "Registration confirmation will be emailed to you."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:837, src/other-includes/wp-security-rename-login-feature-pre-5-2.php:1081, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1117, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1483
-msgid "Lost your password?"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:849
-msgid "Invalid request."
-msgstr ""
-
-#. translators: 1: 'ERROR', 2: 'enable cookies'(Browser cookie documentation link)
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:929, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1253
-msgid "%1$s: Cookies are blocked or not supported by your browser."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:929, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1253
-msgid "You must %2$s to use WordPress."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:929, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1255
-msgid "enable cookies"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:925, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1241
-msgid "%1$s: Cookies are blocked due to unexpected output."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:925, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1241
-msgid "For help, please see %2$s or try the %3$s."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:925, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1243
-msgid "this documentation"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:925, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1244
-msgid "support forums"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:947, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1275
-msgid "You have logged in successfully."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:998, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1357
-msgid "<strong>You have successfully updated WordPress!</strong> Please log back in to see what&#8217;s new."
-msgstr ""
-
-#. translators: %s: Link to the login page.
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:996, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1143
-msgid "Registration complete."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:996
-msgid "Please check your email."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:994
-msgid "Check your email for your new password."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:992
-msgid "Check your email for the confirmation link."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:990, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1355
-msgid "User registration is currently not allowed."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:988, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1353
-msgid "You are now logged out."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:984, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1348
-msgid "Your session has expired."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:984, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1348
-msgid "Please log in to continue where you left off."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:1015, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1391
-msgid "Log In"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:1043, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1423
-msgid "Password"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-2.php:1054, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1440
-msgid "Remember Me"
-msgstr ""
-
-#. translators: %s: Login screen title.
-#: src/other-includes/wp-security-rename-login-feature-pre-5-7.php:76
-msgid "Recovery Mode &#8212; %s"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-7.php:149
-msgid "Usage of the title attribute on the login logo is not recommended for accessibility reasons."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-7.php:149
-msgid "Use the link text instead."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-7.php:361, src/other-includes/wp-security-rename-login-feature-pre-5-7.php:403
-msgid "<strong>Error</strong>: There is no account with that username or email address."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-7.php:357
-msgid "<strong>Error</strong>: Please enter a username or email address."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-7.php:431
-msgid "If this was a mistake, ignore this email and nothing will happen."
-msgstr ""
-
-#. translators: %s: IP address of password reset requester.
-#: src/other-includes/wp-security-rename-login-feature-pre-5-7.php:439
-msgid "This password reset request originated from the IP address %s."
-msgstr ""
-
-#. translators: %s: 'ERROR'
-#: src/other-includes/wp-security-rename-login-feature-pre-5-7.php:479
-msgid "%s: The email could not be sent."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-7.php:479
-msgid "Your site may not be correctly configured to send emails."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-7.php:479
-msgid "Get support for resetting your password"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-7.php:653
-msgid "Confirm your administration email"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-7.php:680
-msgid "Administration email verification"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-7.php:683
-msgid "Please verify that the <strong>administration email</strong> for this website is still correct."
-msgstr ""
-
-#. translators: Accessibility text.
-#: src/other-includes/wp-security-rename-login-feature-pre-5-7.php:690
-msgid "(opens in a new tab)"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-7.php:695
-msgid "Why is this important?"
-msgstr ""
-
-#. translators: %s: Admin email address.
-#: src/other-includes/wp-security-rename-login-feature-pre-5-7.php:705
-msgid "Current administration email: %s"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-7.php:711
-msgid "This email may be different from your personal email address."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-7.php:721
-msgid "Update"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-7.php:722
-msgid "The email is correct"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-7.php:737
-msgid "Remind me later"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-7.php:851
-msgid "You will receive an email message with instructions on how to reset your password."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-7.php:978
-msgid "Hide password"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1143
-msgid "Please check your email, then visit the <a href=\"%s\">login page</a>."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1133
-msgid "Check your email for the confirmation link, then visit the <a href=\"%s\">login page</a>."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1153
-msgid "Check your email"
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1159
-msgid "Missing request ID."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1163
-msgid "Missing confirm key."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1359
-msgid "Recovery Mode Initialized."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1359
-msgid "Please log in to continue."
-msgstr ""
-
-#: src/other-includes/wp-security-rename-login-feature-pre-5-7.php:1426
-msgid "Show password"
-msgstr ""
-
 #: src/other-includes/wp-security-stop-users-enumeration.php:8
 msgid "Accessing author info via link is forbidden"
+msgstr ""
+
+#: src/other-includes/wp-security-unlock-request.php:14
+msgid "Powered by WordPress"
 msgstr ""
 
 #: src/other-includes/wp-security-unlock-request.php:31
@@ -3040,7 +2676,7 @@ msgstr ""
 msgid "Invalid IP provided."
 msgstr ""
 
-#: src/classes/commands/wp-brute-force-commands.php:478, src/classes/commands/wp-security-comment-commands.php:154, src/classes/commands/wp-security-user-security-commands.php:574
+#: src/classes/commands/wp-brute-force-commands.php:478, src/classes/commands/wp-security-comment-commands.php:154, src/classes/commands/wp-security-user-security-commands.php:575
 msgid "You cannot block your own IP address:"
 msgstr ""
 
@@ -3216,19 +2852,19 @@ msgstr ""
 msgid "The attempt to save the 'Block fake Googlebots' settings failed, because it was not possible to validate the Googlebot IP addresses:"
 msgstr ""
 
-#: src/classes/commands/wp-security-firewall-commands.php:351
+#: src/classes/commands/wp-security-firewall-commands.php:352
 msgid "Could not write to the .htaccess file, please check the file permissions."
 msgstr ""
 
-#: src/classes/commands/wp-security-firewall-commands.php:423
+#: src/classes/commands/wp-security-firewall-commands.php:424
 msgid "Firewall has been setup successfully."
 msgstr ""
 
-#: src/classes/commands/wp-security-firewall-commands.php:442
+#: src/classes/commands/wp-security-firewall-commands.php:443
 msgid "Something went wrong please try again later."
 msgstr ""
 
-#: src/classes/commands/wp-security-firewall-commands.php:442
+#: src/classes/commands/wp-security-firewall-commands.php:443
 msgid "Firewall has been downgraded successfully."
 msgstr ""
 
@@ -3400,63 +3036,63 @@ msgstr ""
 msgid "No user ID was provided"
 msgstr ""
 
-#: src/classes/commands/wp-security-user-security-commands.php:446
+#: src/classes/commands/wp-security-user-security-commands.php:447
 msgid "You cannot log out a user from a different subsite."
 msgstr ""
 
-#: src/classes/commands/wp-security-user-security-commands.php:444
+#: src/classes/commands/wp-security-user-security-commands.php:445
 msgid "Super admins cannot be logged out."
 msgstr ""
 
-#: src/classes/commands/wp-security-user-security-commands.php:442
+#: src/classes/commands/wp-security-user-security-commands.php:443
 msgid "You cannot log yourself out"
 msgstr ""
 
-#: src/classes/commands/wp-security-user-security-commands.php:440
+#: src/classes/commands/wp-security-user-security-commands.php:441
 msgid "Invalid user ID provided."
 msgstr ""
 
-#: src/classes/commands/wp-security-user-security-commands.php:462
+#: src/classes/commands/wp-security-user-security-commands.php:463
 msgid "Failed to log out the selected user."
 msgstr ""
 
-#: src/classes/commands/wp-security-user-security-commands.php:460
+#: src/classes/commands/wp-security-user-security-commands.php:461
 msgid "The selected user has been logged out successfully."
 msgstr ""
 
-#: src/classes/commands/wp-security-user-security-commands.php:516
+#: src/classes/commands/wp-security-user-security-commands.php:517
 msgid "Invalid action provided for registered user."
 msgstr ""
 
-#: src/classes/commands/wp-security-user-security-commands.php:525, src/classes/commands/wp-security-user-security-commands.php:548
+#: src/classes/commands/wp-security-user-security-commands.php:526, src/classes/commands/wp-security-user-security-commands.php:549
 msgid "No valid user ID was provided"
 msgstr ""
 
-#: src/classes/commands/wp-security-user-security-commands.php:541
+#: src/classes/commands/wp-security-user-security-commands.php:542
 msgid "The selected account could not be approved."
 msgstr ""
 
-#: src/classes/commands/wp-security-user-security-commands.php:537
+#: src/classes/commands/wp-security-user-security-commands.php:538
 msgid "The selected account was approved successfully."
 msgstr ""
 
-#: src/classes/commands/wp-security-user-security-commands.php:560
+#: src/classes/commands/wp-security-user-security-commands.php:561
 msgid "The selected account could not be deleted."
 msgstr ""
 
-#: src/classes/commands/wp-security-user-security-commands.php:556
+#: src/classes/commands/wp-security-user-security-commands.php:557
 msgid "The selected account was deleted successfully."
 msgstr ""
 
-#: src/classes/commands/wp-security-user-security-commands.php:567
+#: src/classes/commands/wp-security-user-security-commands.php:568
 msgid "No valid IP address was provided"
 msgstr ""
 
-#: src/classes/commands/wp-security-user-security-commands.php:586
+#: src/classes/commands/wp-security-user-security-commands.php:587
 msgid "The selected IP could not be added to the permanent block list."
 msgstr ""
 
-#: src/classes/commands/wp-security-user-security-commands.php:581
+#: src/classes/commands/wp-security-user-security-commands.php:582
 msgid "The selected IP was successfully added to the permanent block list."
 msgstr ""
 
@@ -4728,7 +4364,7 @@ msgstr ""
 msgid "Easy Updates Manager is an obvious choice for anyone wanting to take control of their website updates."
 msgstr ""
 
-#: src/templates/wp-admin/dashboard/may-also-like.php:350, src/templates/wp-admin/dashboard/may-also-like.php:366, src/templates/wp-admin/dashboard/may-also-like.php:367, src/templates/wp-admin/dashboard/may-also-like.php:382, src/templates/wp-admin/dashboard/may-also-like.php:395
+#: src/templates/wp-admin/dashboard/may-also-like.php:350, src/templates/wp-admin/dashboard/may-also-like.php:366, src/templates/wp-admin/dashboard/may-also-like.php:381, src/templates/wp-admin/dashboard/may-also-like.php:394
 msgid "Try for free"
 msgstr ""
 
@@ -4748,35 +4384,35 @@ msgstr ""
 msgid "Improve your SEO with just a few clicks."
 msgstr ""
 
-#: src/templates/wp-admin/dashboard/may-also-like.php:371
+#: src/templates/wp-admin/dashboard/may-also-like.php:370
 msgid "WP Overnight - quality plugins for your WooCommerce store. 5 star rated invoicing, order and product management tools"
 msgstr ""
 
-#: src/templates/wp-admin/dashboard/may-also-like.php:374
+#: src/templates/wp-admin/dashboard/may-also-like.php:373
 msgid "WP Overnight is an independent plugin shop with a range of WooCommerce plugins."
 msgstr ""
 
-#: src/templates/wp-admin/dashboard/may-also-like.php:375
+#: src/templates/wp-admin/dashboard/may-also-like.php:374
 msgid "Our range of plugins have over 7,500,000 downloads and thousands of loyal customers."
 msgstr ""
 
-#: src/templates/wp-admin/dashboard/may-also-like.php:379, src/templates/wp-admin/dashboard/may-also-like.php:380
+#: src/templates/wp-admin/dashboard/may-also-like.php:378, src/templates/wp-admin/dashboard/may-also-like.php:379
 msgid "Create PDF invoices, automations, barcodes, reports and so much more."
 msgstr ""
 
-#: src/templates/wp-admin/dashboard/may-also-like.php:386
+#: src/templates/wp-admin/dashboard/may-also-like.php:385
 msgid "WPGetAPI - connect WordPress to APIs without a developer"
 msgstr ""
 
-#: src/templates/wp-admin/dashboard/may-also-like.php:390
+#: src/templates/wp-admin/dashboard/may-also-like.php:389
 msgid "The easiest way to connect your WordPress website to an external API."
 msgstr ""
 
-#: src/templates/wp-admin/dashboard/may-also-like.php:391
+#: src/templates/wp-admin/dashboard/may-also-like.php:390
 msgid "WPGetAPI is free, powerful and easy to use."
 msgstr ""
 
-#: src/templates/wp-admin/dashboard/may-also-like.php:392
+#: src/templates/wp-admin/dashboard/may-also-like.php:391
 msgid "Connect to virtually any REST API and retrieve data without writing a line of code."
 msgstr ""
 
@@ -6108,47 +5744,52 @@ msgstr ""
 msgid "NOTE: This feature can only be used if your site is hosted using the Apache webserver, or another that uses .htaccess files."
 msgstr ""
 
-#: src/templates/wp-admin/tools/custom-htaccess.php:17
-msgid "<strong>Warning</strong>: Only use this feature if you know what you are doing."
+#. translators: %s: Warning
+#: src/templates/wp-admin/tools/custom-htaccess.php:18
+msgid "%s: Only use this feature if you know what you are doing."
 msgstr ""
 
 #: src/templates/wp-admin/tools/custom-htaccess.php:18
-msgid "Incorrect .htaccess rules or directives can break or prevent access to your site."
+msgid "Warning"
 msgstr ""
 
 #: src/templates/wp-admin/tools/custom-htaccess.php:19
-msgid "It is your responsibility to ensure that you are entering the correct code!"
+msgid "Incorrect .htaccess rules or directives can break or prevent access to your site."
 msgstr ""
 
 #: src/templates/wp-admin/tools/custom-htaccess.php:20
+msgid "It is your responsibility to ensure that you are entering the correct code!"
+msgstr ""
+
+#: src/templates/wp-admin/tools/custom-htaccess.php:21
 msgid "If you break your site you will need to access your server via FTP or something similar and then edit your .htaccess file and delete the changes you made."
 msgstr ""
 
-#: src/templates/wp-admin/tools/custom-htaccess.php:31
+#: src/templates/wp-admin/tools/custom-htaccess.php:32
 msgid "Enable custom .htaccess rules"
 msgstr ""
 
-#: src/templates/wp-admin/tools/custom-htaccess.php:34
+#: src/templates/wp-admin/tools/custom-htaccess.php:35
 msgid "Enable this to activate the custom rules entered in the text box below"
 msgstr ""
 
-#: src/templates/wp-admin/tools/custom-htaccess.php:39
+#: src/templates/wp-admin/tools/custom-htaccess.php:40
 msgid "Place custom rules at the top"
 msgstr ""
 
-#: src/templates/wp-admin/tools/custom-htaccess.php:42
+#: src/templates/wp-admin/tools/custom-htaccess.php:43
 msgid "Enable this if you want to place your custom rules at the beginning of all the rules applied by this plugin"
 msgstr ""
 
-#: src/templates/wp-admin/tools/custom-htaccess.php:47
+#: src/templates/wp-admin/tools/custom-htaccess.php:48
 msgid "Enter custom .htaccess rules:"
 msgstr ""
 
-#: src/templates/wp-admin/tools/custom-htaccess.php:51
+#: src/templates/wp-admin/tools/custom-htaccess.php:52
 msgid "Enter your custom .htaccess rules/directives."
 msgstr ""
 
-#: src/templates/wp-admin/tools/custom-htaccess.php:56
+#: src/templates/wp-admin/tools/custom-htaccess.php:57
 msgid "Save custom rules"
 msgstr ""
 
@@ -6268,27 +5909,28 @@ msgstr ""
 msgid "From a security perspective, leaving your nickname the same as your user name is bad practice because it gives a hacker at least half of your account's login credentials."
 msgstr ""
 
-#: src/templates/wp-admin/user-security/display-name.php:8
-msgid "Therefore to further tighten your site's security you are advised to change your <strong>nickname</strong> and <strong>Display name</strong> to be different from your <strong>Username</strong>."
+#. translators: 1. Open strong tag, 2. Close strong tag.
+#: src/templates/wp-admin/user-security/display-name.php:9
+msgid "Therefore to further tighten your site's security you are advised to change your %1$snickname%2$s and  %1$sDisplay name%2$s to be different from your %1$sUsername%2$s."
 msgstr ""
 
-#: src/templates/wp-admin/user-security/display-name.php:13
+#: src/templates/wp-admin/user-security/display-name.php:14
 msgid "Modify accounts with identical login name and display name"
 msgstr ""
 
-#: src/templates/wp-admin/user-security/display-name.php:36, src/templates/wp-admin/user-security/partials/wp-username-content.php:21
+#: src/templates/wp-admin/user-security/display-name.php:37, src/templates/wp-admin/user-security/partials/wp-username-content.php:21
 msgid "No action required."
 msgstr ""
 
-#: src/templates/wp-admin/user-security/display-name.php:36
+#: src/templates/wp-admin/user-security/display-name.php:37
 msgid "Your site does not have a user account where the display name is identical to the username."
 msgstr ""
 
-#: src/templates/wp-admin/user-security/display-name.php:21
+#: src/templates/wp-admin/user-security/display-name.php:22
 msgid "Your site currently has the following accounts with identical login and display names."
 msgstr ""
 
-#: src/templates/wp-admin/user-security/display-name.php:21
+#: src/templates/wp-admin/user-security/display-name.php:22
 msgid "Follow the link to edit the user profile of that particular user account, change Nickname, choose a different Display name compared to Username, and press the \"Update Profile\" button."
 msgstr ""
 

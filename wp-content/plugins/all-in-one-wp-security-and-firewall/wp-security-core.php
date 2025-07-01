@@ -8,7 +8,7 @@ if (!class_exists('AIO_WP_Security')) {
 
 	class AIO_WP_Security {
 
-		public $version = '5.4.0';
+		public $version = '5.4.1';
 
 		public $db_version = '2.1.3';
 
@@ -180,7 +180,7 @@ if (!class_exists('AIO_WP_Security')) {
 			$base_prefix = $this->get_table_prefix();
 			define('AIOWPSEC_TBL_AUDIT_LOG', $base_prefix . 'aiowps_audit_log');
 			define('AIOWPSEC_TBL_DEBUG_LOG', $base_prefix . 'aiowps_debug_log');
-			define('AIOWSPEC_TBL_LOGGED_IN_USERS', $base_prefix . 'aiowps_logged_in_users');
+			define('AIOWPSEC_TBL_LOGGED_IN_USERS', $base_prefix . 'aiowps_logged_in_users');
 			define('AIOWPSEC_TBL_MESSAGE_STORE', $base_prefix . 'aiowps_message_store');
 		}
 

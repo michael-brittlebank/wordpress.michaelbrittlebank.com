@@ -313,9 +313,9 @@ class AIOWPSecurity_Commands {
 				'message' => __('Invalid email address.', 'all-in-one-wp-security-and-firewall'),
 			);
 		}
-			
-		$result = $aio_wp_security->debug_obj->send_report($sanitized_email);
-		
+
+		$result = $aio_wp_security->debug_obj->send_report($sanitized_email, wp_kses_post(html_entity_decode($data['report_sections'])));
+
 		if ($result) {
 			return array(
 				'status' => 'success',

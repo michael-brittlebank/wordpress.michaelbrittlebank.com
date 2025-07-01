@@ -4,8 +4,8 @@ Donate link: https://david.dw-perspective.org.uk/donate
 Tags: security, malware scanning, two factor authentication, firewall, login security
 Requires PHP: 5.6
 Requires at least: 5.0
-Tested up to: 6.7
-Stable tag: 5.4.0
+Tested up to: 6.8
+Stable tag: 5.4.1
 License: GPLv3 or later
 
 Protect your website investment with All-In-One Security (AIOS) – a comprehensive and easy to use security plugin designed especially for WordPress. Featuring login security tools, a cutting-edge firewall and much more.
@@ -211,6 +211,25 @@ Go to the settings menu after you activate the plugin and follow the instruction
 1. Features list.
 
 == Changelog ==
+
+= 5.4.1 - 21/May/2025 =
+
+* FIX: Call to undefined function AIOWPS\Firewall\sanitize_text_field() fatal error solved. 
+* FIX: Resolved an issue where some information in the debugging report email was inconsistent with the information shown at Dashboard > Debugging
+* FIX: Fixed a “call to undefined function wp_strip_tags” error in wp-security-user-login.php
+* FIX: Resolved an issue where raw HTML was displaying in the info box under User Security > User Accounts > User Display Name
+* FIX: Renamed the login page when it was exposed via auth_redirect by other plugins (e.g., Gravity Forms preview)
+* FIX: Fixed an issue where the password reset functionality did not work with the renamed login page feature
+* FIX: Resolved missing translations on the login page after enabling the “Rename login page” feature
+* FIX: Updated the custom login page layout to match the new default WordPress login page design
+* FIX: Fixed the redirection issue occurring after plugin reactivation when the cookie brute force options are saved in the database
+* FIX: Fixed the undefined variable $error in wp-security-user-security-commands.php 
+* FIX: Fixed the login lockout request issue
+* FIX: Bulk "Delete selected" action in the Audit Log list was not working
+* FIX: Corrected AIOWSPEC prefixes to AIOWPSEC
+* FIX: The 5G Firewall switch is behaving inversely, enabling it removes .htaccess rules, while disabling adds them.
+* FIX: Fixed the HTML code shown incorrectly on the .htaccess tab
+* TWEAK: Updated links to point to our new website
 
 = 5.4.0 - 27/Mar/2025 =
 
@@ -1549,4 +1568,4 @@ those who want to enable the basic firewall but do not have "AllowOverride" opti
 - First commit to the WP repository.
 
 == Upgrade Notice ==
-* 5.4.0: Resolved a bug in the firewall and other compatibility issues. See changelog for full details. A recommended update for all.
+* 5.4.1: Multiple bug fixes. See changelog for full details. A recommended update for all.

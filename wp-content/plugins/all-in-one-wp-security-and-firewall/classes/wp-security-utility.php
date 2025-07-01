@@ -875,7 +875,7 @@ class AIOWPSecurity_Utility {
 				$dbg.= "############ BACKTRACE ENDS  ########\n\n";
 			}
 		} else {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace -- PCP warning. Ignore.
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace, PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.NeedsInspection -- PCP and compatibility warnings. Safe to ignore.
 			$dbg = debug_backtrace();
 		}
 		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r -- PCP warning. Ignore

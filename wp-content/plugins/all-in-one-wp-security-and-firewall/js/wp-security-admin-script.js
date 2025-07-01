@@ -1814,10 +1814,11 @@ jQuery(function($) {
 	jQuery('#send-report').on('click', function(e) {
 		e.preventDefault();
 		var report_email = jQuery('#report_email').val();
+		var report_sections = jQuery('#report_sections').val();
 		jQuery('#report-response').html('<p><span class="aiowps_spinner spinner">'+ aios_trans.processing + '</span></p>');
 		jQuery('#report-response .aiowps_spinner').addClass('visible');
 
-		aios_send_command('send_report_email', {'report_email': report_email}, function (resp) {
+		aios_send_command('send_report_email', {'report_email': report_email, 'report_sections': report_sections}, function (resp) {
 			if (resp.hasOwnProperty('message')) {
 				alert(resp.message);
 			}

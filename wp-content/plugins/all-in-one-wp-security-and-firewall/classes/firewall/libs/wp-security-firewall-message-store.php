@@ -102,11 +102,12 @@ class Message_Store {
 				} catch (\Exception $e) {
 					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- PCP warning. Necessary for AIOS error reporting system.
 					error_log("AIOS: Error getting database entries for key '{$key}': {$e->getMessage()}");
-				} catch (\Error $e) {
+
+				} catch (\Error $e) { // phpcs:ignore PHPCompatibility.Classes.NewClasses.errorFound -- this won't run on PHP 5.6 so we still want to catch it on other versions
 					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- PCP warning. Necessary for AIOS error reporting system.
 					error_log("AIOS: Error getting database entries for key '{$key}': {$e->getMessage()}");
 				} finally {
-					
+
 					//Delete IDs of loaded messages
 					if (!empty($to_delete)) {
 						$ids = implode(',', $to_delete);

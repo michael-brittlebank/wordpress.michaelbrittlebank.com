@@ -227,9 +227,8 @@ class AIOS_Helper {
 			// timed out exception ignore it.
 			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- PCP warning. Part of AIOS error reporting.
 			if (!preg_match('/timed out/i', $error_message)) error_log('AIOS_Helper::request_remote exception - ' . $error_message);
-		} catch (\Error $e) {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- PCP warning. Part of AIOS error reporting.
-			error_log('AIOS_Helper::request_remote error - ' . $e->getMessage());
+		} catch (\Error $e) { // phpcs:ignore PHPCompatibility.Classes.NewClasses.errorFound -- this won't run on PHP 5.6 so we still want to catch it on other versions
+			error_log('AIOS_Helper::request_remote error - ' . $e->getMessage()); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- PCP warning. Part of AIOS error reporting.
 		}
 		
 		if (empty($response) && ini_get('allow_url_fopen')) {

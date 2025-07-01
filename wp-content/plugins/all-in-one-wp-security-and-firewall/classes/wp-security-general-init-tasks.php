@@ -47,6 +47,8 @@ class AIOWPSecurity_General_Init_Tasks {
 		if ('1' == $aio_wp_security->configs->get_value('aiowps_enable_rename_login_page')) {
 			add_action('widgets_init', array($this, 'remove_standard_wp_meta_widget'));
 			add_filter('retrieve_password_message', array($this, 'decode_reset_pw_msg'), 10, 4); //Fix for non decoded html entities in password reset link
+			// Gravity form preview exposed renamed login page when called auth_redirect
+			add_filter('login_url', array($this, 'login_url_reauth_redirect'), 10, 3);
 		}
 
 		if (AIOWPSecurity_Utility_Permissions::has_manage_cap() && is_admin()) {
@@ -926,5 +928,29 @@ class AIOWPSecurity_General_Init_Tasks {
 		return array_filter($templates, function ($template) {
 			return AIOWPSecurity_Utility::apply_callback_filter($template, 'display_condition_callback');
 		});
+	}
+	
+	/**
+	 * This filter stops exposed renamed login URL using auth_redirect
+	 *
+	 * @param string|null $login_url    The login URL. Not HTML-encoded.
+	 * @param string      $redirect     The path to redirect to on login, if supplied.
+	 * @param bool        $force_reauth Whether to force reauthorization, even if a cookie is present.
+	 *
+	 * @return string The filtered login URL.
+	 */
+	public function login_url_reauth_redirect($login_url, $redirect, $force_reauth) {
+		// Ensure $login_url is a string to avoid deprecation warnings.
+		$login_url = isset($login_url) ? $login_url : '';
+
+		if (true === $force_reauth && !empty($redirect)) {
+			wp_die(
+				esc_html__('You do not have permission to access this page.', 'all-in-one-wp-security-and-firewall') . ' ' .
+				esc_html__('Please log in and try again.', 'all-in-one-wp-security-and-firewall'),
+				403
+			);
+		}
+
+		return $login_url;
 	}
 }

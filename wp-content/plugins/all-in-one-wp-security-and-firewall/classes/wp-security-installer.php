@@ -96,7 +96,7 @@ class AIOWPSecurity_Installer {
 		$message_store_log_tbl_name = AIOWPSEC_TBL_MESSAGE_STORE;
 		$audit_log_tbl_name = AIOWPSEC_TBL_AUDIT_LOG;
 		$debug_log_tbl_name = AIOWPSEC_TBL_DEBUG_LOG;
-		$logged_in_users_tbl_name = AIOWSPEC_TBL_LOGGED_IN_USERS;
+		$logged_in_users_tbl_name = AIOWPSEC_TBL_LOGGED_IN_USERS;
 
 		$charset_collate = '';
 		if (!empty($wpdb->charset)) {
