@@ -145,6 +145,8 @@ class AIOWPSecurity_Commands {
 				}
 
 				$aio_wp_security->configs->delete_value('aiowps_firewall_active_upgrade');
+		} elseif ('php_56_eol_dismiss_forever' == $data['notice']) {
+			$aio_wp_security->configs->set_value('php_56_eol_dismiss_forever', $time_now + (100 * 365.25 * 86400));
 		}
 		
 

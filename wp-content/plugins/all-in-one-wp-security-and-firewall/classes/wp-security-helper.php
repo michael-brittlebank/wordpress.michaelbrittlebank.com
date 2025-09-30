@@ -13,6 +13,8 @@ if (class_exists('AIOS_Helper')) return;
 
 class AIOS_Helper {
 
+	private static $messages = array();
+
 	/**
 	 * Maps a firewall rule to its admin URL
 	 *
@@ -265,14 +267,14 @@ class AIOS_Helper {
 				}
 				switch ($service_name) {
 					case 'ip-api':
-						$fields_to_copy = array('org', 'as');
-						foreach ($fields_to_copy as $field) {
+					$fields_to_copy = array('org', 'as');
+					foreach ($fields_to_copy as $field) {
 							$reverse_lookup_data[$field] = empty($data[$field]) ? null : $data[$field];
-						}
+					}
 						break;
 					case 'ipinfo':
-						$reverse_lookup_data['org'] = empty($data['org']) ? null : $data['org'];
-						$reverse_lookup_data['as'] = $reverse_lookup_data['org'];
+					$reverse_lookup_data['org'] = empty($data['org']) ? null : $data['org'];
+					$reverse_lookup_data['as'] = $reverse_lookup_data['org'];
 						break;
 					default:
 						break;
@@ -297,5 +299,38 @@ class AIOS_Helper {
 		$aiowps_firewall_constants = AIOS_Firewall_Resource::request(AIOS_Firewall_Resource::CONSTANTS);
 		$salt = $aiowps_firewall_constants->AUTH_KEY.$aiowps_firewall_constants->AUTH_SALT;
 		return hash_hmac('md5', $data, $salt);
+	 }
+
+	/**
+	 * Set a message for a specific context.
+	 *
+	 * @param string $context The unique context identifier for the message.
+	 * @param string $message The message to store for the given context.
+	 * @param string $type    The message type to store for the given context.
+	 *
+	 * @return void
+	 */
+	 public static function set_message($context, $message, $type = 'info') {
+		self::$messages[$context] = array('message' => $message, 'type' => $type);
+	 }
+
+	 /**
+	  * Get a message for a specific context.
+	  *
+	  * @param string $context The unique context identifier for the message.
+	  *
+	  * @return array|null The message for the given context, or null if not found.
+	  */
+	 public static function get_message($context) {
+		return isset(self::$messages[$context]) ? self::$messages[$context] : null;
+	 }
+
+	 /**
+	  * Clear messages (optional, for cleanup purposes).
+	  *
+	  * @return void
+	  */
+	 public static function clear_messages() {
+		self::$messages = array();
 	 }
 }

@@ -148,7 +148,7 @@ class Message_Store {
 			$statement .= '(%s, %s, %s),';
 			$values[] = $table;
 			$values[] = $key;
-			$values[] = wp_json_encode($value);
+			$values[] = json_encode($value); // phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode -- This method runs outside the WordPress environment and therefore cannot use WordPress functions.
 			$values[] = time();
 		}
 

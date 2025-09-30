@@ -277,7 +277,7 @@ function aios_show_success_modal(args, close_popup = true) {
 	if (close_popup) {
 		setTimeout(function () {
 			jQuery.unblockUI();
-		}, 1500);
+		}, 2000);
 	}
 }
 
@@ -484,8 +484,8 @@ jQuery(function($) {
 	
 	// Triggers the more info toggle link
 	jQuery(".aiowps_more_info_body").hide();//hide the more info on page load
-	function toggleMoreInfo() {
-		jQuery('.aiowps_more_info_anchor').on('click', function () {
+	function toggleMoreInfo(target = '.aiowps_more_info_anchor') {
+		jQuery(target).on('click', function () {
 			jQuery(this).next(".aiowps_more_info_body").animate({"height": "toggle"});
 			var toggle_char_ref = jQuery(this).find(".aiowps_more_info_toggle_char");
 			var toggle_char_value = toggle_char_ref.text();
@@ -808,11 +808,16 @@ jQuery(function($) {
 		// Update pagination for navigation
 		if (response.pagination.top.length) jQuery('.tablenav.top .tablenav-pages').html(jQuery(response.pagination.top).html());
 		if (response.pagination.bottom.length) jQuery('.tablenav.bottom .tablenav-pages').html(jQuery(response.pagination.bottom).html());
-		// Add/Remove the message
-		if (response.aios_list_message && response.aios_list_message.length) jQuery('#wpbody-content .wrap h2:first').after(response.aios_list_message);
 
-		remove_aios_message();
-		jQuery.unblockUI();
+		// Add/Remove the message
+		if (response.message && response.message.length) {
+			aios_show_ajax_response_message(response);
+		} else {
+			remove_aios_message();
+			setTimeout(function() {
+				jQuery.unblockUI();
+			}, 3000);
+		}
 	}
 
 	/**
@@ -883,10 +888,12 @@ jQuery(function($) {
 	jQuery('#audit-log-list-table').on('click', '.aios-delete-audit-log', function(e) {
 		e.preventDefault();
 		var element = jQuery(this);
-		confirm(element.data('message')) ? aios_send_command('delete_audit_log', {id: element.data('id')}, function(response) {
-			jQuery('#wpbody-content .wrap h2:first').after(response.message);
-			if ('success' === response.status) detect_table_action(audit_log_table_id, '.aios-delete-audit-log', audit_log_bulk_action_selector, audit_log_table_tab, audit_log_filter_event, audit_log_search, audit_log_level, detect = false);
-		}) : false;
+
+		if (confirm(element.data('message'))) {
+			aios_submit_form(element, 'delete_audit_log', {id: element.data('id')}, aios_trans.processing, null, function(response) {
+				if ('success' === response.status) detect_table_action(audit_log_table_id, '.aios-delete-audit-log', audit_log_bulk_action_selector, audit_log_table_tab, audit_log_filter_event, audit_log_search, audit_log_level, detect = false);
+			})
+		}
 	});
 
 	jQuery('#audit-log-list-table').on('click', '.aios-unlock-ip-button', function(e) {
@@ -1106,6 +1113,15 @@ jQuery(function($) {
 		aios_submit_form(jQuery(this), 'perform_php_firewall_settings', true, aios_trans.saving, null, function(response) {
 			if ("success" === response.status) {
 				jQuery('.aio_orange_box').remove();
+				if (jQuery('#aiowps_enable_6g_firewall').prop('checked')) {
+					jQuery('.aios-toggle-advanced-options').removeClass('advanced-options-disabled');
+					jQuery('.aios-advanced-options-panel .aiowps_more_info_body').hide();
+					toggleMoreInfo('.aios-advanced-options-panel .aiowps_more_info_anchor');
+				} else {
+					jQuery('.aios-toggle-advanced-options').addClass('advanced-options-disabled');
+					jQuery('.button.button-link.aios-toggle-advanced-options').removeClass('opened');
+				}
+				check_input();
 				jQuery('#post-body h2:first').after(response.extra_args.xmlprc_warning);
 			}
 		});
@@ -1121,30 +1137,14 @@ jQuery(function($) {
 		aios_submit_form(jQuery(this),'perform_save_blacklist_settings');
 	});
 
-	jQuery("#aios-internet-bots-settings-form").on('submit', function(e) {
-		e.preventDefault();
-		aios_submit_form(jQuery(this),'perform_internet_bot_settings');
-	});
-
 	jQuery("#aios-firewall-allowlist-form").on('submit', function(e) {
 		e.preventDefault();
 		aios_submit_form(jQuery(this),'perform_firewall_allowlist');
 	});
 
-	jQuery("#aios-6g-firewall-settings-form").on('submit', function(e) {
+	jQuery("#aios-5g-firewall-settings-form").on('submit', function(e) {
 		e.preventDefault();
-		aios_submit_form(jQuery(this), 'perform_xG_firewall_settings', true, aios_trans.saving, null, function(response) {
-			if ("success" === response.status) {
-				var aiowps_enable_6g_firewall = jQuery('#aiowps_enable_6g_firewall').prop('checked');
-				if (aiowps_enable_6g_firewall) {
-					jQuery('.aios-toggle-advanced-options').removeClass('advanced-options-disabled');
-					jQuery('.aiowps_more_info_body').hide();
-				} else {
-					jQuery('.aios-toggle-advanced-options').addClass('advanced-options-disabled');
-					jQuery('.button.button-link.aios-toggle-advanced-options').removeClass('opened');
-				}
-			}
-		})
+		aios_submit_form(jQuery(this), 'perform_save_5g_settings')
 	});
 
 	jQuery('#aiowps-firewall-status-container').on('submit', "#aiowpsec-firewall-setup-form", function(e) {
@@ -1166,6 +1166,11 @@ jQuery(function($) {
 			}
 		});
 	});
+
+	jQuery('#aios-upgrade-unsafe-http-calls-settings-form').on('submit', function(e) {
+		e.preventDefault();
+		aios_submit_form(jQuery(this), 'perform_save_upgrade_unsafe_http_calls_settings');
+	})
 	// end of firewall menu ajax
 
 	// Start of file scan handling
@@ -1173,9 +1178,9 @@ jQuery(function($) {
 	jQuery('#aiowps_fcds_change_detected').on('click', '.aiowps_view_last_fcd_results', view_scan_results_handler);
 
 	// start of user security menu ajax
-	jQuery('#aios-users-enumeration-form').on('submit', function(e) {
+	jQuery('#aios-user-accounts-settings-form').on('submit', function(e) {
 		e.preventDefault();
-		aios_submit_form(jQuery(this), 'perform_save_user_enumeration');
+		aios_submit_form(jQuery(this), 'perform_save_user_account_settings');
 	});
 
 	jQuery('#aios-change-admin-username-form').on('submit', function(e) {
@@ -1222,6 +1227,11 @@ jQuery(function($) {
 				}, 3000);
 			}
 		});
+	});
+
+	jQuery('#aios-hibp-password-settings-form').on('submit', function(e) {
+		e.preventDefault();
+		aios_submit_form(jQuery(this), 'perform_save_hibp_settings');
 	});
 
 	jQuery('#aios-disable-application-password-form').on('submit', function(e) {
@@ -1317,6 +1327,12 @@ jQuery(function($) {
 			jQuery.unblockUI();
 			submitButton.prop('disabled', false);
 		});
+	});
+
+	jQuery("#aios-enforce-strong-password-form").on('submit', function(e) {
+		e.preventDefault();
+
+		aios_submit_form(jQuery(this), 'enforce_strong_password');
 	});
 
 	// end of user security menu ajax
@@ -1613,30 +1629,32 @@ jQuery(function($) {
 	store_values();
 
 	// Add change event listener to all inputs
-	jQuery('.aiowps-settings :input').on('change', function() {
-		var all_inputs_back_to_original = true;
-		jQuery('.aiowps-settings :input').each(function() {
-			var input_name = jQuery(this).attr('name');
-			if (jQuery(this).is(':checkbox')) {
-				if (jQuery(this).is(':checked') !== initial_values[input_name]) {
-					all_inputs_back_to_original = false;
-					return false;
+	function check_input() {
+		jQuery('.aiowps-settings :input').on('change', function() {
+			var all_inputs_back_to_original = true;
+			jQuery('.aiowps-settings :input').each(function() {
+				var input_name = jQuery(this).attr('name');
+				if (jQuery(this).is(':checkbox')) {
+					if (jQuery(this).is(':checked') !== initial_values[input_name]) {
+						all_inputs_back_to_original = false;
+						return false;
+					}
+				} else {
+					if (jQuery(this).val() !== initial_values[input_name]) {
+						all_inputs_back_to_original = false;
+						return false;
+					}
 				}
+			});
+
+			if (all_inputs_back_to_original) {
+				jQuery('.aiowps-actions').hide();
 			} else {
-				if (jQuery(this).val() !== initial_values[input_name]) {
-					all_inputs_back_to_original = false;
-					return false;
-				}
+				jQuery('.aiowps-actions').show();
 			}
 		});
-
-		if (all_inputs_back_to_original) {
-			jQuery('.aiowps-actions').hide();
-		} else {
-			jQuery('.aiowps-actions').show();
-		}
-	});
-
+	}
+	check_input();
 	// Add click event listener to the button
 	jQuery('.aiowps-actions :input').on('click', function() {
 		// Hide the actions div
