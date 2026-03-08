@@ -10,7 +10,7 @@ function themeScripts() {
     // js
     wp_enqueue_script(
         'mbrittlebank-iframe-resizer',
-        get_template_directory_uri() .'/js/iframeResizer.contentWindow.min.js',
+        'https://cdn.jsdelivr.net/npm/@iframe-resizer/child@5.5.9',
         array(),
         $scriptDate,
         false
