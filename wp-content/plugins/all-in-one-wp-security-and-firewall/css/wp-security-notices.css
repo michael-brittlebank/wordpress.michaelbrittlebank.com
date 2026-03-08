@@ -23,6 +23,8 @@
 .aiowps_advert_content_left {
 	float: none;
 	width: 65px;
+	padding-top: 9px;
+	margin-right: 9px;
 }
 
 .aiowps_advert_content_left_extra {
@@ -33,17 +35,27 @@
 	align-items: center;
 }
 
+.updraft_advert_content_left img {
+	min-height: 72px;
+	min-width: 72px;
+}
+
 .aiowps_advert_content_right {
 	float: none;
 	width: auto;
 	overflow: hidden;
+	font-size: 16px;
+}
+
+.updraft_advert_content_right p {
+	font-size: 16px !important;
 }
 
 .aiowps_advert_bottom {
 	margin: 10px 0;
 	padding: 10px;
 	font-size: 140%;
-	background-color: white;
+	background-color: rgb(255, 255, 255);
 	border-color: #E6DB55;
 	border: 1px solid;
 	border-radius: 4px;
@@ -74,10 +86,36 @@ h4.aiowps_advert_heading {
 	text-align: center;
 }
 
+#aiowps-dashnotice #aiowps-dashnotice_wrapper ul {
+	list-style: disc inside;
+	text-indent: -18px;
+	margin-left: 18px;
+}
+
 @media screen and (min-width: 560px) {
 
 	.aiowps_advert_content_left, .aiowps_advert_content_left_extra {
 		float: left;
+	}
+
+}
+
+#aiowps-notice-logo {
+	border: 0;
+	float: right;
+	width: 150px;
+	height: auto;
+	margin-right: 10px;
+	margin-top: 10px;
+}
+
+@media (min-width: 768px) {
+	
+	#aiowps-notice-logo {
+		width: 250px;
+		height: auto;
+		margin-right: 40px;
+		margin-top: 40px;
 	}
 
 }

@@ -25,6 +25,7 @@ class Tiny_Image_Size {
 	/* Used more than once and not trivial, so we are memoizing these */
 	private $_exists;
 	private $_file_size;
+	private $_mime_type;
 	private $_duplicate = false;
 	private $_duplicate_of_size = '';
 
@@ -65,8 +66,53 @@ class Tiny_Image_Size {
 		}
 	}
 
+	/**
+	 * Marks the image size as compressed without actually processing it.
+	 *
+	 * This method simulates the compression process by creating metadata that
+	 * indicates the image has been processed, while keeping the original file
+	 * size and format unchanged. Useful for marking images as compressed when
+	 * they don't need actual compression or have been processed externally.
+	 *
+	 * @since 3.0.0
+	 *
+	 * @param bool $include_conversion Optional. Whether to include conversion metadata.
+	 *                                 When true, adds conversion data with current
+	 *                                 file information. Default false.
+	 * @return void
+	 */
+	public function mark_as_compressed( $include_conversion = false ) {
+
+		if ( ! $this->has_been_compressed() ) {
+			$this->add_tiny_meta_start();
+			$tiny_image_size_meta = array(
+				'input'  => array(
+					'size' => $this->filesize(),
+				),
+				'output' => array(
+					'size' => $this->filesize(),
+					'type' => $this->mimetype(),
+				),
+			);
+			$this->add_tiny_meta( $tiny_image_size_meta );
+		}
+
+		if ( ! $this->has_been_converted() && $include_conversion ) {
+			$this->meta['convert'] = array(
+				'size' => $this->filesize(),
+				'type' => $this->mimetype(),
+				'path' => $this->filename,
+			);
+		}
+
+	}
+
 	public function has_been_compressed() {
 		return isset( $this->meta['output'] );
+	}
+
+	public function has_been_converted() {
+		return isset( $this->meta['convert'] );
 	}
 
 	public function never_compressed() {
@@ -82,6 +128,18 @@ class Tiny_Image_Size {
 			}
 		}
 		return $this->_file_size;
+	}
+
+	public function mimetype() {
+		if ( is_null( $this->_mime_type ) ) {
+			if ( $this->exists() ) {
+				$file = file_get_contents( $this->filename );
+				$this->_mime_type = Tiny_Helpers::get_mimetype( $file );
+			} else {
+				$this->_mime_type = 'application/octet-stream';
+			}
+		}
+		return $this->_mime_type;
 	}
 
 	public function exists() {
@@ -101,6 +159,47 @@ class Tiny_Image_Size {
 
 	public function missing() {
 		return $this->has_been_compressed() && ! $this->exists();
+	}
+
+	/**
+	 * Checks wether the image has been processed for conversion.
+	 * Will still return true if conversion was not needed.
+	 *
+	 * @return bool true if image is processed for conversion
+	 */
+	public function converted() {
+		return isset( $this->meta['convert'] );
+	}
+
+	/**
+	 * Checks wether the image is applicable for conversion and has
+	 * not been converted yet.
+	 *
+	 * @return bool true if image can be converted and has not been converted
+	 */
+	public function unconverted() {
+		return ! $this->converted() && $this->exists();
+	}
+
+	/**
+	 * Checks if the converted image size exists
+	 *
+	 * @return boolean true if the image size has a optimized alternative format
+	 */
+	public function converted_image_exists() {
+		if ( ! $this->converted() ) {
+			return false;
+		}
+		return file_exists( $this->meta['convert']['path'] );
+	}
+
+	public function conversion_text() {
+		if ( ! $this->converted() ) {
+			return esc_html__( 'Not converted', 'tiny-compress-images' );
+		}
+		$conversion_text = $this->meta['convert']['type'] . ' (' .
+			size_format( $this->meta['convert']['size'], 1 ) . ')';
+		return $conversion_text;
 	}
 
 	public function compressed() {
@@ -140,6 +239,12 @@ class Tiny_Image_Size {
 
 	public function duplicate_of_size() {
 		return $this->_duplicate_of_size;
+	}
+
+	public function delete_converted_image_size() {
+		if ( $this->converted_image_exists() ) {
+			unlink( $this->meta['convert']['path'] );
+		}
 	}
 
 	private function recently_started() {

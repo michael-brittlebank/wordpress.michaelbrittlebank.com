@@ -1,4 +1,5 @@
 (function() {
+  const processedItems = [];
   var parallelCompressions = 5;
 
   function updateProgressBar(successFullCompressions) {
@@ -47,7 +48,21 @@
       row.find('.status').html('<span class="icon dashicons dashicons-no alert"></span>' + tinyCompress.L10nNoActionTaken).attr('data-status', 'no-action-taken');
     } else {
       row.addClass('success');
-      row.find('.status').html('<span class="icon dashicons dashicons-yes success"></span>' + successFullCompressions + ' ' + tinyCompress.L10nCompressed).attr('data-status', 'compressed');
+      const rowResultElement = row.find('.status');
+      rowResultElement.attr('data-status', 'compressed');
+      const icon = '<span class="icon dashicons dashicons-yes success"></span>';
+      
+      let successHTML = '';
+      if (data.image_sizes_compressed > 0) {
+        successHTML += `<p>${icon} ${data.image_sizes_compressed} ${tinyCompress.L10nCompressed}</p>`;
+      }
+
+      if (data.image_sizes_converted > 0) {
+        successHTML += `<p>${icon} ${data.image_sizes_converted} ${tinyCompress.L10nConverted}</p>`;
+      }
+
+      rowResultElement.html(successHTML);
+
       updateProgressBar(successFullCompressions);
       updateSavings(successFullCompressions, successFullSaved, newHumanReadableLibrarySize);
     }
@@ -87,8 +102,8 @@
 
     row.find('.name').html(items[i].post_title + '<button class=\'toggle-row\' type=\'button\'><span class=\'screen-reader-text\'>' + tinyCompress.L10nShowMoreDetails + '</span></button>');
 
-    if (!data.image_sizes_optimized) {
-        data.image_sizes_optimized = '-';
+    if (!data.image_sizes_compressed) {
+        data.image_sizes_compressed = '-';
     }
     if (!data.initial_total_size) {
         data.initial_total_size = '-';
@@ -103,7 +118,7 @@
     }
 
     row.find('.thumbnail').html(data.thumbnail);
-    row.find('.sizes-optimized').html(data.image_sizes_optimized);
+    row.find('.sizes-compressed').html(data.image_sizes_compressed);
     row.find('.initial-size').html(data.initial_total_size);
     row.find('.optimized-size').html(data.optimized_total_size);
     row.find('.savings').html(data.savings);
@@ -134,6 +149,14 @@
       return;
     }
 
+    const itemID = items[i].ID;
+    if (processedItems.includes(itemID)) {
+      const row = jQuery('#optimization-items tr').eq(parseInt(i, 10) + 1);
+      row.find('.status')
+        .attr('data-status', 'skipped-duplicate')
+        .html('<span class="icon dashicons dashicons-no alert"></span>' + tinyCompress.L10nDuplicate);
+    }
+
     var row = jQuery('#optimization-items tr').eq(parseInt(i, 10)+1);
     row.find('.status').removeClass('todo');
     row.find('.status').html('<span class="icon spinner"></span>' + tinyCompress.L10nCompressing).attr('data-status', 'compressing');
@@ -144,12 +167,13 @@
       data: {
         _nonce: tinyCompress.nonce,
         action: 'tiny_compress_image_for_bulk',
-        id: items[i].ID,
+        id: itemID,
         current_size: window.currentLibraryBytes
       },
       success: function(data) { bulkOptimizationCallback(null, data, items, i); },
       error: function(xhr, textStatus, errorThrown) { bulkOptimizationCallback(errorThrown, null, items, i, parallelCompressions); }
     });
+    processedItems.push(itemID);
     jQuery('#tiny-progress span').html(i + 1);
   }
 
@@ -162,6 +186,7 @@
     window.optimizationCancelled = false;
     window.totalRowsDrawn = 0;
     window.currentLibraryBytes = parseInt(jQuery('#optimized-library-size').data('bytes'), 10);
+    processedItems.splice(0, processedItems.length);
 
     jQuery('div.progress').css('animation', 'progress-bar 80s linear infinite');
     jQuery('div#optimization-spinner').css('display', 'inline-block');

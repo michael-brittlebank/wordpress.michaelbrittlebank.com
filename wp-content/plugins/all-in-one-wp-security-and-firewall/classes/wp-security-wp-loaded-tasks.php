@@ -49,6 +49,11 @@ class AIOWPSecurity_WP_Loaded_Tasks {
 		if ('wp-login.php' == $GLOBALS['pagenow']) {
 			return;
 		}
+		
+		// WP CLI and cronjob do not required site lockout.
+		if ((defined('DOING_CRON') && DOING_CRON) || 'cli' == PHP_SAPI) {
+			return;
+		}
 
 		// The lockout message should not be displayed to an administrator user.
 		if (is_user_logged_in() && current_user_can('manage_options')) {
@@ -82,7 +87,7 @@ class AIOWPSecurity_WP_Loaded_Tasks {
 			$template = apply_filters('aiowps_site_lockout_template_include', AIO_WP_SECURITY_PATH . '/other-includes/wp-security-visitor-lockout-page.php');
 			include_once($template);
 		} else {
-			echo $lockout_output;
+			echo wp_kses_post($lockout_output);
 		}
 
 		exit();
@@ -93,10 +98,12 @@ class AIOWPSecurity_WP_Loaded_Tasks {
 		//this will prevent issues such as the following:
 		//https://wordpress.org/support/topic/already-logged-in-no-captcha
 		if (is_user_logged_in()) {
-			wp_redirect(admin_url());
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended --  PCP warning. No nonce.
+			$redirect_to = (isset($_REQUEST['redirect_to'])) ? sanitize_text_field(wp_unslash($_REQUEST['redirect_to'])) : admin_url();
+			wp_safe_redirect($redirect_to);
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended --  PCP warning. No nonce.
 		} elseif (!(isset($_GET['action']) && 'postpass' == $_GET['action'])) {
 			AIOWPSecurity_Utility_IP::check_login_whitelist_and_forbid();
 		}
 	}
-
 }

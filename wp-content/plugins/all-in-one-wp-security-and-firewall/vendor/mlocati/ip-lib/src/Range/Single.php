@@ -13,6 +13,8 @@ use IPLib\ParseStringFlag;
  *
  * @example 127.0.0.1
  * @example ::1
+ *
+ * @phpstan-consistent-constructor
  */
 class Single extends AbstractRange
 {
@@ -190,12 +192,7 @@ class Single extends AbstractRange
      */
     public function asSubnet()
     {
-        $networkPrefixes = array(
-            AddressType::T_IPv4 => 32,
-            AddressType::T_IPv6 => 128,
-        );
-
-        return new Subnet($this->address, $this->address, $networkPrefixes[$this->address->getAddressType()]);
+        return new Subnet($this->address, $this->address, $this->getNetworkPrefix());
     }
 
     /**
@@ -240,5 +237,30 @@ class Single extends AbstractRange
     public function getSize()
     {
         return 1;
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @see \IPLib\Range\RangeInterface::getExactSize()
+     */
+    public function getExactSize()
+    {
+        return 1;
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @see \IPLib\Range\RangeInterface::getNetworkPrefix()
+     */
+    public function getNetworkPrefix()
+    {
+        switch ($this->getAddressType()) {
+            case AddressType::T_IPv4:
+                return 32;
+            case AddressType::T_IPv6:
+                return 128;
+        }
     }
 }

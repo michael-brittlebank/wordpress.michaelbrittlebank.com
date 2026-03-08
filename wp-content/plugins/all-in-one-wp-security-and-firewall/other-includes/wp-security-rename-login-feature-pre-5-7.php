@@ -90,7 +90,7 @@ function login_header($title = 'Log In', $message = '', $wp_error = null) {
 	<html <?php language_attributes(); ?>>
 	<head>
 	<meta http-equiv="Content-Type" content="<?php bloginfo('html_type'); ?>; charset=<?php bloginfo('charset'); ?>" />
-	<title><?php echo $login_title; ?></title>
+	<title><?php echo esc_html($login_title); ?></title>
 	<?php
 
 	wp_enqueue_style('login');
@@ -146,7 +146,7 @@ function login_header($title = 'Log In', $message = '', $wp_error = null) {
 		array($login_header_title),
 		'5.2.0',
 		'login_headertext',
-		__('Usage of the title attribute on the login logo is not recommended for accessibility reasons. Use the link text instead.')
+		__('Usage of the title attribute on the login logo is not recommended for accessibility reasons. Use the link text instead.') // phpcs:ignore UpdraftPlus.Translation.MultipleSentence.MultipleSentenceInsideTranslationFunction -- This is a WordPress translation.
 	);
 
 	$login_header_text = empty($login_header_title) ? __('Powered by WordPress') : $login_header_title;
@@ -203,7 +203,7 @@ function login_header($title = 'Log In', $message = '', $wp_error = null) {
 	do_action('login_header');
 	?>
 	<div id="login">
-		<h1><a href="<?php echo esc_url($login_header_url); ?>"><?php echo $login_header_text; ?></a></h1>
+		<h1><a href="<?php echo esc_url($login_header_url); ?>"><?php echo esc_html($login_header_text); ?></a></h1>
 	<?php
 	/**
 	 * Filters the message to display above the login form.
@@ -215,7 +215,7 @@ function login_header($title = 'Log In', $message = '', $wp_error = null) {
 	$message = apply_filters('login_message', $message);
 
 	if (! empty($message)) {
-		echo $message . "\n";
+		echo wp_kses_post($message) . "\n";
 	}
 
 	// In case a plugin uses $error rather than the $wp_errors object.
@@ -247,7 +247,7 @@ function login_header($title = 'Log In', $message = '', $wp_error = null) {
 			 *
 			 * @param string $errors Login error message.
 			 */
-			echo '<div id="login_error">' . apply_filters('login_errors', $errors) . "</div>\n";
+			echo '<div id="login_error">' . wp_kses_post(apply_filters('login_errors', $errors)) . "</div>\n";
 		}
 
 		if (! empty($messages)) {
@@ -258,7 +258,7 @@ function login_header($title = 'Log In', $message = '', $wp_error = null) {
 			 *
 			 * @param string $messages Login messages.
 			 */
-			echo '<p class="message">' . apply_filters('login_messages', $messages) . "</p>\n";
+			echo '<p class="message">' . wp_kses_post(apply_filters('login_messages', $messages)) . "</p>\n";
 		}
 	}
 } // End of login_header().
@@ -354,11 +354,11 @@ function retrieve_password() {
 	$user_data = false;
 
 	if (empty($_POST['user_login']) || ! is_string($_POST['user_login'])) {
-		$errors->add('empty_username', __('<strong>Error</strong>: Please enter a username or email address.'));
+		$errors->add('empty_username', __('<strong>Error:</strong> Please enter a username or email address.'));
 	} elseif (strpos($_POST['user_login'], '@')) {
 		$user_data = get_user_by('email', trim(wp_unslash($_POST['user_login'])));
 		if (empty($user_data)) {
-			$errors->add('invalid_email', __('<strong>Error</strong>: There is no account with that username or email address.'));
+			$errors->add('invalid_email', __('<strong>Error:</strong> There is no account with that username or email address.'));
 		}
 	} else {
 		$login     = trim(wp_unslash($_POST['user_login']));
@@ -400,7 +400,7 @@ function retrieve_password() {
 	}
 
 	if (! $user_data) {
-		$errors->add('invalidcombo', __('<strong>Error</strong>: There is no account with that username or email address.'));
+		$errors->add('invalidcombo', __('<strong>Error:</strong> There is no account with that username or email address.'));
 		return $errors;
 	}
 
@@ -476,7 +476,7 @@ function retrieve_password() {
 			'retrieve_password_email_failure',
 			sprintf(
 				/* translators: %s: Documentation URL. */
-				__('<strong>Error</strong>: The email could not be sent. Your site may not be correctly configured to send emails. <a href="%s">Get support for resetting your password</a>.'),
+				__('<strong>Error:</strong> The email could not be sent. Your site may not be correctly configured to send emails. <a href="%s">Get support for resetting your password</a>.'), // phpcs:ignore UpdraftPlus.Translation.MultipleSentence.MultipleSentenceInsideTranslationFunction -- This is a WordPress translation.
 				esc_url(__('https://wordpress.org/support/article/resetting-your-password/'))
 			)
 		);
@@ -677,7 +677,7 @@ switch ($action) {
 			<input type="hidden" name="redirect_to" value="<?php echo esc_attr($redirect_to); ?>" />
 
 			<h1 class="admin-email__heading">
-				<?php _e('Administration email verification'); ?>
+				<?php esc_html_e('Administration email verification'); ?>
 			</h1>
 			<p class="admin-email__details">
 				<?php _e('Please verify that the <strong>administration email</strong> for this website is still correct.'); ?>
@@ -692,8 +692,8 @@ switch ($action) {
 				printf(
 					'<a href="%s" rel="noopener" target="_blank">%s%s</a>',
 					esc_url($admin_email_help_url),
-					__('Why is this important?'),
-					$accessibility_text
+					esc_html__('Why is this important?'),
+					wp_kses_post($accessibility_text)
 				);
 				?>
 			</p>
@@ -708,7 +708,7 @@ switch ($action) {
 				?>
 			</p>
 			<p class="admin-email__details">
-				<?php _e('This email may be different from your personal email address.'); ?>
+				<?php esc_html_e('This email may be different from your personal email address.'); ?>
 			</p>
 
 			<div class="admin-email__actions">
@@ -718,7 +718,7 @@ switch ($action) {
 					$change_link = admin_url('options-general.php');
 					$change_link = add_query_arg('highlight', 'confirm_admin_email', $change_link);
 					?>
-					<a class="button button-large" href="<?php echo esc_url($change_link); ?>"><?php _e('Update'); ?></a>
+					<a class="button button-large" href="<?php echo esc_url($change_link); ?>"><?php esc_html_e('Update'); ?></a>
 					<input type="submit" name="correct-admin-email" id="correct-admin-email" class="button button-primary button-large" value="<?php esc_attr_e('The email is correct'); ?>">
 				</div>
 				<?php if ($remind_interval > 0) : ?>
@@ -734,7 +734,7 @@ switch ($action) {
 							$remind_me_link
 						);
 						?>
-						<a href="<?php echo esc_url($remind_me_link); ?>"><?php _e('Remind me later'); ?></a>
+						<a href="<?php echo esc_url($remind_me_link); ?>"><?php esc_html_e('Remind me later'); ?></a>
 					</div>
 				<?php endif; ?>
 			</div>
@@ -821,9 +821,9 @@ switch ($action) {
 
 		if (isset($_GET['error'])) {
 			if ('invalidkey' === $_GET['error']) {
-				$errors->add('invalidkey', __('Your password reset link appears to be invalid. Please request a new link below.'));
+				$errors->add('invalidkey', __('Your password reset link appears to be invalid. Please request a new link below.')); // phpcs:ignore UpdraftPlus.Translation.MultipleSentence.MultipleSentenceInsideTranslationFunction -- This is a WordPress translation.
 			} elseif ('expiredkey' === $_GET['error']) {
-				$errors->add('expiredkey', __('Your password reset link has expired. Please request a new link below.'));
+				$errors->add('expiredkey', __('Your password reset link has expired. Please request a new link below.')); // phpcs:ignore UpdraftPlus.Translation.MultipleSentence.MultipleSentenceInsideTranslationFunction -- This is a WordPress translation.
 			}
 		}
 
@@ -848,7 +848,7 @@ switch ($action) {
 		 */
 		do_action('lost_password', $errors);
 
-		login_header(__('Lost Password'), '<p class="message">' . __('Please enter your username or email address. You will receive an email message with instructions on how to reset your password.') . '</p>', $errors);
+		login_header(__('Lost Password'), '<p class="message">' . __('Please enter your username or email address. You will receive an email message with instructions on how to reset your password.') . '</p>', $errors); // phpcs:ignore UpdraftPlus.Translation.MultipleSentence.MultipleSentenceInsideTranslationFunction -- This is a WordPress translation.
 
 		$user_login = '';
 
@@ -860,7 +860,7 @@ switch ($action) {
 
 		<form name="lostpasswordform" id="lostpasswordform" action="<?php echo esc_url(network_site_url('wp-login.php?action=lostpassword', 'login_post')); ?>" method="post">
 			<p>
-				<label for="user_login"><?php _e('Username or Email Address'); ?></label>
+				<label for="user_login"><?php esc_html_e('Username or Email Address'); ?></label>
 				<input type="text" name="user_login" id="user_login" class="input" value="<?php echo esc_attr($user_login); ?>" size="20" autocapitalize="off" />
 			</p>
 			<?php
@@ -874,12 +874,12 @@ switch ($action) {
 			?>
 			<input type="hidden" name="redirect_to" value="<?php echo esc_attr($redirect_to); ?>" />
 			<p class="submit">
-				<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e('Get new password'); ?>">
+				<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e('Get New Password'); ?>">
 			</p>
 		</form>
 
 		<p id="nav">
-			<a href="<?php echo esc_url(wp_login_url()); ?>"><?php _e('Log in'); ?></a>
+			<a href="<?php echo esc_url(wp_login_url()); ?>"><?php esc_html_e('Log in'); ?></a>
 			<?php
 
 			if (get_option('users_can_register')) {
@@ -888,7 +888,8 @@ switch ($action) {
 				echo esc_html($login_link_separator);
 
 				// This filter is documented in wp-includes/general-template.php
-				echo apply_filters('register', $registration_url);
+				echo wp_kses_post(apply_filters('register', $registration_url));
+
 			}
 
 			?>
@@ -969,7 +970,7 @@ switch ($action) {
 
 			<div class="user-pass1-wrap">
 				<p>
-					<label for="pass1"><?php _e('New password'); ?></label>
+					<label for="pass1"><?php esc_html_e('New password'); ?></label>
 				</p>
 
 				<div class="wp-pwd">
@@ -978,16 +979,16 @@ switch ($action) {
 					<button type="button" class="button button-secondary wp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e('Hide password'); ?>">
 						<span class="dashicons dashicons-hidden" aria-hidden="true"></span>
 					</button>
-					<div id="pass-strength-result" class="hide-if-no-js" aria-live="polite"><?php _e('Strength indicator'); ?></div>
+					<div id="pass-strength-result" class="hide-if-no-js" aria-live="polite"><?php esc_html_e('Strength indicator'); ?></div>
 				</div>
 				<div class="pw-weak">
 					<input type="checkbox" name="pw_weak" id="pw-weak" class="pw-checkbox" />
-					<label for="pw-weak"><?php _e('Confirm use of weak password'); ?></label>
+					<label for="pw-weak"><?php esc_html_e('Confirm use of weak password'); ?></label>
 				</div>
 			</div>
 
 			<p class="user-pass2-wrap">
-				<label for="pass2"><?php _e('Confirm new password'); ?></label>
+				<label for="pass2"><?php esc_html_e('Confirm new password'); ?></label>
 				<input type="password" name="pass2" id="pass2" class="input" size="20" value="" autocomplete="off" />
 			</p>
 
@@ -1007,12 +1008,12 @@ switch ($action) {
 			?>
 			<input type="hidden" name="rp_key" value="<?php echo esc_attr($rp_key); ?>" />
 			<p class="submit">
-				<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e('Reset password'); ?>">
+				<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e('Reset Password'); ?>">
 			</p>
 		</form>
 
 		<p id="nav">
-			<a href="<?php echo esc_url(wp_login_url()); ?>"><?php _e('Log in'); ?></a>
+			<a href="<?php echo esc_url(wp_login_url()); ?>"><?php esc_html_e('Log in'); ?></a>
 			<?php
 
 			if (get_option('users_can_register')) {
@@ -1021,7 +1022,7 @@ switch ($action) {
 				echo esc_html($login_link_separator);
 
 				// This filter is documented in wp-includes/general-template.php
-				echo apply_filters('register', $registration_url);
+				echo wp_kses_post(apply_filters('register', $registration_url));
 			}
 
 			?>
@@ -1085,11 +1086,11 @@ switch ($action) {
 		?>
 		<form name="registerform" id="registerform" action="<?php echo esc_url(site_url('wp-login.php?action=register', 'login_post')); ?>" method="post" novalidate="novalidate">
 			<p>
-				<label for="user_login"><?php _e('Username'); ?></label>
+				<label for="user_login"><?php esc_html_e('Username'); ?></label>
 				<input type="text" name="user_login" id="user_login" class="input" value="<?php echo esc_attr(wp_unslash($user_login)); ?>" size="20" autocapitalize="off" />
 			</p>
 			<p>
-				<label for="user_email"><?php _e('Email'); ?></label>
+				<label for="user_email"><?php esc_html_e('Email'); ?></label>
 				<input type="email" name="user_email" id="user_email" class="input" value="<?php echo esc_attr(wp_unslash($user_email)); ?>" size="25" />
 			</p>
 			<?php
@@ -1102,7 +1103,7 @@ switch ($action) {
 			do_action('register_form');
 			?>
 			<p id="reg_passmail">
-				<?php _e('Registration confirmation will be emailed to you.'); ?>
+				<?php esc_html_e('Registration confirmation will be emailed to you.'); ?>
 			</p>
 			<br class="clear" />
 			<input type="hidden" name="redirect_to" value="<?php echo esc_attr($redirect_to); ?>" />
@@ -1112,9 +1113,9 @@ switch ($action) {
 		</form>
 
 		<p id="nav">
-			<a href="<?php echo esc_url(wp_login_url()); ?>"><?php _e('Log in'); ?></a>
+			<a href="<?php echo esc_url(wp_login_url()); ?>"><?php esc_html_e('Log in'); ?></a>
 				<?php echo esc_html($login_link_separator); ?>
-			<a href="<?php echo esc_url(wp_lostpassword_url()); ?>"><?php _e('Lost your password?'); ?></a>
+			<a href="<?php echo esc_url(wp_lostpassword_url()); ?>"><?php esc_html_e('Lost your password?'); ?></a>
 		</p>
 		<?php
 
@@ -1140,7 +1141,7 @@ switch ($action) {
 				'registered',
 				sprintf(
 					/* translators: %s: Link to the login page. */
-					__('Registration complete. Please check your email, then visit the <a href="%s">login page</a>.'),
+					__('Registration complete. Please check your email, then visit the <a href="%s">login page</a>.'), // phpcs:ignore UpdraftPlus.Translation.MultipleSentence.MultipleSentenceInsideTranslationFunction -- This is a WordPress translation.
 					wp_login_url()
 				),
 				'message'
@@ -1156,11 +1157,11 @@ switch ($action) {
 
 	case 'confirmaction':
 		if (! isset($_GET['request_id'])) {
-			wp_die(__('Missing request ID.'));
+			wp_die(esc_html__('Missing request ID.'));
 		}
 
 		if (! isset($_GET['confirm_key'])) {
-			wp_die(__('Missing confirm key.'));
+			wp_die(esc_html__('Missing confirm key.'));
 		}
 
 		$request_id = (int) $_GET['request_id'];
@@ -1238,9 +1239,9 @@ switch ($action) {
 					'test_cookie',
 					sprintf(
 						/* translators: 1: Browser cookie documentation URL, 2: Support forums URL. */
-						__('<strong>Error</strong>: Cookies are blocked due to unexpected output. For help, please see <a href="%1$s">this documentation</a> or try the <a href="%2$s">support forums</a>.'),
-						__('https://wordpress.org/support/article/cookies/'),
-						__('https://wordpress.org/support/forums/')
+						__('<strong>Error:</strong> Cookies are blocked due to unexpected output. For help, please see <a href="%1$s">this documentation</a> or try the <a href="%2$s">support forums</a>.'), // phpcs:ignore UpdraftPlus.Translation.MultipleSentence.MultipleSentenceInsideTranslationFunction -- This is a WordPress translation.
+						esc_url(__('https://wordpress.org/support/article/cookies/')),
+						esc_url(__('https://wordpress.org/support/forums/'))
 					)
 				);
 			} elseif (isset($_POST['testcookie']) && empty($_COOKIE[TEST_COOKIE])) {
@@ -1249,8 +1250,8 @@ switch ($action) {
 					'test_cookie',
 					sprintf(
 						/* translators: %s: Browser cookie documentation URL. */
-						__('<strong>Error</strong>: Cookies are blocked or not supported by your browser. You must <a href="%s">enable cookies</a> to use WordPress.'),
-						__('https://wordpress.org/support/article/cookies/#enable-cookies-in-your-browser')
+						__('<strong>Error:</strong> Cookies are blocked or not supported by your browser. You must <a href="%s">enable cookies</a> to use WordPress.'), // phpcs:ignore UpdraftPlus.Translation.MultipleSentence.MultipleSentenceInsideTranslationFunction -- This is a WordPress translation.
+						esc_url(__('https://wordpress.org/support/article/cookies/#enable-cookies-in-your-browser'))
 					)
 				);
 			}
@@ -1343,7 +1344,7 @@ switch ($action) {
 
 		if ($interim_login) {
 			if (! $errors->has_errors()) {
-				$errors->add('expired', __('Your session has expired. Please log in to continue where you left off.'), 'message');
+				$errors->add('expired', __('Your session has expired. Please log in to continue where you left off.'), 'message'); // phpcs:ignore UpdraftPlus.Translation.MultipleSentence.MultipleSentenceInsideTranslationFunction -- This is a WordPress translation.
 			}
 		} else {
 			// Some parts of this script use the main login form to display a message.
@@ -1354,7 +1355,7 @@ switch ($action) {
 			} elseif (strpos($redirect_to, 'about.php?updated')) {
 				$errors->add('updated', __('<strong>You have successfully updated WordPress!</strong> Please log back in to see what&#8217;s new.'), 'message');
 			} elseif (WP_Recovery_Mode_Link_Service::LOGIN_ACTION_ENTERED === $action) {
-				$errors->add('enter_recovery_mode', __('Recovery Mode Initialized. Please log in to continue.'), 'message');
+				$errors->add('enter_recovery_mode', __('Recovery Mode Initialized. Please log in to continue.'), 'message'); // phpcs:ignore UpdraftPlus.Translation.MultipleSentence.MultipleSentenceInsideTranslationFunction -- This is a WordPress translation.
 			} elseif (isset($_GET['redirect_to']) && false !== strpos($_GET['redirect_to'], 'wp-admin/authorize-application.php')) {
 				$query_component = wp_parse_url($_GET['redirect_to'], PHP_URL_QUERY);
 				parse_str($query_component, $query);
@@ -1413,12 +1414,12 @@ switch ($action) {
 
 		<form name="loginform" id="loginform" action="<?php echo esc_url(site_url('wp-login.php', 'login_post')); ?>" method="post">
 			<p>
-				<label for="user_login"><?php _e('Username or Email Address'); ?></label>
+				<label for="user_login"><?php esc_html_e('Username or Email Address'); ?></label>
 				<input type="text" name="log" id="user_login"<?php echo $aria_describedby_error; ?> class="input" value="<?php echo esc_attr($user_login); ?>" size="20" autocapitalize="off" />
 			</p>
 
 			<div class="user-pass-wrap">
-				<label for="user_pass"><?php _e('Password'); ?></label>
+				<label for="user_pass"><?php esc_html_e('Password'); ?></label>
 				<div class="wp-pwd">
 					<input type="password" name="pwd" id="user_pass"<?php echo $aria_describedby_error; ?> class="input password-input" value="" size="20" />
 					<button type="button" class="button button-secondary wp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e('Show password'); ?>">
@@ -1437,7 +1438,7 @@ switch ($action) {
 			?>
 			<p class="forgetmenot"><input name="rememberme" type="checkbox" id="rememberme" value="forever" <?php checked($rememberme); ?> /> <label for="rememberme"><?php esc_html_e('Remember Me'); ?></label></p>
 			<p class="submit">
-				<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e('Log in'); ?>">
+				<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e('Log In'); ?>">
 				<?php
 
 				if ($interim_login) {
@@ -1472,13 +1473,13 @@ switch ($action) {
 					$registration_url = sprintf('<a href="%s">%s</a>', esc_url(wp_registration_url()), __('Register'));
 
 					// This filter is documented in wp-includes/general-template.php
-					echo apply_filters('register', $registration_url);
+					echo wp_kses_post(apply_filters('register', $registration_url));
 
 					echo esc_html($login_link_separator);
 				}
 
 				?>
-				<a href="<?php echo esc_url(wp_lostpassword_url()); ?>"><?php _e('Lost your password?'); ?></a>
+				<a href="<?php echo esc_url(wp_lostpassword_url()); ?>"><?php esc_html_e('Lost your password?'); ?></a>
 			</p>
 			<?php
 		}

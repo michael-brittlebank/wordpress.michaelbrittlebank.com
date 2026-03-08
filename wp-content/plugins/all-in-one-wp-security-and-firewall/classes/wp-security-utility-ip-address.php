@@ -53,7 +53,12 @@ class AIOWPSecurity_Utility_IP {
 
 		$ip_addresses = array();
 		foreach ($server_suitable_ip_methods as $server_suitable_ip_method) {
-			$ip_addresses[] = $_SERVER[$server_suitable_ip_method];
+			if (isset($_SERVER[$server_suitable_ip_method])) {
+				$ip = filter_var(wp_unslash($_SERVER[$server_suitable_ip_method]), FILTER_VALIDATE_IP);
+				if (false !== $ip) {
+					$ip_addresses[] = $ip;
+				}
+			}
 		}
 
 		return (1 === count(array_unique($ip_addresses)));
@@ -116,7 +121,7 @@ class AIOWPSecurity_Utility_IP {
 	 *
 	 * @param array  $ip_list_array
 	 * @param string $list_type
-	 * @return array $return_payload
+	 * @return array|WP_Error
 	 */
 	public static function validate_ip_list($ip_list_array, $list_type = '') {
 		$errors = '';
@@ -129,20 +134,29 @@ class AIOWPSecurity_Utility_IP {
 		if (!(include_once AIO_WP_SECURITY_PATH.'/vendor/mlocati/ip-lib/ip-lib.php')) {
 			throw new \Exception("AIOWPSecurity_Utility_IP::validate_ip_list failed to load ip-lib.php");
 		}
+
 		if (!empty($submitted_ips)) {
 			foreach ($submitted_ips as $item) {
 				$item = sanitize_text_field($item);
+
+				// Skip items that are comments (start with #)
+				if (strpos($item, '#') === 0) {
+					$list[] = trim($item);
+					continue;
+				}
+
 				if (strlen($item) > 0) {
 					$ip_address = \IPLib\Factory::addressFromString($item);
 					$ip_address_range = \IPLib\Factory::rangeFromString($item);
 					if (null == $ip_address && null == $ip_address_range) {
-						$errors .= "\n".$item.__(' is not a valid ip address format.', 'all-in-one-wp-security-and-firewall');
+						/* translators: %s: IP Address */
+						$errors .= "\n" . sprintf(__('%s is not a valid IP address format.', 'all-in-one-wp-security-and-firewall'), $item);
 					}
 					
 					if (strlen($item) > 4 && !in_array($item, $list)) {
 						if ($item == $current_user_ip && 'blacklist' == $list_type) {
 							//You can't ban your own IP
-							$errors .= "\n".__('You cannot ban your own IP address: ', 'all-in-one-wp-security-and-firewall').$item;
+							$errors .= "\n".__('You cannot ban your own IP address:', 'all-in-one-wp-security-and-firewall') . ' ' . $item;
 						} else {
 							$list[] = trim($item);
 						}
@@ -153,21 +167,13 @@ class AIOWPSecurity_Utility_IP {
 			//This function was called with an empty IP address array list
 		}
 
-		if (strlen($errors)> 0) {
-			$return_payload = array(-1, array($errors));
-			return $return_payload;
-		}
-		
-		if (sizeof($list) >= 1) {
-			sort($list);
-			$list = array_unique($list, SORT_STRING);
-			
-			$return_payload = array(1, $list);
-			return $return_payload;
+		if (strlen($errors) > 0) {
+			return new WP_Error('invalid_ips', trim($errors));
 		}
 
-		$return_payload = array(1, array());
-		return $return_payload;
+		if (sizeof($list) >= 1) return array_unique($list, SORT_STRING);
+
+		return array();
 	}
 
 	/**

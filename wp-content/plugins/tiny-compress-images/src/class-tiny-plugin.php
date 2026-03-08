@@ -1,7 +1,7 @@
 <?php
 /*
 * Tiny Compress Images - WordPress plugin.
-* Copyright (C) 2015-2018 Tinify B.V.
+* Copyright (C) 2015-2023 Tinify B.V.
 *
 * This program is free software; you can redistribute it and/or modify it
 * under the terms of the GNU General Public License as published by the Free
@@ -18,7 +18,7 @@
 * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 class Tiny_Plugin extends Tiny_WP_Base {
-	const VERSION = '3.4.1';
+	const VERSION = '3.6.7';
 	const MEDIA_COLUMN = self::NAME;
 	const DATETIME_FORMAT = 'Y-m-d G:i:s';
 
@@ -60,9 +60,28 @@ class Tiny_Plugin extends Tiny_WP_Base {
 			10, 2
 		);
 
+		add_action( 'delete_attachment', $this->get_method( 'clean_attachment' ), 10, 2 );
+
 		load_plugin_textdomain( self::NAME, false,
 			dirname( plugin_basename( __FILE__ ) ) . '/languages'
 		);
+
+		if ( $this->settings->get_conversion_enabled() ) {
+			/**
+			 * Controls wether the page should replace <img> with <picture> elements
+			 * converted sources.
+			 *
+			 * @since 3.7.0
+			 */
+			$should_replace = apply_filters( 'tiny_replace_with_picture', true );
+			if ( $should_replace ) {
+				new Tiny_Picture( ABSPATH, array( get_site_url() ) );
+			}
+		}
+	}
+
+	public function cli_init() {
+		Tiny_CLI::register_command( $this->settings );
 	}
 
 	public function ajax_init() {
@@ -84,6 +103,10 @@ class Tiny_Plugin extends Tiny_WP_Base {
 
 		add_action( 'wp_ajax_tiny_get_compression_status',
 			$this->get_method( 'ajax_compression_status' )
+		);
+
+		add_action( 'wp_ajax_tiny_mark_image_as_compressed',
+			$this->get_method( 'mark_image_as_compressed' )
 		);
 
 		/* When touching any functionality linked to image compressions when
@@ -127,6 +150,10 @@ class Tiny_Plugin extends Tiny_WP_Base {
 			$this->get_method( 'media_library_bulk_action' )
 		);
 
+		add_action( 'admin_action_tiny_bulk_mark_compressed',
+			$this->get_method( 'media_library_bulk_action' )
+		);
+
 		add_filter( 'manage_media_columns',
 			$this->get_method( 'add_media_columns' )
 		);
@@ -156,7 +183,7 @@ class Tiny_Plugin extends Tiny_WP_Base {
 	public function admin_menu() {
 		add_media_page(
 			__( 'Bulk Optimization', 'tiny-compress-images' ),
-			esc_html__( 'Bulk Optimization', 'tiny-compress-images' ),
+			esc_html__( 'Bulk TinyPNG', 'tiny-compress-images' ),
 			'upload_files',
 			'tiny-bulk-optimization',
 			$this->get_method( 'render_bulk_optimization_page' )
@@ -171,7 +198,7 @@ class Tiny_Plugin extends Tiny_WP_Base {
 			),
 			'bulk' => sprintf(
 				'<a href="upload.php?page=tiny-bulk-optimization">%s</a>',
-				esc_html__( 'Bulk Optimization', 'tiny-compress-images' )
+				esc_html__( 'Bulk TinyPNG', 'tiny-compress-images' )
 			),
 		);
 		return array_merge( $additional, $current_links );
@@ -180,6 +207,10 @@ class Tiny_Plugin extends Tiny_WP_Base {
 	public function tiny_compatibility() {
 		if ( defined( 'ICL_SITEPRESS_VERSION' ) ) {
 			$tiny_wpml_compatibility = new Tiny_WPML();
+		}
+
+		if ( Tiny_AS3CF::is_active() ) {
+			$tiny_as3cf = new Tiny_AS3CF( $this->settings );
 		}
 	}
 
@@ -221,10 +252,13 @@ class Tiny_Plugin extends Tiny_WP_Base {
 			'pluginVersion' => self::version(),
 			'L10nAllDone' => __( 'All images are processed', 'tiny-compress-images' ),
 			'L10nNoActionTaken' => __( 'No action taken', 'tiny-compress-images' ),
+			'L10nDuplicate' => __( 'Image was already processed', 'tiny-compress-images' ),
 			'L10nBulkAction' => __( 'Compress Images', 'tiny-compress-images' ),
+			'L10nBulkMarkCompressed' => __( 'Mark as Compressed', 'tiny-compress-images' ),
 			'L10nCancelled' => __( 'Cancelled', 'tiny-compress-images' ),
 			'L10nCompressing' => __( 'Compressing', 'tiny-compress-images' ),
 			'L10nCompressed' => __( 'compressed', 'tiny-compress-images' ),
+			'L10nConverted' => __( 'converted', 'tiny-compress-images' ),
 			'L10nFile' => __( 'File', 'tiny-compress-images' ),
 			'L10nSizesOptimized' => __( 'Sizes optimized', 'tiny-compress-images' ),
 			'L10nInitialSize' => __( 'Initial size', 'tiny-compress-images' ),
@@ -266,8 +300,7 @@ class Tiny_Plugin extends Tiny_WP_Base {
 	public function process_attachment( $metadata, $attachment_id ) {
 		if ( $this->settings->auto_compress_enabled() ) {
 			if (
-				$this->settings->background_compress_enabled() &&
-				! $this->settings->remove_local_files_setting_enabled()
+				$this->settings->background_compress_enabled()
 			) {
 				$this->async_compress_on_upload( $metadata, $attachment_id );
 			} else {
@@ -365,6 +398,9 @@ class Tiny_Plugin extends Tiny_WP_Base {
 	}
 
 	public function compress_on_upload() {
+		if ( ! wp_verify_nonce( $_POST['_ajax_nonce'], 'new_media-' . $_POST['attachment_id'] ) ) {
+			exit;
+		}
 		if ( current_user_can( 'upload_files' ) ) {
 			$attachment_id = intval( $_POST['attachment_id'] );
 			$metadata = $_POST['metadata'];
@@ -383,37 +419,58 @@ class Tiny_Plugin extends Tiny_WP_Base {
 		exit();
 	}
 
-	public function compress_image_from_library() {
+	/**
+	 * Validates AJAX request for attachment operations.
+	 *
+	 * @since 3.0.0
+	 *
+	 * @return array Either error array ['error' => 'message']
+	 * 				 or success array ['data' => [$id, $metadata]]
+	 */
+	private function validate_ajax_attachment_request() {
 		if ( ! $this->check_ajax_referer() ) {
 			exit();
 		}
 		if ( ! current_user_can( 'upload_files' ) ) {
-			$message = esc_html__(
-				"You don't have permission to upload files.",
-				'tiny-compress-images'
+			return array(
+				'error' => esc_html__(
+					"You don't have permission to upload files.",
+					'tiny-compress-images'
+				),
 			);
-			echo $message;
-			exit();
 		}
 		if ( empty( $_POST['id'] ) ) {
-			$message = esc_html__(
-				'Not a valid media file.',
-				'tiny-compress-images'
+			return array(
+				'error' => esc_html__(
+					'Not a valid media file.',
+					'tiny-compress-images'
+				),
 			);
-			echo $message;
-			exit();
 		}
 		$id = intval( $_POST['id'] );
 		$metadata = wp_get_attachment_metadata( $id );
 		if ( ! is_array( $metadata ) ) {
-			$message = esc_html__(
-				'Could not find metadata of media file.',
-				'tiny-compress-images'
+			return array(
+				'error' => esc_html__(
+					'Could not find metadata of media file.',
+					'tiny-compress-images'
+				),
 			);
-			echo $message;
-			exit;
 		}
 
+		return array(
+			'data' => array( $id, $metadata ),
+		);
+	}
+
+	public function compress_image_from_library() {
+		$response = $this->validate_ajax_attachment_request();
+		if ( isset( $response['error'] ) ) {
+			echo $response['error'];
+			exit();
+		}
+
+		list($id, $metadata) = $response['data'];
 		$tiny_image = new Tiny_Image( $this->settings, $id, $metadata );
 		$result = $tiny_image->compress();
 
@@ -431,48 +488,19 @@ class Tiny_Plugin extends Tiny_WP_Base {
 	}
 
 	public function compress_image_for_bulk() {
-		if ( ! $this->check_ajax_referer() ) {
+		$response = $this->validate_ajax_attachment_request();
+		if ( isset( $response['error'] ) ) {
+			echo json_encode( $response );
 			exit();
-		}
-		if ( ! current_user_can( 'upload_files' ) ) {
-			$message = esc_html__(
-				"You don't have permission to upload files.",
-				'tiny-compress-images'
-			);
-			echo json_encode( array(
-				'error' => $message,
-			) );
-			exit();
-		}
-		if ( empty( $_POST['id'] ) ) {
-			$message = esc_html__(
-				'Not a valid media file.',
-				'tiny-compress-images'
-			);
-			echo json_encode( array(
-				'error' => $message,
-			) );
-			exit();
-		}
-		$id = intval( $_POST['id'] );
-		$metadata = wp_get_attachment_metadata( $id );
-		if ( ! is_array( $metadata ) ) {
-			$message = esc_html__(
-				'Could not find metadata of media file.',
-				'tiny-compress-images'
-			);
-			echo json_encode( array(
-				'error' => $message,
-			) );
-			exit;
 		}
 
+		list($id, $metadata) = $response['data'];
 		$tiny_image_before = new Tiny_Image( $this->settings, $id, $metadata );
 		$image_statistics_before = $tiny_image_before->get_statistics(
 			$this->settings->get_sizes(),
 			$this->settings->get_active_tinify_sizes()
 		);
-		$size_before = $image_statistics_before['optimized_total_size'];
+		$size_before = $image_statistics_before['compressed_total_size'];
 
 		$tiny_image = new Tiny_Image( $this->settings, $id, $metadata );
 		$result = $tiny_image->compress();
@@ -483,18 +511,20 @@ class Tiny_Plugin extends Tiny_WP_Base {
 		wp_update_attachment_metadata( $id, $tiny_image->get_wp_metadata() );
 
 		$current_library_size = intval( $_POST['current_size'] );
-		$size_after = $image_statistics['optimized_total_size'];
+		$size_after = $image_statistics['compressed_total_size'];
 		$new_library_size = $current_library_size + $size_after - $size_before;
 
 		$result['message'] = $tiny_image->get_latest_error();
-		$result['image_sizes_optimized'] = $image_statistics['image_sizes_optimized'];
+		$result['image_sizes_compressed'] = $image_statistics['image_sizes_compressed'];
+		$result['image_sizes_converted'] = $image_statistics['image_sizes_converted'];
+		$result['image_sizes_optimized'] = $image_statistics['image_sizes_compressed'];
 
 		$result['initial_total_size'] = size_format(
 			$image_statistics['initial_total_size'], 1
 		);
 
 		$result['optimized_total_size'] = size_format(
-			$image_statistics['optimized_total_size'], 1
+			$image_statistics['compressed_total_size'], 1
 		);
 
 		$result['savings'] = $tiny_image->get_savings( $image_statistics );
@@ -522,30 +552,13 @@ class Tiny_Plugin extends Tiny_WP_Base {
 	}
 
 	public function ajax_compression_status() {
-		if ( ! $this->check_ajax_referer() ) {
+		$response = $this->validate_ajax_attachment_request();
+
+		if ( isset( $response['error'] ) ) {
+			echo $response['error'];
 			exit();
 		}
-		if ( ! current_user_can( 'upload_files' ) ) {
-			exit();
-		}
-		if ( empty( $_POST['id'] ) ) {
-			$message = esc_html__(
-				'Not a valid media file.',
-				'tiny-compress-images'
-			);
-			echo $message;
-			exit();
-		}
-		$id = intval( $_POST['id'] );
-		$metadata = wp_get_attachment_metadata( $id );
-		if ( ! is_array( $metadata ) ) {
-			$message = esc_html__(
-				'Could not find metadata of media file.',
-				'tiny-compress-images'
-			);
-			echo $message;
-			exit;
-		}
+		list($id, $metadata) = $response['data'];
 
 		$tiny_image = new Tiny_Image( $this->settings, $id, $metadata );
 
@@ -555,9 +568,14 @@ class Tiny_Plugin extends Tiny_WP_Base {
 	}
 
 	public function media_library_bulk_action() {
-		if ( empty( $_REQUEST['action'] ) || (
-				'tiny_bulk_action' != $_REQUEST['action'] &&
-				'tiny_bulk_action' != $_REQUEST['action2'] ) ) {
+		$valid_actions = array( 'tiny_bulk_action', 'tiny_bulk_mark_compressed' );
+		$action = isset( $_REQUEST['action'] ) ? $_REQUEST['action'] : '';
+		$action2 = isset( $_REQUEST['action2'] ) ? $_REQUEST['action2'] : '';
+
+		if (
+			! in_array( $action, $valid_actions, true ) &&
+			! in_array( $action2, $valid_actions, true )
+		) {
 			return;
 		}
 		if ( empty( $_REQUEST['media'] ) || ( ! $_REQUEST['media'] ) ) {
@@ -567,6 +585,8 @@ class Tiny_Plugin extends Tiny_WP_Base {
 		check_admin_referer( 'bulk-media' );
 		$ids = implode( '-', array_map( 'intval', $_REQUEST['media'] ) );
 		$location = 'upload.php?mode=list&ids=' . $ids;
+
+		$location = add_query_arg( 'action', $_REQUEST['action'], $location );
 
 		if ( ! empty( $_REQUEST['paged'] ) ) {
 			$location = add_query_arg( 'paged', absint( $_REQUEST['paged'] ), $location );
@@ -622,12 +642,17 @@ class Tiny_Plugin extends Tiny_WP_Base {
 		}
 	}
 
-	public function render_bulk_optimization_page() {
-		$stats = Tiny_Bulk_Optimization::get_optimization_statistics( $this->settings );
-		$estimated_costs = Tiny_Compress::estimate_cost(
-			$stats['available-unoptimised-sizes'],
+	public function get_estimated_bulk_cost( $estimated_credit_use ) {
+		return Tiny_Compress::estimate_cost(
+			$estimated_credit_use,
 			$this->settings->get_compression_count()
 		);
+	}
+
+	public function render_bulk_optimization_page() {
+		$stats = Tiny_Bulk_Optimization::get_optimization_statistics( $this->settings );
+
+		$estimated_costs = $this->get_estimated_bulk_cost( $stats['estimated_credit_use'] );
 		$admin_colors = self::retrieve_admin_colors();
 
 		/* This makes sure that up to date information is retrieved from the API. */
@@ -709,5 +734,48 @@ class Tiny_Plugin extends Tiny_WP_Base {
 		$user = wp_get_current_user();
 		$name = ucfirst( empty( $user->first_name ) ? $user->display_name : $user->first_name );
 		return $name;
+	}
+
+	/**
+	 * Will clean up converted files (if any) when the original is deleted
+	 *
+	 * Hooked to the `delete_attachment` action.
+	 * @see https://developer.wordpress.org/reference/hooks/deleted_post/
+	 *
+	 * @param [int] $post_id
+	 *
+	 * @return void
+	 */
+	function clean_attachment( $post_id ) {
+		$tiny_image = new Tiny_Image( $this->settings, $post_id );
+		$tiny_image->delete_converted_image();
+	}
+
+	static function request_review() {
+		$review_url = 'https://wordpress.org/support/plugin/tiny-compress-images/reviews/#new-post';
+		$review_block = esc_html__( 'Enjoying TinyPNG?', 'tiny-compress-images' );
+		$review_block .= ' ';
+		$review_block .= sprintf(
+			'<a href="%s" target="_blank">%s</a>',
+			esc_url( $review_url ),
+			esc_html__( 'Write a review', 'tiny-compress-images' )
+		);
+		return $review_block;
+	}
+
+	function mark_image_as_compressed() {
+		$response = $this->validate_ajax_attachment_request();
+		if ( isset( $response['error'] ) ) {
+			echo $response['error'];
+			exit();
+		}
+
+		list($id, $metadata) = $response['data'];
+		$tiny_image = new Tiny_Image( $this->settings, $id, $metadata );
+		$tiny_image->mark_as_compressed();
+
+		echo $this->render_compress_details( $tiny_image );
+
+		exit();
 	}
 }

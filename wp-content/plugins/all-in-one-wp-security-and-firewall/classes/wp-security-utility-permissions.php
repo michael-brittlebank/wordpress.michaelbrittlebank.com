@@ -14,8 +14,8 @@ class AIOWPSecurity_Utility_Permissions {
 	 * @return WP_Error|boolean - return true if all checks pass otherwise return a WP_Error
 	 */
 	public static function check_nonce_and_user_cap($nonce, $nonce_name) {
-		if (!self::has_manage_cap()) return new WP_Error('missing_capability', 'Current user lacks the required capability for this action');
-		if (!wp_verify_nonce($nonce, $nonce_name)) return new WP_Error('invalid_nonce', 'Invalid nonce ('.$nonce_name.') provided for this action');
+		if (!self::has_manage_cap()) return new WP_Error('missing_capability', 'Current user lacks the required capability for this action.');
+		if (!wp_verify_nonce($nonce, $nonce_name)) return new WP_Error('invalid_nonce', 'Invalid nonce ('.$nonce_name.') provided for this action.');
 		return true;
 	}
 
@@ -46,5 +46,20 @@ class AIOWPSecurity_Utility_Permissions {
 	 */
 	public static function is_main_site_and_super_admin() {
 		return (is_main_site() && is_super_admin());
+	}
+	
+	/**
+	 * Get user role names
+	 *
+	 * @return array - role name and id as key
+	 */
+	public static function get_user_roles() {
+		$user_roles = array();
+		if (is_multisite()) $user_roles['super_admin'] = __('Multisite Super Admin', 'all-in-one-wp-security-and-firewall');
+		$wp_roles = wp_roles();
+		foreach ($wp_roles->role_names as $id => $name) {
+			$user_roles[$id] = translate_user_role($name);
+		}
+		return $user_roles;
 	}
 }

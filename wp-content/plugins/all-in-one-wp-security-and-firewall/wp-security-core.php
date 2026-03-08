@@ -8,11 +8,11 @@ if (!class_exists('AIO_WP_Security')) {
 
 	class AIO_WP_Security {
 
-		public $version = '5.1.9';
+		public $version = '5.4.4';
 
-		public $db_version = '2.0.0';
-		
-		public $firewall_version = '1.0.4';
+		public $db_version = '2.1.4';
+
+		public $firewall_version = '1.0.8';
 
 		public $plugin_url;
 
@@ -42,6 +42,10 @@ if (!class_exists('AIO_WP_Security')) {
 		public $captcha_obj;
 				
 		public $cleanup_obj;
+
+		public $sender_obj;
+
+		public $debug_obj;
 
 		/**
 		 * Whether the page is admin dashboard page.
@@ -86,6 +90,7 @@ if (!class_exists('AIO_WP_Security')) {
 			$this->loader_operations();
 
 			add_action('init', array($this, 'wp_security_plugin_init'), 0);
+			add_action('init', array($this, 'load_plugin_textdomain'));
 			add_action('wp_loaded', array($this, 'aiowps_wp_loaded_handler'));
 
 			$add_update_action_prefixes = array(
@@ -142,29 +147,27 @@ if (!class_exists('AIO_WP_Security')) {
 			define('AIOWPSEC_MENU_SLUG_PREFIX', 'aiowpsec');
 			define('AIOWPSEC_MAIN_MENU_SLUG', 'aiowpsec');
 			define('AIOWPSEC_SETTINGS_MENU_SLUG', 'aiowpsec_settings');
-			define('AIOWPSEC_USER_ACCOUNTS_MENU_SLUG', 'aiowpsec_useracc');
-			define('AIOWPSEC_USER_LOGIN_MENU_SLUG', 'aiowpsec_userlogin');
-			define('AIOWPSEC_USER_REGISTRATION_MENU_SLUG', 'aiowpsec_user_registration');
+			define('AIOWPSEC_USER_SECURITY_MENU_SLUG', 'aiowpsec_usersec');
 			define('AIOWPSEC_DB_SEC_MENU_SLUG', 'aiowpsec_database');
 			define('AIOWPSEC_FILESYSTEM_MENU_SLUG', 'aiowpsec_filesystem');
-			define('AIOWPSEC_BLACKLIST_MENU_SLUG', 'aiowpsec_blacklist');
 			define('AIOWPSEC_FIREWALL_MENU_SLUG', 'aiowpsec_firewall');
-			define('AIOWPSEC_MAINTENANCE_MENU_SLUG', 'aiowpsec_maintenance');
 			define('AIOWPSEC_SPAM_MENU_SLUG', 'aiowpsec_spam');
 			define('AIOWPSEC_FILESCAN_MENU_SLUG', 'aiowpsec_filescan');
 			define('AIOWPSEC_BRUTE_FORCE_MENU_SLUG', 'aiowpsec_brute_force');
-			define('AIOWPSEC_MISC_MENU_SLUG', 'aiowpsec_misc');
 			define('AIOWPSEC_TWO_FACTOR_AUTH_MENU_SLUG', 'aiowpsec_two_factor_auth_user');
 			define('AIOWPSEC_TOOLS_MENU_SLUG', 'aiowpsec_tools');
+			define('AIOWPSEC_CAPTCHA_SHORTCODE', 'aios_captcha');
 			
 			if (!defined('AIOS_TFA_PREMIUM_LATEST_INCOMPATIBLE_VERSION')) define('AIOS_TFA_PREMIUM_LATEST_INCOMPATIBLE_VERSION', '1.14.7');
 			
 			if (!defined('AIOWPSEC_PURGE_FAILED_LOGIN_RECORDS_AFTER_DAYS')) define('AIOWPSEC_PURGE_FAILED_LOGIN_RECORDS_AFTER_DAYS', 90);
 			if (!defined('AIOS_PURGE_EVENTS_RECORDS_AFTER_DAYS')) define('AIOS_PURGE_EVENTS_RECORDS_AFTER_DAYS', 90);
+			if (!defined('AIOS_PURGE_LOGIN_LOCKOUT_RECORDS_AFTER_DAYS')) define('AIOS_PURGE_LOGIN_LOCKOUT_RECORDS_AFTER_DAYS', 90);
 			if (!defined('AIOS_PURGE_LOGIN_ACTIVITY_RECORDS_AFTER_DAYS')) define('AIOS_PURGE_LOGIN_ACTIVITY_RECORDS_AFTER_DAYS', 90);
 			if (!defined('AIOS_PURGE_GLOBAL_META_DATA_RECORDS_AFTER_DAYS')) define('AIOS_PURGE_GLOBAL_META_DATA_RECORDS_AFTER_DAYS', 90);
 			if (!defined('AIOS_DEFAULT_BRUTE_FORCE_FEATURE_SECRET_WORD')) define('AIOS_DEFAULT_BRUTE_FORCE_FEATURE_SECRET_WORD', 'aiossecret');
 			if (!defined('AIOS_FIREWALL_MAX_FILE_UPLOAD_LIMIT_MB')) define('AIOS_FIREWALL_MAX_FILE_UPLOAD_LIMIT_MB', 100);
+			if (!defined('AIOS_UPDATE_ANTIBOT_KEYS_AFTER_DAYS')) define('AIOS_UPDATE_ANTIBOT_KEYS_AFTER_DAYS', 5);
 
 			global $wpdb;
 			define('AIOWPSEC_TBL_LOGIN_LOCKOUT', $wpdb->prefix . 'aiowps_login_lockdown');
@@ -173,20 +176,31 @@ if (!class_exists('AIO_WP_Security')) {
 			define('AIOWPSEC_TBL_GLOBAL_META_DATA', $wpdb->prefix . 'aiowps_global_meta');
 			define('AIOWPSEC_TBL_EVENTS', $wpdb->prefix . 'aiowps_events');
 			define('AIOWPSEC_TBL_PERM_BLOCK', $wpdb->prefix . 'aiowps_permanent_block');
-			
+
 			$base_prefix = $this->get_table_prefix();
 			define('AIOWPSEC_TBL_AUDIT_LOG', $base_prefix . 'aiowps_audit_log');
 			define('AIOWPSEC_TBL_DEBUG_LOG', $base_prefix . 'aiowps_debug_log');
+			define('AIOWPSEC_TBL_LOGGED_IN_USERS', $base_prefix . 'aiowps_logged_in_users');
+			define('AIOWPSEC_TBL_MESSAGE_STORE', $base_prefix . 'aiowps_message_store');
 		}
 
+		/**
+		 * Includes required files.
+		 *
+		 * @return void
+		 */
 		public function includes() {
-
 			// Load firewall, if it has not yet been loaded by this point
 			if (!defined('AIOWPSEC_FIREWALL_DONE')) {
 				$this->load_aio_firewall();
 			}
 
 			// Load common files for everywhere
+			if (!class_exists('Updraft_Semaphore_3_0')) {
+				include_once AIO_WP_SECURITY_PATH.'/vendor/team-updraft/common-libs/src/updraft-semaphore/class-updraft-semaphore.php';
+			}
+			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-firewall-resource-unavailable.php');
+			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-firewall-resource.php');
 			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-audit-event-handler.php');
 			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-debug-logger.php');
 			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-abstract-ids.php');
@@ -196,6 +210,8 @@ if (!class_exists('AIO_WP_Security')) {
 			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-utility-ip-address.php');
 			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-utility-file.php');
 			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-utility-permissions.php');
+			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-utility-ui.php');
+			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-utility-api.php');
 			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-general-init-tasks.php');
 			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-wp-loaded-tasks.php');
 
@@ -212,7 +228,6 @@ if (!class_exists('AIO_WP_Security')) {
 			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-blocking.php');
 			include_once(AIO_WP_SECURITY_PATH .'/classes/wp-security-two-factor-login.php');
 
-
 			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-utility-firewall.php');
 			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-block-file.php');
 			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-block-bootstrap.php');
@@ -221,6 +236,11 @@ if (!class_exists('AIO_WP_Security')) {
 			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-block-userini.php');
 			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-block-wpconfig.php');
 			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-block-muplugin.php');
+			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-hibp.php');
+
+			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-reporting.php');
+			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-debug.php');
+			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-sender-service.php');
 
 			// At this time, sometimes is_admin() can't be populated, It gives the error PHP Fatal error:  Uncaught Error: Class 'AIOWPSecurity_Admin_Init' not found.
 			// so we should not use is_admin() condition.
@@ -229,12 +249,14 @@ if (!class_exists('AIO_WP_Security')) {
 			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-notices.php');
 			require_once(AIO_WP_SECURITY_PATH.'/admin/wp-security-admin-init.php');
 			include_once(AIO_WP_SECURITY_PATH.'/admin/general/wp-security-list-table.php');
+			include_once(AIO_WP_SECURITY_PATH.'/admin/general/wp-security-ajax-data-table.php');
 			include_once(AIO_WP_SECURITY_PATH.'/admin/wp-security-firewall-setup-notice.php');
+			include_once(AIO_WP_SECURITY_PATH.'/classes/updraftcentral.php');
 		}
 
 		public function loader_operations() {
 			add_action('plugins_loaded', array($this, 'plugins_loaded_handler'));//plugins loaded hook
-			add_action('plugins_loaded', array($this, 'load_plugin_textdomain'));
+			add_action('plugins_loaded', array($this, 'set_pagenow_for_renamed_loginpage'));
 
 			$debug_config = $this->configs->get_value('aiowps_enable_debug');
 			$debug_enabled = empty($debug_config) ? false : true;
@@ -258,15 +280,14 @@ if (!class_exists('AIO_WP_Security')) {
 		/**
 		 * Activation handler function.
 		 *
-		 * @param boolean $networkwide whether activate plugin network wide.
 		 * @return void
 		 */
-		public static function activate_handler($networkwide) {
+		public static function activate_handler() {
 			// Only runs when the plugin activates
 			global $wpdb;// phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable -- Used for the include below
 			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-installer.php');
-			AIOWPSecurity_Installer::run_installer($networkwide);
-			AIOWPSecurity_Installer::set_cron_tasks_upon_activation($networkwide);
+			AIOWPSecurity_Installer::run_installer();
+			AIOWPSecurity_Installer::set_cron_tasks_upon_activation();
 		}
 
 		/**
@@ -327,12 +348,12 @@ if (!class_exists('AIO_WP_Security')) {
 			do_action('aio_wp_security_before_template', $path, $template_file, $return_instead_of_echo, $extract_these);
 
 			if (!file_exists($template_file)) {
-				error_log("All In One WP Security: template not found: $template_file");
+				error_log("All-In-One Security: template not found: $template_file");
 				echo __('Error:', 'all-in-one-wp-security-and-firewall').' '.__('template not found', 'all-in-one-wp-security-and-firewall')." ($template_file)";
 			} else {
 				extract($extract_these);
 				global $wpdb;// phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable -- Bring variable into the included template's scope
-				global $aiowps_firewall_config; // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable -- Bring variable into the included template's scope
+				$aiowps_firewall_config = AIOS_Firewall_Resource::request(AIOS_Firewall_Resource::CONFIG); // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable -- Bring variable into the included template's scope
 				global $aiowps_feature_mgr; // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable -- Bring variable into the included template's scope
 				$aio_wp_security = $this;// phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable -- Bring variable into the included template's scope
 				include $template_file;
@@ -364,37 +385,37 @@ if (!class_exists('AIO_WP_Security')) {
 			AIOWPSecurity_Uninstallation_Tasks::run();
 			do_action('aiowps_uninstallation_complete');
 		}
-		
+
 		/**
 		 * Firewall configs upgrade.
 		 *
 		 * @return void.
 		 */
 		public function firewall_upgrade_handler() {
-			if (is_admin()) {
-				if (get_option('aiowpsec_firewall_version') != AIO_WP_SECURITY_FIREWALL_VERSION) {
-					AIOWPSecurity_Configure_Settings::set_firewall_configs();
-					AIOWPSecurity_Utility_Htaccess::write_to_htaccess();
-				}
+			if (get_option('aiowpsec_firewall_version') != AIO_WP_SECURITY_FIREWALL_VERSION) {
+				AIOWPSecurity_Configure_Settings::set_firewall_configs();
+				AIOWPSecurity_Utility_Htaccess::write_to_htaccess(false);
 			}
 		}
 
+		/**
+		 * Upgrades the database.
+		 *
+		 * @return void
+		 */
 		public function db_upgrade_handler() {
-			if (is_admin()) {//Check if DB needs to be upgraded
-				if (get_option('aiowpsec_db_version') != AIO_WP_SECURITY_DB_VERSION) {
-					require_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-installer.php');
-					AIOWPSecurity_Installer::run_installer();
-					AIOWPSecurity_Installer::set_cron_tasks_upon_activation();
-					AIOWPSecurity_Utility_Htaccess::write_to_htaccess();
+			$aiowps_firewall_config = AIOS_Firewall_Resource::request(AIOS_Firewall_Resource::CONFIG);
 
-					/**
-					 * Update our config file's header if needed.
-					 */
-					if (is_main_site()) {
-						require_once(AIO_WP_SECURITY_PATH.'/classes/firewall/libs/wp-security-firewall-config.php');
-						$config = new \AIOWPS\Firewall\Config(AIOWPSecurity_Utility_Firewall::get_firewall_rules_path() . 'settings.php');
-						$config->update_prefix();
-					}
+			if (get_option('aiowpsec_db_version') != AIO_WP_SECURITY_DB_VERSION) {
+				require_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-installer.php');
+				AIOWPSecurity_Installer::run_installer();
+				AIOWPSecurity_Utility_Htaccess::write_to_htaccess(false);
+
+				/**
+				 * Update our config file's header if needed.
+				 */
+				if (is_main_site()) {
+					$aiowps_firewall_config->update_prefix();
 				}
 			}
 		}
@@ -409,9 +430,8 @@ if (!class_exists('AIO_WP_Security')) {
 			include_once(AIO_WP_SECURITY_PATH.'/classes/wp-security-utility-firewall.php');
 			$firewall_path = AIOWPSecurity_Utility_Firewall::get_firewall_path();
 
-			clearstatcache();
-			if (file_exists($firewall_path)) {
-				include_once($firewall_path);
+			if (!(@include_once($firewall_path))) {
+				error_log('AIOS firewall error: failed to load the firewall. Unable to include wp-security-firewall.php.');
 			}
 		}
 
@@ -422,16 +442,15 @@ if (!class_exists('AIO_WP_Security')) {
 		 */
 		public function plugins_loaded_handler() {
 			//Runs when plugins_loaded action gets fired
-			// Add filter for 'cron_schedules' must be run before $this->db_upgrade_handler()
-			// so, AIOWPSecurity_Cronjob_Handler __construct runs this filter so the object should be initialized here.
-			$this->cron_handler = new AIOWPSecurity_Cronjob_Handler();
+			// DB upgrade handler - run outside admin interface
+			$this->db_upgrade_handler();
+			$this->firewall_upgrade_handler();
 			if (is_admin()) {
 				//Do plugins_loaded operations for admin side
-				$this->db_upgrade_handler();
-				$this->firewall_upgrade_handler();
 				$this->admin_init = new AIOWPSecurity_Admin_Init();
 				$this->notices = new AIOWPSecurity_Notices();
 			}
+			AIOWPSecurity_Audit_Event_Handler::instance();
 		}
 
 		/**
@@ -450,11 +469,15 @@ if (!class_exists('AIO_WP_Security')) {
 		 */
 		public function wp_security_plugin_init() {
 			//Actions, filters, shortcodes goes here
+			// AIOWPSecurity_Cronjob_Handler __construct runs filter 'cron_schedules' so the object should be initialized here because it uses translations.
+			$this->cron_handler = new AIOWPSecurity_Cronjob_Handler();
 			$this->user_login_obj = new AIOWPSecurity_User_Login();//Do the user login operation tasks
 			$this->user_registration_obj = new AIOWPSecurity_User_Registration();//Do the user login operation tasks
 			$this->captcha_obj = new AIOWPSecurity_Captcha(); // Do the CAPTCHA tasks
 			$this->cleanup_obj = new AIOWPSecurity_Cleanup(); // Object to handle cleanup tasks
 			$this->scan_obj = new AIOWPSecurity_Scan();//Object to handle scan tasks
+			$this->sender_obj = new AIOWPSecurity_Sender_Service();//Object to handle sending emails
+			$this->debug_obj =new AIOWPSecurity_Debug();//Object to handle debug tasks
 			add_action('wp_footer', array($this, 'aiowps_footer_content'));
 
 			add_action('wp_login', array('AIOWPSecurity_User_Login', 'wp_login_action_handler'), 10, 2);
@@ -465,6 +488,7 @@ if (!class_exists('AIO_WP_Security')) {
 
 			new AIOWPSecurity_General_Init_Tasks();
 			new AIOWPSecurity_Comment();
+			new AIOWPSecurity_Reporting();
 
 			$this->redirect_user_after_force_logout();
 		}
@@ -502,8 +526,8 @@ if (!class_exists('AIO_WP_Security')) {
 			global $aio_wp_security;
 			if (isset($_GET['aiowpsec_do_log_out'])) {
 				$nonce = isset($_GET['_wpnonce']) ? $_GET['_wpnonce'] : '';
-				$result = AIOWPSecurity_Utility_Permissions::check_nonce_and_user_cap($nonce, 'aio_logout');
-				if (is_wp_error($result)) {
+				// We can not use AIOWPSecurity_Utility_Permissions::check_nonce_and_user_cap to check user capabilities = manage_option as subscriber, editor etc users do not have it only administrators will have. If that check is applied it can not force the logout user and creates too many redirect errors.
+				if (!wp_verify_nonce($nonce, 'aio_logout')) {
 					return;
 				}
 				wp_logout();
@@ -572,9 +596,9 @@ if (!class_exists('AIO_WP_Security')) {
 		}
 
 		/**
-		 * Check whether current admin page is All In One WP Security admin page or not.
+		 * Check whether current admin page is All-In-One Security admin page or not.
 		 *
-		 * @return boolean True if All In One WP Security admin page, Otherwise false.
+		 * @return boolean True if All-In-One Security admin page, Otherwise false.
 		 */
 		public function is_aiowps_admin_page() {
 			if (isset($this->is_aiowps_admin_page)) {
@@ -599,9 +623,26 @@ if (!class_exists('AIO_WP_Security')) {
 															&& isset($_GET['page'])
 															&& 'aiowpsec_brute_force' == $_GET['page']
 															&& isset($_GET['tab'])
-															&& 'tab3' == $_GET['tab']
+															&& 'captcha-settings' == $_GET['tab']
 			);
 			return $this->is_aiowps_google_recaptcha_tab_page;
+		}
+		
+		/**
+		 * Set pagenow global variable to wp-login.php for renamed login page
+		 *
+		 * @return void
+		 */
+		public function set_pagenow_for_renamed_loginpage() {
+			global $pagenow;
+			if ('1' == $this->configs->get_value('aiowps_enable_rename_login_page')) {
+				include_once(AIO_WP_SECURITY_PATH . '/classes/wp-security-process-renamed-login-page.php');
+				$login_slug = $this->configs->get_value('aiowps_login_page_slug');
+				if (AIOWPSecurity_Process_Renamed_Login_Page::is_renamed_login_page_requested($login_slug)) {
+					//wp-login.php pagenow variable required in determine_locale method for language change to work by login page dropdown
+					$pagenow = 'wp-login.php';
+				}
+			}
 		}
 
 		/**

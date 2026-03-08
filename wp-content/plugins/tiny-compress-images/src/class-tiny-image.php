@@ -21,6 +21,7 @@
 class Tiny_Image {
 	const ORIGINAL = 0;
 
+	/** @var Tiny_Settings */
 	private $settings;
 	private $id;
 	private $name;
@@ -48,10 +49,8 @@ class Tiny_Image {
 		if ( ! is_array( $this->wp_metadata ) ) {
 			$this->wp_metadata = wp_get_attachment_metadata( $this->id );
 		}
-		if ( ! is_array( $this->wp_metadata ) ) {
-			return;
-		}
-		if ( ! isset( $this->wp_metadata['file'] ) ) {
+
+		if ( ! is_array( $this->wp_metadata ) || ! isset( $this->wp_metadata['file'] ) ) {
 			/* No file metadata found, this might be another plugin messing with
 			   metadata. Simply ignore this! */
 			return;
@@ -71,11 +70,25 @@ class Tiny_Image {
 		$filename = $path_prefix . $this->name;
 		$this->sizes[ self::ORIGINAL ] = new Tiny_Image_Size( $filename );
 
-		if ( isset( $this->wp_metadata['sizes'] ) && is_array( $this->wp_metadata['sizes'] ) ) {
-			foreach ( $this->wp_metadata['sizes'] as $size_name => $info ) {
-				$this->sizes[ $size_name ] = new Tiny_Image_Size( $path_prefix . $info['file'] );
+		// Ensure 'sizes' exists and is an array to prevent PHP Warnings
+		$sizes = isset( $this->wp_metadata['sizes'] ) && is_array( $this->wp_metadata['sizes'] )
+		? $this->wp_metadata['sizes']
+		: array();
+
+		$sanitized_sizes = array();
+		foreach ( $sizes as $size_name => $size_info ) {
+			// size is valid when its an array and has a file
+			if ( is_array( $size_info ) && isset( $size_info['file'] ) ) {
+				// Add to sanitized metadata
+				$sanitized_sizes[ $size_name ] = $size_info;
+				$this->sizes[ $size_name ] = new Tiny_Image_Size(
+					$path_prefix . $size_info['file']
+				);
 			}
 		}
+
+		// Update the metadata with only the valid sizes found
+		$this->wp_metadata['sizes'] = $sanitized_sizes;
 	}
 
 	private function detect_duplicates( $active_sizes, $active_tinify_sizes ) {
@@ -126,7 +139,7 @@ class Tiny_Image {
 		return $filenames;
 	}
 
-	private function parse_tiny_metadata( $tiny_metadata ) {
+	private function parse_tiny_metadata( $tiny_metadata = null ) {
 		if ( is_null( $tiny_metadata ) ) {
 			$tiny_metadata = get_post_meta( $this->id, Tiny_Config::META_KEY, true );
 		}
@@ -164,34 +177,11 @@ class Tiny_Image {
 	}
 
 	public function file_type_allowed() {
-		return in_array( $this->get_mime_type(), array( 'image/jpeg', 'image/png', 'image/webp') );
+		return in_array( $this->get_mime_type(), array( 'image/jpeg', 'image/png', 'image/webp' ) );
 	}
 
 	public function get_mime_type() {
 		return get_post_mime_type( $this->id );
-	}
-
-	public function download_missing_image_sizes() {
-		global $as3cf;
-
-		if ( ! $as3cf || ! $as3cf->is_plugin_setup() ) {
-			error_log( 'offload s3 plugin not configured..' );
-			return;
-		}
-
-		$s3_data = get_post_meta( $this->id, 'amazonS3_info', true );
-		if ( ! $s3_data ) {
-			return;
-		}
-
-		$path = dirname( $s3_data['key'] );
-
-		foreach ( $this->sizes as $size_name => $size ) {
-			$local_file_path = get_home_path() . $s3_data['key'];
-
-			$s3_data['key'] = wp_normalize_path( $path . '/' . basename( $size->filename ) );
-			$as3cf->plugin_compat->copy_s3_file_to_server( $s3_data, $size->filename );
-		}
 	}
 
 	public function compress() {
@@ -199,26 +189,42 @@ class Tiny_Image {
 			return;
 		}
 
-		/* Integration tests need to be written before this can be enabled. */
-		// if ( $this->settings->has_offload_s3_installed() ) {
-		// 	$this->download_missing_image_sizes();
-		// }
-
 		$success = 0;
 		$failed = 0;
 
-		$compressor = $this->settings->get_compressor();
 		$active_tinify_sizes = $this->settings->get_active_tinify_sizes();
-		$uncompressed_sizes = $this->filter_image_sizes( 'uncompressed', $active_tinify_sizes );
 
-		foreach ( $uncompressed_sizes as $size_name => $size ) {
+		if ( $this->settings->get_conversion_enabled() ) {
+			$uncompressed_sizes = $this->filter_image_sizes( 'uncompressed', $active_tinify_sizes );
+			$unconverted_sizes = $this->filter_image_sizes( 'unconverted', $active_tinify_sizes );
+
+			$unprocessed_sizes = $uncompressed_sizes + $unconverted_sizes;
+		} else {
+			$unprocessed_sizes = $this->filter_image_sizes( 'uncompressed', $active_tinify_sizes );
+		}
+
+		$compressor = $this->settings->get_compressor();
+		$convert_to = $this->convert_to();
+
+		foreach ( $unprocessed_sizes as $size_name => $size ) {
 			if ( ! $size->is_duplicate() ) {
 				$size->add_tiny_meta_start();
 				$this->update_tiny_post_meta();
 				$resize = $this->settings->get_resize_options( $size_name );
 				$preserve = $this->settings->get_preserve_options( $size_name );
 				try {
-					$response = $compressor->compress_file( $size->filename, $resize, $preserve );
+					$response = $compressor->compress_file(
+						$size->filename,
+						$resize,
+						$preserve,
+						$convert_to
+					);
+
+					// ensure that all conversion are in the same format as the first one
+					$convert_to = isset( $response['convert'] ) ?
+						array( $response['convert']['type'] ) :
+						$convert_to;
+
 					$size->add_tiny_meta( $response );
 					$success++;
 				} catch ( Tiny_Exception $e ) {
@@ -242,6 +248,13 @@ class Tiny_Image {
 		);
 	}
 
+	public function delete_converted_image() {
+		$sizes = $this->get_image_sizes();
+		foreach ( $sizes as $size ) {
+			$size->delete_converted_image_size();
+		}
+	}
+
 	public function compress_retina( $size_name, $path ) {
 		if ( $this->settings->get_compressor() === null || ! $this->file_type_allowed() ) {
 			return;
@@ -250,16 +263,19 @@ class Tiny_Image {
 		if ( ! isset( $this->sizes[ $size_name ] ) ) {
 			$this->sizes[ $size_name ] = new Tiny_Image_Size( $path );
 		}
+
 		$size = $this->sizes[ $size_name ];
+
+		$compressor = $this->settings->get_compressor();
+		$convert_to = $this->convert_to();
 
 		if ( ! $size->has_been_compressed() ) {
 			$size->add_tiny_meta_start();
 			$this->update_tiny_post_meta();
-			$compressor = $this->settings->get_compressor();
 			$preserve = $this->settings->get_preserve_options( $size_name );
 
 			try {
-				$response = $compressor->compress_file( $path, false, $preserve );
+				$response = $compressor->compress_file( $path, false, $preserve, $convert_to );
 				$size->add_tiny_meta( $response );
 			} catch ( Tiny_Exception $e ) {
 				$size->add_tiny_meta_error( $e );
@@ -385,7 +401,7 @@ class Tiny_Image {
 				if ( isset( $size->meta['error'] ) && isset( $size->meta['message'] ) ) {
 					if ( null === $last_timestamp || $last_timestamp < $size->meta['timestamp'] ) {
 						$last_timestamp = $size->meta['timestamp'];
-						$error_message = mb_strimwidth( $size->meta['message'], 0 , 140, '...' );
+						$error_message = Tiny_Helpers::truncate_text( $size->meta['message'], 140 );
 					}
 				}
 			}
@@ -395,7 +411,7 @@ class Tiny_Image {
 
 	public function get_savings( $stats ) {
 		$before = $stats['initial_total_size'];
-		$after = $stats['optimized_total_size'];
+		$after = $stats['compressed_total_size'];
 		if ( 0 === $before ) {
 			$savings = 0;
 		} else {
@@ -411,62 +427,60 @@ class Tiny_Image {
 		}
 
 		$this->statistics['initial_total_size'] = 0;
-		$this->statistics['optimized_total_size'] = 0;
-		$this->statistics['image_sizes_optimized'] = 0;
-		$this->statistics['available_unoptimized_sizes'] = 0;
+		$this->statistics['compressed_total_size'] = 0;
+		$this->statistics['image_sizes_compressed'] = 0;
+		$this->statistics['available_uncompressed_sizes'] = 0;
+		$this->statistics['image_sizes_converted'] = 0;
+		$this->statistics['available_unconverted_sizes'] = 0;
 
 		foreach ( $this->sizes as $size_name => $size ) {
-			if ( ! $size->is_duplicate() ) {
-				if ( array_key_exists( $size_name, $active_sizes ) ) {
-					if ( isset( $size->meta['input'] ) ) {
-						$input = $size->meta['input'];
-						$this->statistics['initial_total_size'] += intval( $input['size'] );
-						if ( isset( $size->meta['output'] ) ) {
-							$output = $size->meta['output'];
-							if ( $size->modified() ) {
-								$this->statistics['optimized_total_size'] += $size->filesize();
-								if ( in_array( $size_name, $active_tinify_sizes, true ) ) {
-									$this->statistics['available_unoptimized_sizes'] += 1;
-								}
-							} else {
-								$this->statistics['optimized_total_size']
-									+= intval( $output['size'] );
-								$this->statistics['image_sizes_optimized'] += 1;
-							}
-						} else {
-							$this->statistics['optimized_total_size'] += intval( $input['size'] );
+			// skip duplicates or inactive sizes
+			if ( $size->is_duplicate() || ! isset( $active_sizes[ $size_name ] ) ) {
+				continue;
+			}
+
+			$file_size       = $size->filesize();
+			$is_active_size  = in_array( $size_name, $active_tinify_sizes, true );
+
+			if ( isset( $size->meta['input'] ) ) {
+				$input_size = (int) $size->meta['input']['size'];
+				$this->statistics['initial_total_size'] += $input_size;
+
+				if ( isset( $size->meta['output'] ) ) {
+					$output_size = (int) $size->meta['output']['size'];
+
+					if ( $size->modified() ) {
+						$this->statistics['compressed_total_size'] += $file_size;
+						if ( $is_active_size ) {
+							$this->statistics['available_uncompressed_sizes']++;
 						}
-					} elseif ( $size->exists() ) {
-						$this->statistics['initial_total_size'] += $size->filesize();
-						$this->statistics['optimized_total_size'] += $size->filesize();
-						if ( in_array( $size_name, $active_tinify_sizes, true ) ) {
-							$this->statistics['available_unoptimized_sizes'] += 1;
-						}
+					} else {
+						$this->statistics['compressed_total_size'] += $output_size;
+						$this->statistics['image_sizes_compressed']++;
 					}
+				} else {
+					$this->statistics['compressed_total_size'] += $input_size;
+				}
+			} elseif ( $size->exists() ) {
+				$this->statistics['initial_total_size']   += $file_size;
+				$this->statistics['compressed_total_size'] += $file_size;
+				if ( $is_active_size ) {
+					$this->statistics['available_uncompressed_sizes']++;
+				}
+			}
+
+			if ( $is_active_size ) {
+				if ( $size->has_been_converted() ) {
+					$this->statistics['image_sizes_converted']++;
+				} else {
+					$this->statistics['available_unconverted_sizes']++;
 				}
 			}
 		}// End foreach().
 
-		/*
-			When an image hasn't yet been optimized but only exists on S3, we still need to
-			know the total size of the image sizes for the bulk optimization tool.
-			TODO: First write integration tests before enabling this again.
-
-		if (
-			0 === $this->statistics['initial_total_size'] &&
-			0 === $this->statistics['optimized_total_size'] &&
-			$this->settings->has_offload_s3_installed()
-		) {
-			$s3_data = get_post_meta( $this->id, 'wpos3_filesize_total', true );
-			if ( $s3_data ) {
-				$this->statistics['initial_total_size'] = $s3_data;
-				$this->statistics['optimized_total_size'] = $s3_data;
-			}
-		}
-		*/
-
 		return $this->statistics;
 	}
+
 
 	public static function is_original( $size ) {
 		return self::ORIGINAL === $size;
@@ -474,5 +488,73 @@ class Tiny_Image {
 
 	public static function is_retina( $size ) {
 		return strrpos( $size, 'wr2x' ) === strlen( $size ) - strlen( 'wr2x' );
+	}
+
+	public function can_be_converted() {
+		return $this->settings->get_conversion_enabled() && $this->file_type_allowed();
+	}
+
+	/**
+	 * Get the targeted conversion.
+	 * If original is already converted, then we use the originals' mimetype.
+	 * If nothing is converted yet, we use the settings conversion settings.
+	 *
+	 * @since 3.6.4
+	 *
+	 * @return array{string} mimetypes to which the image should be converted to
+	 */
+	private function convert_to() {
+		$convert_settings = $this->settings->get_conversion_options();
+		if ( ! $convert_settings['convert'] ) {
+			// conversion is off so return no mimetypes to convert to
+			return array();
+		}
+
+		if ( isset( $this->sizes[ self::ORIGINAL ] ) ) {
+			// original is not in sizes so mimetypes are open
+			return $convert_settings['convert_to'];
+		}
+
+		$original_img_size = $this->sizes[ self::ORIGINAL ];
+		if ( $original_img_size->converted() ) {
+			// original has been convert so use that mimetype to convert to
+			return array( $original_img_size->meta['convert']['type'] );
+		}
+
+		return $convert_settings['convert_to'];
+
+	}
+
+	/**
+	 * Marks the image as compressed without actually compressing it.
+	 *
+	 * This method parses existing metadata and delegates to each image size to mark
+	 * itself as compressed. It considers conversion settings when marking the sizes.
+	 * This is useful for images that are already optimized or when you want to skip
+	 * compression while still marking them as processed in the system.
+	 *
+	 * @since 3.0.0
+	 */
+	public function mark_as_compressed() {
+		$this->parse_tiny_metadata();
+
+		$conversion_enabled = $this->settings->get_conversion_enabled();
+
+		$active_tinify_sizes = $this->settings->get_active_tinify_sizes();
+
+		if ( $this->settings->get_conversion_enabled() ) {
+			$uncompressed_sizes = $this->filter_image_sizes( 'uncompressed', $active_tinify_sizes );
+			$unconverted_sizes = $this->filter_image_sizes( 'unconverted', $active_tinify_sizes );
+
+			$unprocessed_sizes = $uncompressed_sizes + $unconverted_sizes;
+		} else {
+			$unprocessed_sizes = $this->filter_image_sizes( 'uncompressed', $active_tinify_sizes );
+		}
+
+		foreach ( $unprocessed_sizes as $size ) {
+			$size->mark_as_compressed( $conversion_enabled );
+		}
+
+		$this->update_tiny_post_meta();
 	}
 }

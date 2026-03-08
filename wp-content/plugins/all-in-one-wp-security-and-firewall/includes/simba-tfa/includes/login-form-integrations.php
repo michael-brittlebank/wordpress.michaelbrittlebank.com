@@ -110,16 +110,20 @@ class Simba_TFA_Login_Form_Integrations {
 		$login = $affiliate_wp->login;
 		
 		$params = array(
-			'log' => stripslashes($_POST['affwp_user_login']),
-			'caller'=> $_SERVER['PHP_SELF'] ? $_SERVER['PHP_SELF'] : $_SERVER['REQUEST_URI'],
-			'two_factor_code' => isset($_POST['two_factor_code']) ? stripslashes((string) $_POST['two_factor_code']) : '',
+			// phpcs:ignore WordPress.Security.NonceVerification -- No nonce.
+			'log' => isset($_POST['affwp_user_login']) ? sanitize_user(wp_unslash($_POST['affwp_user_login'])): '',
+
+			$request_uri = isset($_SERVER['REQUEST_URI']) ? sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI'])) : '',
+			'caller'=> isset($_SERVER['PHP_SELF']) ? sanitize_text_field(wp_unslash($_SERVER['PHP_SELF'])) : $request_uri,
+			// phpcs:ignore WordPress.Security.NonceVerification -- No nonce.
+			'two_factor_code' => isset($_POST['two_factor_code']) ? sanitize_text_field(wp_unslash((string) $_POST['two_factor_code'])) : '',
 		);
 		$code_ok = $this->tfa->authorise_user_from_login($params, true);
 		
 		$code_ok = apply_filters('simbatfa_affwp_process_login_form_auth_result', $code_ok, $params);
 		
 		if (is_wp_error($code_ok)) {
-			$login->add_error($code_ok->get_error_code, $code_ok->get_error_message());
+			$login->add_error($code_ok->get_error_code(), $code_ok->get_error_message());
 		} elseif (!$code_ok) {
 			$login->add_error('authentication_failed', __('Error:', 'all-in-one-wp-security-and-firewall').' '.apply_filters('simba_tfa_message_code_incorrect', __('The one-time password (TFA code) you entered was incorrect.', 'all-in-one-wp-security-and-firewall')));
 		}

@@ -4,19 +4,22 @@ if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
-class AIOWPSecurity_List_Audit_Log extends AIOWPSecurity_List_Table {
+class AIOWPSecurity_List_Audit_Log extends AIOWPSecurity_Ajax_Data_Table {
 
 	/**
-	 * Sets up some table attributes (i.e: the plurals and whether it's ajax or not)
+	 * Constructs the table object and sets up its attributes.
+	 *
+	 * @param array $data - An array containing additional data for the table. Default is an empty array.
+	 * @return void
 	 */
-	public function __construct() {
-		global $status, $page;
+	public function __construct($data = array()) {
 
 		// Set parent defaults
 		parent::__construct(array(
 			'singular' => 'item', // singular name of the listed records
 			'plural' => 'items',  // plural name of the listed records
-			'ajax' => false       // does this table support ajax?
+			'ajax' => true,       // does this table support ajax?
+			'data' => $data       // Request data
 		));
 
 	}
@@ -24,9 +27,9 @@ class AIOWPSecurity_List_Audit_Log extends AIOWPSecurity_List_Table {
 	/**
 	 * Returns the default column item
 	 *
-	 * @param object $item
-	 * @param string $column_name
-	 * @return void
+	 * @param object $item        - item from which column data is returned
+	 * @param string $column_name - column name to be fetched from item
+	 * @return string
 	 */
 	public function column_default($item, $column_name) {
 		return $item[$column_name];
@@ -50,33 +53,59 @@ class AIOWPSecurity_List_Audit_Log extends AIOWPSecurity_List_Table {
 	/**
 	 * Returns created column html to be rendered.
 	 *
-	 * @param array - data for the columns on the current row
+	 * @param array $item Data for the columns on the current row.
 	 *
-	 * @return string - the html to be rendered
+	 * @return string The html to be rendered.
 	 */
 	public function column_created($item) {
-		$tab = strip_tags($_REQUEST['tab']);
-
-		$delete_url = sprintf('admin.php?page=%s&tab=%s&action=%s&id=%s', AIOWPSEC_MAIN_MENU_SLUG, $tab, 'delete_audit_log', $item['id']);
-		// Add nonce to delete URL
-		$delete_url_nonce = wp_nonce_url($delete_url, "delete_audit_log", "aiowps_nonce");
-
-		// Build row actions
 		$actions = array(
-			'delete' => '<a href="'.$delete_url_nonce.'" onclick="return confirm(\''.esc_js(__('Are you sure you want to delete this item?', 'all-in-one-wp-security-and-firewall')).'\')">'.__('Delete').'</a>',
+			'delete' => '<a class="aios-delete-audit-log" data-id="' . esc_attr($item['id']) . '" data-message="' . esc_js(__('Are you sure you want to delete this item?', 'all-in-one-wp-security-and-firewall')) . '" href="">' . esc_html__('Delete', 'all-in-one-wp-security-and-firewall') . '</a>'
 		);
 
-		// Return the user_login contents
-		return sprintf('%1$s <span style="color:silver"></span>%2$s',
-			/* $1%s */ date('Y-m-d H:i:s', $item['created']),
-			/* $2%s */ $this->row_actions($actions)
-		);
+		return AIOWPSecurity_Utility::convert_timestamp($item['created']) . '<span style="color:silver"></span>' . $this->row_actions($actions);
 	}
-	
+
+	/**
+	 * Returns ip column html to be rendered.
+	 *
+	 * @param array $item Data for the columns on the current row.
+	 *
+	 * @return string The html to be rendered.
+	 */
+	public function column_ip($item) {
+		$ip = $item['ip'];
+
+		$unblacklist_ip_warning_translation = __('Are you sure you want to unblacklist this IP address?', 'all-in-one-wp-security-and-firewall');
+		$unlock_ip_warning_translation = __('Are you sure you want to unlock this IP address?', 'all-in-one-wp-security-and-firewall');
+		$lock_ip_warning_translation = __('Are you sure you want to temporarily lock this IP address?', 'all-in-one-wp-security-and-firewall');
+		$blacklist_ip_warning_translation = __('Are you sure you want to blacklist this IP address?', 'all-in-one-wp-security-and-firewall');
+
+		// Build row actions.
+		if (AIOWPSecurity_Utility_Permissions::is_main_site_and_super_admin() && AIOWPSecurity_Utility::check_blacklist_ip($ip)) {
+			$actions = array(
+				'unblacklist' => '<a class="aios-unblacklist-ip-button" data-ip="' . esc_attr($ip) . '" data-message="' . esc_js($unblacklist_ip_warning_translation) . '" href="">' . esc_html__('Unblacklist', 'all-in-one-wp-security-and-firewall') . '</a>',
+			);
+		} elseif (AIOWPSecurity_Utility::check_locked_ip($ip, 'audit-log')) {
+			$actions = array(
+				'unlock' => '<a class="aios-unlock-ip-button" data-ip="' . esc_attr($ip) . '" data-message="' . esc_js($unlock_ip_warning_translation) . '" href="">' . esc_html__('Unlock', 'all-in-one-wp-security-and-firewall') . '</a>',
+			);
+		} else {
+			$actions = array(
+				'lock_ip' => '<a class="aios-lock-ip-button" data-ip="' . esc_attr($ip) . '" data-message="' . esc_js($lock_ip_warning_translation) . '" href="">' . esc_html__('Lock IP', 'all-in-one-wp-security-and-firewall') . '</a>',
+			);
+
+			if (AIOWPSecurity_Utility_Permissions::is_main_site_and_super_admin()) {
+				$actions['blacklist_ip'] = '<a class="aios-blacklist-ip-button" data-ip="' . esc_attr($ip) . '" data-message="' . esc_js($blacklist_ip_warning_translation) . '" href="">' . esc_html__('Blacklist IP', 'all-in-one-wp-security-and-firewall') . '</a>';
+			}
+		}
+
+		return $ip . '<span style="color:silver"></span>' . $this->row_actions($actions);
+	}
+
 	/**
 	 * Returns event type column html to be rendered.
 	 *
-	 * @param array - data for the columns on the current row
+	 * @param array $item - data for the columns on the current row
 	 *
 	 * @return string - the html to be rendered
 	 */
@@ -91,72 +120,19 @@ class AIOWPSecurity_List_Audit_Log extends AIOWPSecurity_List_Table {
 	/**
 	 * Returns details column html to be rendered.
 	 *
-	 * @param array - data for the columns on the current row
+	 * @param array $item - data for the columns on the current row
 	 *
 	 * @return string - the html to be rendered
 	 */
 	public function column_details($item) {
 		$details = json_decode($item['details'], true);
-		
+
 		if (!is_array($details)) return $item['details'];
 
-		if (array_key_exists('core_updated', $details)) {
-			$info = $details['core_updated'];
-			return sprintf(__('WordPress updated from version %s to %s', 'all-in-one-wp-security-and-firewall'), $info['old_version'], $info['new_version']);
-		} elseif (array_key_exists('plugin', $details)) {
-			$info = $details['plugin'];
-			return sprintf(__('Plugin', 'all-in-one-wp-security-and-firewall').': %s %s %s (v%s)', $info['name'], $info['network'], $info['action'], $info['version']);
-		} elseif (array_key_exists('theme', $details)) {
-			$info = $details['theme'];
-			if ('activated' == $info['action']) {
-				return sprintf(__('Theme', 'all-in-one-wp-security-and-firewall').': %s %s', $info['name'], $info['action']);
-			} else {
-				return sprintf(__('Theme', 'all-in-one-wp-security-and-firewall').': %s %s %s (v%s)', $info['name'], $info['network'], $info['action'], $info['version']);
-			}
-		} elseif (array_key_exists('entity_changed', $details)) {
-			$info = $details['entity_changed'];
-			if ($info['entity']) {
-				return sprintf(__('Entity: "%s" has changed, please check the stacktrace for more details', 'all-in-one-wp-security-and-firewall'), $info['entity']);
-			} else {
-				return __('An unknown entity has changed, please check the stacktrace for more details', 'all-in-one-wp-security-and-firewall');
-			}
-		} elseif (array_key_exists('translation_updated', $details)) {
-			$info = $details['translation_updated'];
-			if ('core' == $info['type']) {
-				return sprintf(__('Core %s translations updated to version %s', 'all-in-one-wp-security-and-firewall'), $info['language'], $info['version']);
-			} elseif ('plugin' == $info['type']) {
-				return sprintf(__('Plugin "%s" %s translations updated to version %s', 'all-in-one-wp-security-and-firewall'), $info['slug'], $info['language'], $info['version']);
-			} elseif ('theme' == $info['type']) {
-				return sprintf(__('Theme "%s" %s translations updated to version %s', 'all-in-one-wp-security-and-firewall'), $info['slug'], $info['language'], $info['version']);
-			}
-		} elseif (array_key_exists('failed_login', $details)) {
-			$info = $details['failed_login'];
-			if ($info['imported']) {
-				return __('Event imported from the failed logins table', 'all-in-one-wp-security-and-firewall');
-			} elseif ($info['known']) {
-				return sprintf(__('Failed login attempt with a known username: %s', 'all-in-one-wp-security-and-firewall'), $info['username']);
-			} else {
-				return sprintf(__('Failed login attempt with a unknown username: %s', 'all-in-one-wp-security-and-firewall'), $info['username']);
-			}
-		} elseif (array_key_exists('successful_login', $details)) {
-			$info = $details['successful_login'];
-			return sprintf(__('Successful login with username: %s', 'all-in-one-wp-security-and-firewall'), $info['username']);
-		} elseif (array_key_exists('user_registration', $details)) {
-			$info = $details['user_registration'];
-			if ('admin' == $info['type']) {
-				return sprintf(__('Admin %s registered new user: %s', 'all-in-one-wp-security-and-firewall'), $info['admin_username'], $info['registered_username']);
-			} elseif ('pending' == $info['type']) {
-				return sprintf(__('User %s registered and set to pending', 'all-in-one-wp-security-and-firewall'), $info['registered_username']);
-			} elseif ('registered' == $info['type']) {
-				return sprintf(__('User %s registered', 'all-in-one-wp-security-and-firewall'), $info['registered_username']);
-			}
-		} elseif (array_key_exists('table_migration', $details)) {
-			$info = $details['table_migration'];
-			if ($info['success']) {
-				return sprintf(__('Successfully migrated the `%s` table data to the `%s` table', 'all-in-one-wp-security-and-firewall'), $info['from_table'], $info['to_table']);
-			} else {
-				return sprintf(__('Failed to migrate the `%s` table data to the `%s` table', 'all-in-one-wp-security-and-firewall'), $info['from_table'], $info['to_table']);
-			}
+		$key = array_keys($details)[0];
+
+		if (method_exists("AIOWPSecurity_Audit_Text_Handler", "{$key}_to_text")) {
+			return call_user_func("AIOWPSecurity_Audit_Text_Handler::{$key}_to_text", $details[$key]);
 		}
 
 		return $item['details'];
@@ -165,15 +141,20 @@ class AIOWPSecurity_List_Audit_Log extends AIOWPSecurity_List_Table {
 	/**
 	 * Returns stack trace column html to be rendered.
 	 *
-	 * @param array - data for the columns on the current row
+	 * @param array $item - data for the columns on the current row
 	 *
 	 * @return string - the html to be rendered
 	 */
 	public function column_stacktrace($item) {
 		if (empty($item['stacktrace'])) return __('No stack trace available.', 'all-in-one-wp-security-and-firewall');
-		
-		$stacktrace = maybe_unserialize($item['stacktrace']);
+
+		if (is_serialized($item['stacktrace'])) {
+			$stacktrace = AIOWPSecurity_Utility::unserialize($item['stacktrace']);
+		} else {
+			$stacktrace = $item['stacktrace'];
+		}
 		ob_start();
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_var_dump -- Part of error reporting system.
 		var_dump($stacktrace);
 		$stacktrace_output = ob_get_contents();
 		ob_end_clean();
@@ -192,7 +173,6 @@ class AIOWPSecurity_List_Audit_Log extends AIOWPSecurity_List_Table {
 	public function get_columns() {
 		$columns = array(
 			'cb' => '<input type="checkbox">', //Render a checkbox
-			'id' => 'ID',
 			'created' => __('Date and time', 'all-in-one-wp-security-and-firewall'),
 			'level' => __('Level', 'all-in-one-wp-security-and-firewall'),
 			'network_id' => __('Network ID', 'all-in-one-wp-security-and-firewall'),
@@ -203,7 +183,7 @@ class AIOWPSecurity_List_Audit_Log extends AIOWPSecurity_List_Table {
 			'details' => __('Details', 'all-in-one-wp-security-and-firewall'),
 			'stacktrace' => __('Stack trace', 'all-in-one-wp-security-and-firewall')
 		);
-
+		$columns = apply_filters('list_auditlogs_get_columns', $columns);
 		return $columns;
 	}
 
@@ -224,14 +204,14 @@ class AIOWPSecurity_List_Audit_Log extends AIOWPSecurity_List_Table {
 			'details' => array('details', false),
 			'stacktrace' => array('stacktrace', false)
 		);
-
+		$sortable_columns = apply_filters('list_auditlogs_get_sortable_columns', $sortable_columns);
 		return $sortable_columns;
 	}
 
 	/**
 	 * This function will display a list of bulk actions for the list table
 	 *
-	 * @return void
+	 * @return array
 	 */
 	public function get_bulk_actions() {
 		$actions = array(
@@ -245,33 +225,35 @@ class AIOWPSecurity_List_Audit_Log extends AIOWPSecurity_List_Table {
 	/**
 	 * This function will process the bulk action request, $search_term and $filters are only used if the user is trying to bulk delete the filtered items
 	 *
-	 * @param string $search_term - the search string
-	 * @param array  $filters - the filters
+	 * @param string $search_term - The search term used for filtering records.
+	 * @param array  $filters     - An array containing filters applied to the records.
+	 * @param string $action      - The bulk action to be performed.
+	 * @param array  $items       - An array of record IDs on which the action will be performed. Default is an empty array.
 	 *
 	 * @return void
 	 */
-	private function process_bulk_action($search_term, $filters) {
-		if (empty($_REQUEST['_wpnonce']) || !isset($_REQUEST['_wp_http_referer'])) return;
-		$result = AIOWPSecurity_Utility_Permissions::check_nonce_and_user_cap($_REQUEST['_wpnonce'], 'bulk-items');
-		if (is_wp_error($result)) return;
-		
+	private function process_bulk_action($search_term, $filters, $action, $items = array()) {
 		global $wpdb;
 
-		$audit_log_tbl = AIOWPSEC_TBL_AUDIT_LOG;
-		
-		if ('delete_all' === $this->current_action()) { // Process delete bulk actions
-			$this->delete_audit_event_records(array(), true);
-		} elseif ('delete_selected' === $this->current_action()) {
-			if (!isset($_REQUEST['item'])) {
-				AIOWPSecurity_Admin_Menu::show_msg_error_st(__('Please select some records using the checkboxes', 'all-in-one-wp-security-and-firewall'));
+		if ('delete_selected' === $action) { // Process delete bulk actions
+			if (!isset($items)) {
+				AIOS_Helper::set_message('aios_list_message', __('Please select some records using the checkboxes', 'all-in-one-wp-security-and-firewall'), 'error');
 			} else {
-				$this->delete_audit_event_records($_REQUEST['item']);
+				$this->delete_audit_event_records($items);
 			}
-		} elseif ('delete_filtered' === $this->current_action()) {
-			$where_sql = $this->get_audit_list_where_sql($search_term, $filters);
-			$results = $wpdb->get_results("SELECT id FROM {$audit_log_tbl} {$where_sql}", 'ARRAY_A');
-			$items = array_column($results, 'id');
-			$this->delete_audit_event_records($items);
+		} elseif ('delete_filtered' === $action) {
+			if (!empty($filters) || '' !== $search_term) {
+				$audit_log_tbl = AIOWPSEC_TBL_AUDIT_LOG;
+				$where_sql = $this->get_audit_list_where_sql($search_term, $filters);
+				// phpcs:ignore WordPress.DB.PreparedSQL, WordPress.DB.DirectDatabaseQuery -- PCP error. Ignore.
+				$results = $wpdb->get_results("SELECT id FROM {$audit_log_tbl} {$where_sql}", 'ARRAY_A');
+				$items = array_column($results, 'id');
+				$this->delete_audit_event_records($items);
+			} else {
+				AIOS_Helper::set_message('aios_list_message', __('Please select the level or the event type filter or filter by a search term', 'all-in-one-wp-security-and-firewall'), 'error');
+			}
+		} elseif ('delete_all' === $action) {
+			$this->delete_audit_event_records(null, true);
 		}
 	}
 
@@ -288,31 +270,35 @@ class AIOWPSecurity_List_Audit_Log extends AIOWPSecurity_List_Table {
 				?>
 					<div class="alignleft actions">
 						<select name="level-filter" class="audit-filter-level">
-							<?php $selected = !isset($_POST['level-filter']) ? ' selected = "selected"' : ''; ?>
-							<option value="-1" <?php echo $selected; ?>><?php _e('All levels', 'all-in-one-wp-security-and-firewall'); ?></option>
+						<?php $selected = !isset($this->_args['data']['level-filter']) ? ' selected = "selected"' : ''; ?>
+							<?php // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- No user input to escape. ?>
+							<option value="-1" <?php echo $selected; ?>><?php esc_html_e('All levels', 'all-in-one-wp-security-and-firewall'); ?></option>
 							<?php
-								foreach(AIOWPSecurity_Audit_Events::$log_levels as $level) {
-									$selected = isset($_POST['level-filter']) && $_POST['level-filter'] == $level ? ' selected = "selected"' : '';
-									echo '<option value="'. $level .'" '. $selected .'>'. $level .'</option>';
+								foreach (AIOWPSecurity_Audit_Events::$log_levels as $level) {
+									$selected = isset($this->_args['data']['level-filter']) && $this->_args['data']['level-filter'] == $level ? ' selected = "selected"' : '';
+									// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- No user input to escape.
+									echo '<option value="'. esc_attr($level) .'" '. $selected .'>'. esc_html($level) .'</option>';
 								}
 							?>
 						</select>
 						<select name="event-filter" class="audit-filter-event">
-						<?php $selected = !isset($_POST['event-filter']) ? ' selected = "selected"' : ''; ?>
-							<option value="-1" <?php echo $selected; ?>><?php _e('All events', 'all-in-one-wp-security-and-firewall'); ?></option>
+						<?php $selected = !isset($this->_args['data']['event-filter']) ? ' selected = "selected"' : ''; ?>
+							<?php // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- No user input to escape. ?>
+							<option value="-1" <?php echo $selected; ?>><?php esc_html_e('All events', 'all-in-one-wp-security-and-firewall'); ?></option>
 							<?php
-								foreach(AIOWPSecurity_Audit_Events::$event_types as $event => $description) {
-									$selected = isset($_POST['event-filter']) && $_POST['event-filter'] == $event ? ' selected = "selected"' : '';
-									echo '<option value="'. $event .'" '. $selected .'>'. $description .'</option>';
+								foreach (AIOWPSecurity_Audit_Events::$event_types as $event_type => $event) {
+									$selected = isset($this->_args['data']['event-filter']) && $this->_args['data']['event-filter'] == $event_type ? ' selected = "selected"' : '';
+									// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- No user input to escape.
+									echo '<option value="'. esc_attr($event_type) .'" '. $selected .'>'. esc_html($event) .'</option>';
 								}
 							?>
 						</select>
-						<?php submit_button(__('Filter', 'all-in-one-wp-security-and-firewall'), 'action', '', false); ?>
+						<?php submit_button(esc_html__('Filter', 'all-in-one-wp-security-and-firewall'), 'action', '', false); ?>
 					</div>
 				<?php
 				break;
 			case 'bottom':
-				submit_button(__('Export to CSV', 'all-in-one-wp-security-and-firewall'), 'primary', 'aiowps_export_audit_event_logs_to_csv', false);
+				submit_button(esc_html__('Export to CSV', 'all-in-one-wp-security-and-firewall'), 'primary', 'aiowps_export_audit_event_logs_to_csv', false);
 				break;
 		}
 	}
@@ -320,20 +306,22 @@ class AIOWPSecurity_List_Audit_Log extends AIOWPSecurity_List_Table {
 	/**
 	 * This function will process the delete request for the audit event records
 	 *
-	 * @param integer|array $entries    - a ID or array of IDs to be deleted
+	 * @param integer|array $entries    - an ID or array of IDs to be deleted
 	 * @param boolean       $delete_all - indicates if all entries should be deleted or not (if true, then $entries will be ignored)
 	 *
-	 * @return void
+	 * @return void|string
 	 */
 	public function delete_audit_event_records($entries, $delete_all = false) {
 		global $wpdb, $aio_wp_security;
 		
 		$audit_log_tbl = AIOWPSEC_TBL_AUDIT_LOG;
 		$result = false;
-		
+
 		if ($delete_all) {
 			// Delete all records
-			$delete_command = "DELETE FROM " . $audit_log_tbl;
+			$site_id_where_sql = (!is_super_admin()) ? ' WHERE site_id = ' . get_current_blog_id() : '';
+			$delete_command = "DELETE FROM " . $audit_log_tbl . $site_id_where_sql;
+			// phpcs:ignore WordPress.DB.PreparedSQL, WordPress.DB.DirectDatabaseQuery -- PCP error. Ignore.
 			$result = $wpdb->query($delete_command);
 		} elseif (is_array($entries)) {
 			// Delete multiple records
@@ -341,36 +329,45 @@ class AIOWPSecurity_List_Audit_Log extends AIOWPSecurity_List_Table {
 			$entries = array_filter($entries, 'is_numeric'); // Discard non-numeric ID values
 			$chunks = array_chunk($entries, 1000);
 
+			$site_id_where_sql = (!is_super_admin()) ? ' AND site_id = ' . get_current_blog_id() : '';
+
 			// Processing each chunk
 			foreach ($chunks as $chunk) {
 				$id_list = "(" . implode(",", $chunk) . ")"; // Create comma separate list for DB operation
-				$delete_command = "DELETE FROM " . $audit_log_tbl . " WHERE id IN " . $id_list;
+				$delete_command = "DELETE FROM " . $audit_log_tbl . " WHERE id IN " . $id_list . $site_id_where_sql;
+				// phpcs:ignore WordPress.DB.PreparedSQL, WordPress.DB.DirectDatabaseQuery -- PCP error. Ignore.
 				$result = $wpdb->query($delete_command);
 				if (!$result) {
 					$aio_wp_security->debug_logger->log_debug('Database error occurred when deleting rows from Audit log table. Database error: '.$wpdb->last_error, 4);
-					AIOWPSecurity_Admin_Menu::show_msg_record_not_deleted_st();
+					AIOS_Helper::set_message('aios_list_message', __('The selected record(s) have failed to delete.', 'all-in-one-wp-security-and-firewall'), 'error');
 					return;
 				}
 			}
-		} elseif ($entries != NULL) {
+		} elseif (!empty($entries)) {
 			// Delete single record
-			$delete_command = "DELETE FROM " . $audit_log_tbl . " WHERE id = '" . absint($entries) . "'";
+			$site_id_where_sql = (!is_super_admin()) ? ' AND site_id = ' . get_current_blog_id() : '';
+			$delete_command = "DELETE FROM " . $audit_log_tbl . " WHERE id = '" . absint($entries) . "'" . $site_id_where_sql;
+			// phpcs:ignore WordPress.DB.PreparedSQL, WordPress.DB.DirectDatabaseQuery -- PCP error. Ignore.
 			$result = $wpdb->query($delete_command);
 		}
 
-		if ($result) {
-			AIOWPSecurity_Admin_Menu::show_msg_record_deleted_st();
+		if ($result || 0 < $result) {
+			$aios_list_message = __('The selected record(s) has been deleted successfully.', 'all-in-one-wp-security-and-firewall');
+			AIOS_Helper::set_message('aios_list_message', $aios_list_message);
 		} else {
+			$aios_list_message = __('The selected record(s) have failed to delete.', 'all-in-one-wp-security-and-firewall');
 			$aio_wp_security->debug_logger->log_debug('Database error occurred when deleting rows from Audit log table. Database error: '.$wpdb->last_error, 4);
-			AIOWPSecurity_Admin_Menu::show_msg_record_not_deleted_st();
+			AIOS_Helper::set_message('aios_list_message', $aios_list_message, 'error');
 		}
+
+		return $aios_list_message;
 	}
 
 	/**
 	 * This function will build and return the SQL WHERE statement
 	 *
 	 * @param string $search_term - the search term applied
-	 * @param array  $filters - the filters applied
+	 * @param array  $filters     - the filters applied
 	 *
 	 * @return string - the SQL WHERE statement
 	 */
@@ -379,7 +376,7 @@ class AIOWPSecurity_List_Audit_Log extends AIOWPSecurity_List_Table {
 		$where_sql = '';
 
 		if ('' == $search_term) {
-			$where_sql = (is_multisite() && !is_main_site()) ? 'WHERE site_id = '.get_current_blog_id() : '';
+			$where_sql = (!is_super_admin()) ? 'WHERE site_id = '.get_current_blog_id() : '';
 			$extra_where = '';
 			
 			if (!empty($filters)) {
@@ -392,7 +389,7 @@ class AIOWPSecurity_List_Audit_Log extends AIOWPSecurity_List_Table {
 
 			$where_sql .= $extra_where;
 		} else {
-			$where_sql = (is_multisite() && !is_main_site()) ? 'WHERE site_id = '.get_current_blog_id().' AND ' : 'WHERE ';
+			$where_sql = (!is_super_admin()) ? 'WHERE site_id = '.get_current_blog_id().' AND ' : 'WHERE ';
 			$extra_where = '';
 
 			if (!empty($filters)) {
@@ -439,13 +436,11 @@ class AIOWPSecurity_List_Audit_Log extends AIOWPSecurity_List_Table {
 		/**
 		 * First, lets decide how many records per page to show
 		 */
-		if (defined('AIOWPSEC_AUDIT_LOG_PER_PAGE')) {
-			$per_page = absint(AIOWPSEC_AUDIT_LOG_PER_PAGE);
-		}
-
+		$no_action = -1;
+		$per_page = defined('AIOWPSEC_AUDIT_LOG_PER_PAGE') ? absint(AIOWPSEC_AUDIT_LOG_PER_PAGE) : 100;
 		$per_page = empty($per_page) ? 100 : $per_page;
 		$current_page = $this->get_pagenum();
-		$offset = ($current_page - 1) * $per_page;
+		$offset = (!$ignore_pagination && $per_page > 0) ? ($current_page - 1) * $per_page : 0;
 		$columns = $this->get_columns();
 		$hidden = array('id'); // we really don't need the IDs of the log entries displayed
 		if (!is_multisite()) {
@@ -454,23 +449,42 @@ class AIOWPSecurity_List_Audit_Log extends AIOWPSecurity_List_Table {
 		}
 		$sortable = $this->get_sortable_columns();
 		$filters = array();
-		if (isset($_REQUEST['level-filter']) && -1 != $_REQUEST['level-filter']) $filters['level'] = sanitize_text_field($_REQUEST['level-filter']);
-		if (isset($_REQUEST['event-filter']) && -1 != $_REQUEST['event-filter']) $filters['event_type'] = sanitize_text_field($_REQUEST['event-filter']);
-		$search_term = isset($_REQUEST['s']) ? sanitize_text_field(stripslashes($_REQUEST['s'])) : '';
-
+		if (isset($this->_args['data']['level-filter']) && $no_action != $this->_args['data']['level-filter']) $filters['level'] = sanitize_text_field($this->_args['data']['level-filter']);
+		if (isset($this->_args['data']['event-filter']) && $no_action != $this->_args['data']['event-filter']) $filters['event_type'] = sanitize_text_field($this->_args['data']['event-filter']);
+		$search_term = isset($this->_args['data']['s']) ? sanitize_text_field(stripslashes($this->_args['data']['s'])) : '';
+		
 		$this->_column_headers = array($columns, $hidden, $sortable);
 
-		$this->process_bulk_action($search_term, $filters);
+		$items = array();
+
+		if (isset($this->_args['data']['items'])) {
+			if (is_array($this->_args['data']['items'])) {
+				foreach ($this->_args['data']['items'] as $item) {
+					$sanitized_item = sanitize_text_field($item);
+					$items[] = $sanitized_item;
+				}
+			} else {
+				$sanitized_item = sanitize_text_field($this->_args['data']['items']);
+				$items[] = $sanitized_item;
+			}
+		} else {
+			$items = null;
+		}
+
+		if (isset($this->_args['data']['action'])) $action = sanitize_text_field($this->_args['data']['action']);
+		else $action = $no_action;
+
+		if (isset($action) && $no_action !== $action) {
+			$this->process_bulk_action($search_term, $filters, $action, $items);
+		}
 
 		global $wpdb;
 
 		$audit_log_tbl = AIOWPSEC_TBL_AUDIT_LOG;
 
-		/* -- Ordering parameters -- */
 		// Parameters that are going to be used to order the result
-		isset($_GET["orderby"]) ? $orderby = strip_tags($_GET["orderby"]) : $orderby = '';
-		isset($_GET["order"]) ? $order = strip_tags($_GET["order"]) : $order = '';
-
+		isset($this->_args['data']["orderby"]) ? $orderby = wp_strip_all_tags($this->_args['data']["orderby"]) : $orderby = '';
+		isset($this->_args['data']["order"]) ? $order = wp_strip_all_tags($this->_args['data']["order"]) : $order = '';
 		// By default show the most recent audit log entries.
 		$orderby = !empty($orderby) ? esc_sql($orderby) : 'created';
 		$order = !empty($order) ? esc_sql($order) : 'DESC';
@@ -483,11 +497,21 @@ class AIOWPSecurity_List_Audit_Log extends AIOWPSecurity_List_Table {
 
 		$where_sql = $this->get_audit_list_where_sql($search_term, $filters);
 
+		// phpcs:ignore WordPress.DB.PreparedSQL, WordPress.DB.DirectDatabaseQuery -- PCP error. Ignore.
 		$total_items = $wpdb->get_var("SELECT COUNT(*) FROM {$audit_log_tbl} {$where_sql}");
 		if ($ignore_pagination) {
+			// phpcs:ignore WordPress.DB.PreparedSQL, WordPress.DB.DirectDatabaseQuery -- PCP error. Ignore.
 			$data = $wpdb->get_results("SELECT * FROM {$audit_log_tbl} {$where_sql} ORDER BY {$orderby} {$order}", 'ARRAY_A');
 		} else {
+			// phpcs:ignore WordPress.DB.PreparedSQL, WordPress.DB.DirectDatabaseQuery -- PCP error. Ignore.
 			$data = $wpdb->get_results("SELECT * FROM {$audit_log_tbl} {$where_sql} ORDER BY {$orderby} {$order} LIMIT {$per_page} OFFSET {$offset}", 'ARRAY_A');
+		}
+		
+		// Filter the 'details' section
+		foreach ($data as $key => $entry) {
+			$details = json_decode($entry['details'], true);
+			$details = is_null($details) ? $entry['details'] : $details; // check if the decode worked, if not pass the json string
+			$data[$key]['details'] = wp_json_encode(apply_filters('aios_audit_filter_details', $details, $entry['event_type']));
 		}
 		
 		$this->items = $data;

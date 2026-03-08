@@ -65,6 +65,7 @@ class Constants implements \ArrayAccess, \IteratorAggregate {
 		clearstatcache();
 		if (!file_exists($wpconfig)) return;
 
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- WP isn't loaded. WP_Filesystem cannot be used.
 		$source = file_get_contents($wpconfig);
 
 		if (false === $source) return;
@@ -193,7 +194,7 @@ class Constants implements \ArrayAccess, \IteratorAggregate {
 	 * @throws \Exception - Throws an exception if called to ensure it's read-only.
 	 */
 	#[\ReturnTypeWillChange]
-	public function offsetSet($offset, $value) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+	public function offsetSet($offset, $value) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable -- Needed for ArrayAccess interface but not used by us as we require read-only
 		throw new \Exception('Constants are read-only.');
 	}
 
@@ -205,7 +206,7 @@ class Constants implements \ArrayAccess, \IteratorAggregate {
 	 * @throws \Exception - Throws an exception if called to ensure it's read-only.
 	 */
 	#[\ReturnTypeWillChange]
-	public function offsetUnset($offset) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+	public function offsetUnset($offset) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable -- Needed for ArrayAccess interface but not used by us as we require read-only
 		throw new \Exception('Constants are read-only.');
 	}
 

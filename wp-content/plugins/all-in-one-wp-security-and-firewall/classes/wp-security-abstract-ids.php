@@ -6,6 +6,8 @@ if (!defined('ABSPATH') && !defined('AIOWPS_FIREWALL_DIR')) {
 /**
  * All ids and static names, array.
  */
+if (class_exists('AIOS_Abstracted_Ids')) return;
+
 class AIOS_Abstracted_Ids {
 
 	/**
@@ -44,6 +46,8 @@ class AIOS_Abstracted_Ids {
 		return array(
 			'automated-database-backup',
 			'ip-retrieval-settings',
+			'load-firewall-resources-failed',
+			'end-of-support-php-56',
 		);
 	}
 
@@ -56,6 +60,7 @@ class AIOS_Abstracted_Ids {
 		return array(
 			'login-whitelist-disabled-on-upgrade',
 			'ip-blacklist-settings-on-upgrade',
+			'upgrade-firewall-tab-rules',
 		);
 	}
 
@@ -98,6 +103,18 @@ class AIOS_Abstracted_Ids {
 			'ipecho' => 'http://ipecho.net/plain',
 			'ident'  => 'http://ident.me',
 			'tnedi'	 => 'http://tnedi.me',
+		);
+	}
+
+	/**
+	 * Get Reverse IP Lookup services.
+	 *
+	 * @return array
+	 */
+	public static function get_reverse_ip_lookup_services() {
+		return array(
+			'ip-api' => 'http://ip-api.com/json/%s',
+			'ipinfo' => 'https://ipinfo.io/%s/json'
 		);
 	}
 

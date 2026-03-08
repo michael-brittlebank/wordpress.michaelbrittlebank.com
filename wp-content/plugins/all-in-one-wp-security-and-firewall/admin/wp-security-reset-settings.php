@@ -1,27 +1,28 @@
 <?php
 if (!defined('ABSPATH')) die('No direct access.');
 
-if (!class_exists('AIOWPSecurity_Reset_Settings')):
-
-/**
- * Reset Settings various methods
- */
-class AIOWPSecurity_Reset_Settings {
+if (!class_exists('AIOWPSecurity_Reset_Settings')) :
 
 	/**
-	 * Delete config option.
-	 *
-	 * @return boolean true if the aio_wp_security_configs option deleted successfully.
+	 * Reset Settings various methods
 	 */
-	public static function reset_options() {
-		$result_delete_option = (false === get_option('aio_wp_security_configs',
-				false)) ? true : delete_option('aio_wp_security_configs');
-		$result_reset_settings = AIOWPSecurity_Configure_Settings::set_default_settings();
-		return $result_delete_option && $result_reset_settings;
-	}
+	class AIOWPSecurity_Reset_Settings {
+
+		/**
+		 * Delete config option.
+		 *
+		 * @return boolean true if the aio_wp_security_configs option deleted successfully.
+		 */
+		public static function reset_options() {
+			$result_delete_option = false === get_option('aio_wp_security_configs', false) || delete_option('aio_wp_security_configs');
+			$result_reset_settings = AIOWPSecurity_Configure_Settings::set_default_settings();
+			return $result_delete_option && $result_reset_settings;
+		}
 
 	/**
 	 * Delete htaccess rules.
+	 *
+	 * @param string $section - section used to find AIOS rules in .htaccess file
 	 *
 	 * @return boolean true if the aio_wp_security_configs option deleted successfully.
 	 */
@@ -31,21 +32,24 @@ class AIOWPSecurity_Reset_Settings {
 		if (!file_exists($htaccess)) {
 			return false;
 		}
+		// phpcs:disable WordPress.WP.AlternativeFunctions -- Cannot use wp_filesystem in the firewall.
 		$ht_contents = preg_split('/\r\n|\r|\n/', file_get_contents($htaccess));
 		if ($ht_contents) { // as long as there are lines in the file
 			$state = true;
-			if (!($f = @fopen($htaccess, 'w+'))) {
+			$f = @fopen($htaccess, 'w+');
+			if (!$f) {
 				@chmod($htaccess, 0644);
-				if (!($f = @fopen($htaccess, 'w+'))) {
+				$f = @fopen($htaccess, 'w+');
+				if (!$f) {
 					return false;
 				}
 			}
 
-			foreach ($ht_contents as $n => $markerline) { // for each line in the file
+			foreach ($ht_contents as $markerline) { // for each line in the file
 				if (strpos($markerline, '# BEGIN ' . $section) !== false) { // if we're at the beginning of the section
 					$state = false;
 				}
-				if ($state == true) { // as long as we're not in the section keep writing
+				if (true == $state) { // as long as we're not in the section keep writing
 					fwrite($f, trim($markerline) . "\n");
 				}
 				if (strpos($markerline, '# END ' . $section) !== false) { // see if we're at the end of the section
@@ -55,26 +59,32 @@ class AIOWPSecurity_Reset_Settings {
 			@fclose($f);
 			return true;
 		}
+		// phpcs:enable WordPress.WP.AlternativeFunctions -- Cannot use wp_filesystem in the firewall.
 		return true;
 	}
 
-	/**
-	 * Delete database tables
-	 *
-	 * @return boolean true
-	 */
-	public static function reset_db_tables() {
-		// Reset (TRUNCATE) all the db tables of the plugin.
-		global $wpdb;
-
-		$wpdb->query('TRUNCATE ' . $wpdb->prefix . 'aiowps_login_lockdown');
-		$wpdb->query('TRUNCATE ' . $wpdb->prefix . 'aiowps_login_activity');
-		$wpdb->query('TRUNCATE ' . $wpdb->prefix . 'aiowps_global_meta');
-		$wpdb->query('TRUNCATE ' . $wpdb->prefix . 'aiowps_events');
-		$wpdb->query('TRUNCATE ' . $wpdb->prefix . 'aiowps_permanent_block');
-
-		return true;
+		/**
+		 * Delete database tables
+		 *
+		 * @return boolean true
+		 */
+		public static function reset_db_tables() {
+			// Reset (TRUNCATE) all the db tables of the plugin.
+			global $wpdb;
+			$wpdb->query('TRUNCATE ' . $wpdb->prefix . 'aiowps_login_lockdown');
+			$wpdb->query('TRUNCATE ' . $wpdb->prefix . 'aiowps_global_meta');
+			$wpdb->query('TRUNCATE ' . $wpdb->prefix . 'aiowps_events');
+			$wpdb->query('TRUNCATE ' . $wpdb->prefix . 'aiowps_permanent_block');
+			// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared -- PCP error. Ignore.
+			if (is_main_site()) {
+				$wpdb->query('TRUNCATE ' . AIOWPSEC_TBL_LOGGED_IN_USERS);
+				$wpdb->query('TRUNCATE ' . AIOWPSEC_TBL_MESSAGE_STORE);
+				$wpdb->query('TRUNCATE ' . AIOWPSEC_TBL_DEBUG_LOG);
+				$wpdb->query('TRUNCATE ' . AIOWPSEC_TBL_AUDIT_LOG);
+			}
+			// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared -- PCP error. Ignore.
+			return true;
+		}
 	}
-}
 
 endif;

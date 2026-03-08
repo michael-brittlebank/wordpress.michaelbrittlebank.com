@@ -47,17 +47,27 @@ class AIOWPSecurity_Utility {
 	 * @return string
 	 */
 	public static function get_current_page_url() {
-		if (defined('WP_CLI') && WP_CLI) return '';
+		if ((defined('WP_CLI') && WP_CLI) || (defined('DOING_CRON') && DOING_CRON)) return '';
+
+		if (defined('DOING_AJAX') && DOING_AJAX) {
+			// Return the referer URL instead of the AJAX URL
+			return isset($_SERVER['HTTP_REFERER']) ? sanitize_url(wp_unslash($_SERVER['HTTP_REFERER'])) : '';
+		}
 
 		$pageURL = 'http';
 		if (isset($_SERVER["HTTPS"]) && "on" == $_SERVER["HTTPS"]) {
 			$pageURL .= "s";
 		}
+
 		$pageURL .= "://";
-		if ("80" != $_SERVER["SERVER_PORT"]) {
-			$pageURL .= $_SERVER["SERVER_NAME"] . ":" . $_SERVER["SERVER_PORT"] . $_SERVER["REQUEST_URI"];
+		$server_port = isset($_SERVER["SERVER_PORT"]) ? sanitize_text_field(wp_unslash($_SERVER["SERVER_PORT"])) : '';
+		$server_name = isset($_SERVER["SERVER_NAME"]) ? sanitize_text_field(wp_unslash($_SERVER["SERVER_NAME"])) : '';
+		$request_uri = isset($_SERVER["REQUEST_URI"]) ? sanitize_text_field(wp_unslash($_SERVER["REQUEST_URI"])) : '';
+
+		if ("80" != $server_port) {
+			$pageURL .= $server_name . ":" . $server_port . $request_uri;
 		} else {
-			$pageURL .= $_SERVER["SERVER_NAME"] . $_SERVER["REQUEST_URI"];
+			$pageURL .= $server_name . $request_uri;
 		}
 		return $pageURL;
 	}
@@ -77,21 +87,11 @@ class AIOWPSecurity_Utility {
 		if (!headers_sent()) {
 			header('Location: ' . $url);
 		} else {
-			echo '<meta http-equiv="refresh" content="' . $delay . ';url=' . $url . '" />';
+			echo '<meta http-equiv="refresh" content="' . esc_attr($delay) . ';url=' . esc_url($url) . '" />';
 		}
 		if ('1' == $exit) {
 			exit;
 		}
-	}
-
-	/**
-	 * Returns logout URL with "after logout URL" query params
-	 *
-	 * @param type $after_logout_url
-	 * @return type
-	 */
-	public static function get_logout_url_with_after_logout_url_value($after_logout_url) {
-		return AIOWPSEC_WP_URL . '?aiowpsec_do_log_out=1&after_logout=' . $after_logout_url;
 	}
 
 	/**
@@ -122,17 +122,22 @@ class AIOWPSecurity_Utility {
 		}
 
 		//check users table
-		$sanitized_username = sanitize_text_field($username);
-		$sql_1 = $wpdb->prepare("SELECT user_login FROM $wpdb->users WHERE user_login=%s", $sanitized_username);
-		$user_login = $wpdb->get_var($sql_1);
+		$sanitized_username = sanitize_user($username);
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- PCP warning. Direct query required
+		$user_login = $wpdb->get_var(
+			$wpdb->prepare("SELECT user_login FROM $wpdb->users WHERE user_login=%s", $sanitized_username)
+		);
+
 		if ($user_login == $sanitized_username) {
 			return true;
 		} else {
 			//make sure that the sanitized username is an integer before comparing it to the users table's ID column
 			$sanitized_username_is_an_integer = (1 === preg_match('/^\d+$/', $sanitized_username));
 			if ($sanitized_username_is_an_integer) {
-				$sql_2 = $wpdb->prepare("SELECT ID FROM $wpdb->users WHERE ID=%d", intval($sanitized_username));
-				$userid = $wpdb->get_var($sql_2);
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- PCP warning. Direct query required
+				$userid = $wpdb->get_var(
+					$wpdb->prepare("SELECT ID FROM $wpdb->users WHERE ID=%d", intval($sanitized_username))
+				);
 				return ($userid == $sanitized_username);
 			} else {
 				return false;
@@ -148,6 +153,7 @@ class AIOWPSecurity_Utility {
 	 */
 	public static function check_identical_login_and_nick_names() {
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- PCP warning. Direct query required.
 		$accounts_found = $wpdb->get_results("SELECT ID,user_login FROM `" . $wpdb->users . "` WHERE user_login<=>display_name;", ARRAY_A);
 		return $accounts_found;
 	}
@@ -171,12 +177,12 @@ class AIOWPSecurity_Utility {
 	 * @return string
 	 */
 	public static function generate_alpha_numeric_random_string($string_length) {
-		//Charecters present in table prefix
+		//Characters present in table prefix
 		$allowed_chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
 		$string = '';
 		//Generate random string
 		for ($i = 0; $i < $string_length; $i++) {
-			$string .= $allowed_chars[rand(0, strlen($allowed_chars) - 1)];
+			$string .= $allowed_chars[wp_rand(0, strlen($allowed_chars) - 1)];
 		}
 		return $string;
 	}
@@ -189,12 +195,12 @@ class AIOWPSecurity_Utility {
 	 * @return string
 	 */
 	public static function generate_alpha_random_string($string_length) {
-		//Charecters present in table prefix
+		//Characters present in table prefix
 		$allowed_chars = 'abcdefghijklmnopqrstuvwxyz';
 		$string = '';
 		//Generate random string
 		for ($i = 0; $i < $string_length; $i++) {
-			$string .= $allowed_chars[rand(0, strlen($allowed_chars) - 1)];
+			$string .= $allowed_chars[wp_rand(0, strlen($allowed_chars) - 1)];
 		}
 		return $string;
 	}
@@ -213,7 +219,7 @@ class AIOWPSecurity_Utility {
 		if (empty($cookie_domain)) {
 			$cookie_domain = COOKIE_DOMAIN;
 		}
-		setcookie($cookie_name, $cookie_value, $expiry_time, $path, $cookie_domain, is_ssl(), true);
+		return setcookie($cookie_name, $cookie_value, $expiry_time, $path, $cookie_domain, is_ssl(), true);
 	}
 
 	/**
@@ -233,7 +239,7 @@ class AIOWPSecurity_Utility {
 	 */
 	public static function get_cookie_value($cookie_name) {
 		if (isset($_COOKIE[$cookie_name])) {
-			return $_COOKIE[$cookie_name];
+			return sanitize_text_field(wp_unslash($_COOKIE[$cookie_name]));
 		}
 		return "";
 	}
@@ -248,12 +254,14 @@ class AIOWPSecurity_Utility {
 	}
 
 	/**
-	 * This is a general yellow box message for when we want to suppress a feature's config items because site is subsite of multi-site
+	 * This is a general yellow box message for when we want to suppress a feature's config items on multisite because current user is not super admin.
+	 *
+	 * @return void
 	 */
-	public static function display_multisite_message() {
+	public static function display_multisite_super_admin_message() {
 		echo '<div class="aio_yellow_box">';
-		echo '<p>' . __('The plugin has detected that you are using a Multi-Site WordPress installation.', 'all-in-one-wp-security-and-firewall') . '</p>
-			  <p>' . __('This feature can only be configured by the "superadmin" on the main site.', 'all-in-one-wp-security-and-firewall') . '</p>';
+		echo '<p>' . esc_html__('The plugin has detected that you are using a Multi-Site WordPress installation.', 'all-in-one-wp-security-and-firewall') . '</p>
+			  <p>' . esc_html__('Some features on this page can only be configured by the "superadmin".', 'all-in-one-wp-security-and-firewall') . '</p>';
 		echo '</div>';
 	}
 
@@ -299,13 +307,13 @@ class AIOWPSecurity_Utility {
 		if (!$edit_file_config_entry_exists) {
 			//Construct the config code which we will insert into wp-config.php
 			$new_snippet = '//Disable File Edits' . PHP_EOL;
-			$new_snippet .= 'define(\'DISALLOW_FILE_EDIT\', true);';
+			$new_snippet .= 'if (!defined(\'DISALLOW_FILE_EDIT\')) { define(\'DISALLOW_FILE_EDIT\', true); }';
 			$config_contents[] = $new_snippet; //Append the new snippet to the end of the array
 		}
 
 		//Make a backup of the config file
 		if (!AIOWPSecurity_Utility_File::backup_and_rename_wp_config($config_file)) {
-			AIOWPSecurity_Admin_Menu::show_msg_error_st(__('Failed to make a backup of the wp-config.php file. This operation will not go ahead.', 'all-in-one-wp-security-and-firewall'));
+			AIOWPSecurity_Admin_Menu::show_msg_error_st(__('Failed to make a backup of the wp-config.php file.', 'all-in-one-wp-security-and-firewall') . ' ' . __('This operation will not go ahead.', 'all-in-one-wp-security-and-firewall'));
 			//$aio_wp_security->debug_logger->log_debug("Disable PHP File Edit - Failed to make a backup of the wp-config.php file.",4);
 			return false;
 		} else {
@@ -399,8 +407,8 @@ class AIOWPSecurity_Utility {
 
 		if ('404' == $event_type || 'spam_discard' == $event_type) {
 			//if 404 event get some relevant data
-			$url = isset($_SERVER['REQUEST_URI']) ? esc_attr($_SERVER['REQUEST_URI']) : '';
-			$referer_info = isset($_SERVER['HTTP_REFERER']) ? esc_attr($_SERVER['HTTP_REFERER']) : '';
+			$url = isset($_SERVER['REQUEST_URI']) ? sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI'])) : '';
+			$referer_info = isset($_SERVER['HTTP_REFERER']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_REFERER'])) : '';
 		}
 
 		$current_time = current_time('mysql', true);
@@ -417,7 +425,12 @@ class AIOWPSecurity_Utility {
 
 		$data = apply_filters('aiowps_filter_event_logger_data', $data);
 		//log to database
-		$result = $wpdb->insert($events_table_name, $data);
+		$country_code = isset($data['country_code']) ? $data['country_code'] : '';
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- PCP error. irect query required. Table name cannot be prepared pre WP 6.2.
+		$sql = $wpdb->prepare("INSERT INTO ".$events_table_name." (event_type, username, user_id, event_date, ip_or_host, referer_info, url, event_data, country_code, created) VALUES (%s, %s, %d, %s, %s, %s, %s, %s, %s, UNIX_TIMESTAMP())", $data['event_type'], $data['username'], $data['user_id'], $data['event_date'], $data['ip_or_host'], $data['referer_info'], $data['url'], $data['event_data'], $country_code);
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared -- PCP warning. Query prepared above.
+		$result = $wpdb->query($sql);
 		if (false === $result) {
 			$aio_wp_security->debug_logger->log_debug("event_logger: Error inserting record into " . $events_table_name, 4);//Log the highly unlikely event of DB error
 			return false;
@@ -426,17 +439,39 @@ class AIOWPSecurity_Utility {
 	}
 
 	/**
-	 * Checks if IP address is locked
+	 * Checks if an IP address is locked.
 	 *
-	 * @param string $ip : ip address
-	 * @returns true if locked, false otherwise
+	 * @param string $ip          The IP address to be checked.
+	 * @param string $lock_reason Optional. Defaults to any lockout reason if not provided.
+	 *
+	 * @return bool True if locked, false otherwise.
 	 **/
-	public static function check_locked_ip($ip) {
+	public static function check_locked_ip($ip, $lock_reason = null) {
 		global $wpdb;
 		$login_lockdown_table = AIOWPSEC_TBL_LOGIN_LOCKOUT;
-		$now = current_time('mysql', true);
-		$locked_ip = $wpdb->get_row($wpdb->prepare("SELECT * FROM $login_lockdown_table WHERE release_date > %s AND failed_login_ip = %s", $now, $ip), ARRAY_A);
-		if (null != $locked_ip) {
+
+		if (null === $lock_reason) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- PCP warning. Ignore.
+			$locked_ip = $wpdb->get_row($wpdb->prepare("SELECT * FROM `$login_lockdown_table` WHERE released > UNIX_TIMESTAMP() AND failed_login_ip = %s", $ip), ARRAY_A);
+		} else {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- PCP warning. Ignore.
+			$locked_ip = $wpdb->get_row($wpdb->prepare("SELECT * FROM `$login_lockdown_table` WHERE released > UNIX_TIMESTAMP() AND failed_login_ip = %s AND lock_reason = %s", $ip, $lock_reason), ARRAY_A);
+		}
+
+		return null != $locked_ip;
+	}
+
+	/**
+	 * Check if an IP address is blacklisted.
+	 *
+	 * @param string $ip The IP address to check.
+	 * @return bool True if the IP address is blacklisted, false otherwise.
+	 */
+	public static function check_blacklist_ip($ip) {
+		global $aio_wp_security;
+		$blacklisted_ips = $aio_wp_security->configs->get_value('aiowps_banned_ip_addresses');
+		$blacklisted_ips_array = explode("\n", $blacklisted_ips);
+		if (in_array($ip, $blacklisted_ips_array)) {
 			return true;
 		} else {
 			return false;
@@ -452,9 +487,8 @@ class AIOWPSecurity_Utility {
 	public static function get_locked_ips() {
 		global $wpdb;
 		$login_lockdown_table = AIOWPSEC_TBL_LOGIN_LOCKOUT;
-		$now = current_time('mysql', true);
-	$locked_ips = $wpdb->get_results($wpdb->prepare("SELECT * FROM $login_lockdown_table WHERE release_date > %s", $now), ARRAY_A);
-		
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- PCP warning. Ignore.
+		$locked_ips = $wpdb->get_results("SELECT * FROM $login_lockdown_table WHERE released > UNIX_TIMESTAMP()", ARRAY_A);
 		if (empty($locked_ips)) {
 			return false;
 		} else {
@@ -475,12 +509,28 @@ class AIOWPSecurity_Utility {
 	 *
 	 * @return Void
 	 */
-	public static function lock_IP($ip, $lock_reason, $username = '') {
+	public static function lock_ip($ip, $lock_reason, $username = '') {
 		global $wpdb, $aio_wp_security;
 		$login_lockdown_table = AIOWPSEC_TBL_LOGIN_LOCKOUT;
 
 		if ('404' == $lock_reason) {
+
+			// Query for existing lockouts record with that ip and 404 reason.
+			$existing_lock_query = $wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- PCP warning. Direct query required. Table name cannot be prepared pre WP 6.2.
+				"SELECT * FROM {$login_lockdown_table} WHERE failed_login_IP = %s AND lock_reason = %s AND released > UNIX_TIMESTAMP() LIMIT 1",
+				$ip,
+				$lock_reason
+			);
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared -- PCP warning. Prepared above.
+			$existing_lock_count = $wpdb->get_var($existing_lock_query);
+
+			if ($existing_lock_count) return; // IP is already blocked for '404', return.
+
 			$lock_minutes = $aio_wp_security->configs->get_value('aiowps_404_lockout_time_length');
+		} elseif ('audit-log' == $lock_reason) {
+			$lock_minutes = 24 * 60;
 		} else {
 			$lock_minutes = $aio_wp_security->user_login_obj->get_dynamic_lockout_time_length();
 		}
@@ -500,17 +550,52 @@ class AIOWPSecurity_Utility {
 
 		$ip = esc_sql($ip);
 
+		$lock_seconds = $lock_minutes * MINUTE_IN_SECONDS;
 		$lock_time = current_time('mysql', true);
-		$release_time = date('Y-m-d H:i:s', time() + ($lock_minutes * MINUTE_IN_SECONDS));
+		$ip_lookup_result = AIOS_Helper::get_ip_reverse_lookup($ip);
+		$ip_lookup_result = wp_json_encode($ip_lookup_result);
+		if (false === $ip_lookup_result) $ip_lookup_result = null;
 
-		$data = array('user_id' => $user_id, 'user_login' => $username, 'lockdown_date' => $lock_time, 'release_date' => $release_time, 'failed_login_IP' => $ip, 'lock_reason' => $lock_reason);
-		$format = array('%d', '%s', '%s', '%s', '%s', '%s');
-		$result = $wpdb->insert($login_lockdown_table, $data, $format);
+		$release_time = gmdate('Y-m-d H:i:s', time() + ($lock_seconds));
+		$data = array(
+			'user_id' => $user_id,
+			'user_login' => $username,
+			'lockdown_date' => $lock_time,
+			'release_date' => $release_time,
+			'failed_login_IP' => $ip,
+			'lock_reason' => $lock_reason,
+			'lock_seconds' => $lock_seconds,
+			'ip_lookup_result' => $ip_lookup_result
+		);
+		
+		$result = AIOWPSecurity_Utility::add_lockout($data);
 
-		if ($result > 0) {
-		} elseif (false === $result) {
-			$aio_wp_security->debug_logger->log_debug("lock_IP: Error inserting record into " . $login_lockdown_table, 4);//Log the highly unlikely event of DB error
+		if (false === $result) {
+			$error_msg = empty($wpdb->last_error) ? "lock_ip: Error inserting record into " . $login_lockdown_table : $wpdb->last_error;
+			$aio_wp_security->debug_logger->log_debug($error_msg, 4);//Log the highly unlikely event of DB error
 		}
+	}
+	
+	/**
+	 * Adds an entry to the AIOWPSEC_TBL_LOGIN_LOCKOUT table.
+	 *
+	 * @global wpdb $wpdb
+	 *
+	 * @param Array $data
+	 *
+	 * @return Boolean
+	 */
+	public static function add_lockout($data) {
+		global $wpdb;
+		if (!isset($data['is_lockout_email_sent'])) $data['is_lockout_email_sent'] = 0;
+		if (!isset($data['backtrace_log'])) $data['backtrace_log'] = '';
+		if (!isset($data['ip_lookup_result'])) $data['ip_lookup_result'] = '';
+		$login_lockdown_table = AIOWPSEC_TBL_LOGIN_LOCKOUT;
+		// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.QuotedSimplePlaceholder, WordPress.DB.PreparedSQL.NotPrepared -- PCP error. Direct query required. Table name cannot be prepared pre WP 6.2.
+		$sql = $wpdb->prepare("INSERT INTO ".$login_lockdown_table." (user_id, user_login, lockdown_date, created, release_date, released,  failed_login_IP, lock_reason, is_lockout_email_sent, backtrace_log, ip_lookup_result) VALUES ('%d', '%s', '%s', UNIX_TIMESTAMP(), '%s', UNIX_TIMESTAMP()+%d, '%s', '%s', '%d', '%s', '%s')", $data['user_id'], $data['user_login'], $data['lockdown_date'], $data['release_date'], $data['lock_seconds'], $data['failed_login_IP'], $data['lock_reason'], $data['is_lockout_email_sent'], $data['backtrace_log'], $data['ip_lookup_result']);
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared -- PCP warning. Prepared above.
+		$result = $wpdb->query($sql);
+		return $result;
 	}
 
 	/**
@@ -524,6 +609,7 @@ class AIOWPSecurity_Utility {
 		global $wpdb;
 		if (is_multisite()) {
 			global $wpdb;
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- PCP warning. Direct query required.
 			$blog_ids = $wpdb->get_col("SELECT blog_id FROM " . $wpdb->prefix . "blogs");
 		} else {
 			$blog_ids = array();
@@ -544,8 +630,11 @@ class AIOWPSecurity_Utility {
 	public static function purge_table_records($table_name, $purge_records_after_days, $date_field) {
 		global $wpdb, $aio_wp_security;
 
-		$older_than_date_time = date('Y-m-d H:m:s', strtotime('-' . $purge_records_after_days . ' days', current_time('timestamp', true)));
+		$older_than_date_time = strtotime('-' . $purge_records_after_days . ' days', time());
+		if ('created' != $date_field) $older_than_date_time = gmdate('Y-m-d H:i:s', $older_than_date_time);
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- PCP error. Direct query required. Table name cannot be prepared pre WP 6.2.
 		$sql = $wpdb->prepare('DELETE FROM ' . $table_name . ' WHERE '.$date_field.' < %s', $older_than_date_time);
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared -- PCP warning. Prepared above.
 		$ret_deleted = $wpdb->query($sql);
 		if (false === $ret_deleted) {
 			$err_db = !empty($wpdb->last_error) ? ' ('.$wpdb->last_error.' - '.$wpdb->last_query.')' : '';
@@ -569,22 +658,15 @@ class AIOWPSecurity_Utility {
 	public static function cleanup_table($table_name, $max_rows = '10000', $id_field = 'id') {
 		global $wpdb, $aio_wp_security;
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- PCP warning. Ignore.
 		$num_rows = $wpdb->get_var("select count(*) from $table_name");
 		$result = true;
 		if ($num_rows > $max_rows) {
 			//if the table has more than max entries delete oldest rows
-			
-			$del_sql = "DELETE FROM $table_name
-						WHERE ".$id_field." <= (
-						  SELECT ".$id_field."
-						  FROM (
-							SELECT ".$id_field." 
-							FROM $table_name
-							ORDER BY ".$id_field." DESC
-							LIMIT 1 OFFSET $max_rows
-						 ) foo_tmp
-						)";
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared --  PCP error. Direct query necessary. Table name cannot be prepared pre WP 6.2.
+			$del_sql = $wpdb->prepare("DELETE FROM $table_name WHERE ".$id_field." <= (SELECT ".$id_field."	FROM (SELECT ".$id_field." FROM $table_name	ORDER BY ".$id_field." DESC	LIMIT 1 OFFSET $max_rows) foo_tmp)");
 
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.LikeWildcardsInQuery -- PCP warning. Prepared above.
 			$result = $wpdb->query($del_sql);
 			if (false === $result) {
 				$aio_wp_security->debug_logger->log_debug("AIOWPSecurity_Utility::cleanup_table failed for table name: " . $table_name, 4);
@@ -644,7 +726,9 @@ class AIOWPSecurity_Utility {
 		$tbl = is_multisite() ? $wpdb->sitemeta : $wpdb->prefix . 'options';
 		$key_name = is_multisite() ? 'meta_key' : 'option_name';
 		$key_val = is_multisite() ? 'meta_value' : 'option_value';
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.LikeWildcardsInQuery -- PCP warning. Direct query required. Table name cannot be prepared pre WP 6.2.
 		$query = $wpdb->prepare("SELECT * FROM {$tbl} WHERE {$key_name} LIKE 'aiowps_captcha_string_info_time_%' AND {$key_val} < %s", $previous_hour);
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared -- PCP warning. Prepared above.
 		$res = $wpdb->get_results($query, ARRAY_A);
 		if (!empty($res)) {
 			foreach ($res as $item) {
@@ -779,6 +863,7 @@ class AIOWPSecurity_Utility {
 	 */
 	public static function login_lockdown_email_backtrace_log_file($logs = array()) {
 		global $aio_wp_security;
+
 		$temp_dir = get_temp_dir();
 		$backtrace_filename = wp_unique_filename($temp_dir, 'log_backtrace_' . time() . '.txt');
 		$backtrace_filepath = $temp_dir.$backtrace_filename;
@@ -790,8 +875,10 @@ class AIOWPSecurity_Utility {
 				$dbg.= "############ BACKTRACE ENDS  ########\n\n";
 			}
 		} else {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace, PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.NeedsInspection -- PCP and compatibility warnings. Safe to ignore.
 			$dbg = debug_backtrace();
 		}
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r -- PCP warning. Ignore
 		$is_log_file_written = file_put_contents($backtrace_filepath, print_r($dbg, true));
 		if ($is_log_file_written) {
 			return $backtrace_filepath;
@@ -810,10 +897,25 @@ class AIOWPSecurity_Utility {
 	public static function normalise_call_stack_args($backtrace) {
 		foreach ($backtrace as $index => $element) {
 			if (!isset($element['args']) || !is_array($element['args']) || !isset($element['args'][0])) $backtrace[$index]['args'] = array('');
-			if (is_object($backtrace[$index]['args'][0])) {
-				$backtrace[$index]['args'] = array(get_class($backtrace[$index]['args'][0]));
-			} elseif (!is_string($backtrace[$index]['args'][0])) {
-				$backtrace[$index]['args'] = array('');
+			foreach ($backtrace[$index]['args'] as $key => $arg) {
+				if (is_object($arg)) {
+					$backtrace[$index]['args'][$key] = array(get_class($backtrace[$index]['args'][$key]));
+				} elseif (!is_string($arg)) {
+					$backtrace[$index]['args'][$key] = array('');
+				}
+			}
+			
+			if ('apply_filters' == $backtrace[$index]['function'] && 'authenticate' == $backtrace[$index]['args'][0]) {
+				$backtrace[$index]['args'] = array('authenticate');
+			}
+
+			if ('do_action' == $backtrace[$index]['function'] && 'password_reset' == $backtrace[$index]['args'][0]) {
+				$backtrace[$index]['args'] = array('password_reset');
+			}
+			
+			$keys_to_filter = array('wp_create_user', 'wpmu_create_user', 'wp_authenticate', 'post_authenticate', 'reset_password');
+			if (in_array($backtrace[$index]['function'], $keys_to_filter)) {
+				$backtrace[$index]['args'] = array();
 			}
 		}
 		return $backtrace;
@@ -825,7 +927,7 @@ class AIOWPSecurity_Utility {
 	 * @return Boolean True if the WooCommerce plugin is active, otherwise false.
 	 */
 	public static function is_woocommerce_plugin_active() {
-		return class_exists('WooCommerce');
+		return is_plugin_active('woocommerce/woocommerce.php');
 	}
 
 	/**
@@ -841,7 +943,7 @@ class AIOWPSecurity_Utility {
 		$active_plugins = wp_get_active_and_valid_plugins();
 
 		foreach ($active_plugins as $plugin_file) {
-			if ('two-factor-login.php' == basename($plugin_file) && is_dir(dirname($plugin_file) . '/simba-tfa/premium') && version_compare(get_plugin_data($plugin_file)['Version'], AIOS_TFA_PREMIUM_LATEST_INCOMPATIBLE_VERSION, '<=')) {
+			if ('two-factor-login.php' == basename($plugin_file) && is_dir(dirname($plugin_file) . '/simba-tfa/premium') && version_compare(get_plugin_data($plugin_file, false, false)['Version'], AIOS_TFA_PREMIUM_LATEST_INCOMPATIBLE_VERSION, '<=')) {
 				return true;
 			}
 		}
@@ -858,7 +960,7 @@ class AIOWPSecurity_Utility {
 		// The $GLOBALS['pagenow'] doesn't set in the network admin plugins page and it throws the warning "Notice: Undefined index: pagenow in ..." so we can't use it.
 		// https://core.trac.wordpress.org/ticket/42656
 		return is_admin() &&
-			preg_match('#/wp-admin/plugins.php$#i', $_SERVER['PHP_SELF']) && isset($_GET['plugin']) && (preg_match("/\/two-factor-login.php/", $_GET['plugin']) || preg_match("/all-in-one-wp-security-and-firewall/", $_GET['plugin']));
+			isset($_SERVER['PHP_SELF']) && preg_match('#/wp-admin/plugins.php$#i', sanitize_text_field(wp_unslash($_SERVER['PHP_SELF']))) && isset($_GET['plugin']) && (preg_match("/\/two-factor-login.php/", sanitize_text_field(wp_unslash($_GET['plugin']))) || preg_match("/all-in-one-wp-security-and-firewall/", sanitize_text_field(wp_unslash($_GET['plugin'])))); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- PCP warning. Ignore.
 	}
 
 	/**
@@ -885,7 +987,7 @@ class AIOWPSecurity_Utility {
 	public static function get_server_software() {
 		static $server_software;
 		if (!isset($server_software)) {
-			$server_software = (isset($_SERVER['SERVER_SOFTWARE']) ? $_SERVER['SERVER_SOFTWARE'] : '');
+			$server_software = (isset($_SERVER['SERVER_SOFTWARE']) ? sanitize_text_field(wp_unslash($_SERVER['SERVER_SOFTWARE'])) : '');
 		}
 		return $server_software;
 	}
@@ -902,18 +1004,17 @@ class AIOWPSecurity_Utility {
 	/**
 	 * Change salt postfixes.
 	 *
-	 * @return boolen True if the salt postfixes are changed otherwise false.
+	 * @return boolean True if the salt postfixes are changed otherwise false.
 	 */
 	public static function change_salt_postfixes() {
 		global $aio_wp_security;
-
-		$salt_postfixes = array(
-			'auth' => wp_generate_password(64, true, true),
-			'secure_auth' => wp_generate_password(64, true, true),
-			'logged_in' => wp_generate_password(64, true, true),
-			'nonce' => wp_generate_password(64, true, true),
-		);
-
+		
+		$salt_postfixes_scheme = array('auth', 'secure_auth', 'logged_in', 'nonce', 'wpcf7_submission');
+		$salt_postfixes_scheme = apply_filters('aios_salt_postfixes_scheme', $salt_postfixes_scheme);
+		$salt_postfixes = array();
+		foreach ($salt_postfixes_scheme as $scheme) {
+			$salt_postfixes[$scheme] = wp_generate_password(64, true, true);
+		}
 		return $aio_wp_security->configs->set_value('aiowps_salt_postfixes', $salt_postfixes, true);
 	}
 
@@ -929,9 +1030,549 @@ class AIOWPSecurity_Utility {
 			return call_user_func($item_info['display_condition_callback']);
 		} elseif (!empty($item_info['display_condition_callback']) && !is_callable($item_info['display_condition_callback'])) {
 			$item = isset($item_info['page_title']) ? $item_info['page_title'] : '';
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- PCP warning. Ignore.
 			error_log("Callback function set but not callable (coding error). Item: " . $item);
 			return false;
 		}
 		return true;
+	}
+
+	/**
+	 * Verify the username is valid based on logged_in cookie information
+	 *
+	 * @see https://developer.wordpress.org/reference/functions/wp_validate_auth_cookie/
+	 * @param  string $info  - Cookie info
+	 * @param  int    $grace - A grace period for the expiration in seconds
+	 * @return string       - Username if valid; blank string otherwise
+	 */
+	public static function verify_username($info, $grace = 3600) {
+		
+		if (!is_string($info)) return '';
+
+		$elements = wp_parse_auth_cookie($info, 'logged_in');
+
+		if (empty($elements)) return '';
+
+		$username   = $elements['username'];
+		$expiration = $elements['expiration'];
+		$token      = $elements['token'];
+		$hmac       = $elements['hmac'];
+		$scheme     = $elements['scheme'];
+
+		// Add a grace period to the expiration check since there may be a delay in processing the user data
+		if (!empty($grace) && ($expiration + absint($grace)) < time()) return '';
+
+		$user = get_user_by('login', $username);
+
+		if (false === $user) return '';
+
+		$pass_frag = substr($user->user_pass, 8, 4);
+
+		$key = wp_hash($username . '|' . $pass_frag . '|' . $expiration . '|' . $token, $scheme);
+
+		// Use sha1, if sha256 is not available
+		$algo = function_exists('hash') ? 'sha256' : 'sha1';
+		$hash = hash_hmac($algo, $username . '|' . $expiration . '|' . $token, $key);
+
+		if (hash_equals($hash, $hmac)) {
+			return $username;
+		}
+
+		return '';
+	}
+
+	/**
+	 * Get the blog ID from the provided request
+	 *
+	 * @param array $request
+	 * @return int - returns the blog_id or 0 if it cannot be found
+	 */
+	public static function get_blog_id_from_request($request) {
+
+		if (!is_multisite()) return get_current_blog_id();
+
+		$can_get_blog_id = isset($request['REQUEST_SCHEME']) && isset($request['HTTP_HOST']) && isset($request['REQUEST_URI']);
+		if (!$can_get_blog_id) return 0;
+
+		$site_url   = $request['REQUEST_SCHEME'].'://'.$request['HTTP_HOST'].$request['REQUEST_URI'];
+		$components = wp_parse_url(trailingslashit($site_url));
+
+		$can_get_blog_id = isset($components['host']) && isset($components['path']);
+		if (!$can_get_blog_id) return 0;
+
+		$default_path = defined('PATH_CURRENT_SITE') ? constant('PATH_CURRENT_SITE') : '/';
+
+		$domain = $components['host'];
+		$path   = SUBDOMAIN_INSTALL ? $default_path : ($default_path === $components['path'] ? $components['path'] : '/'.explode('/', $components['path'])[1].'/');
+
+		$blog_id = get_blog_id_from_url($domain, $path);
+		
+		// On a subdirectory installation, if the blog_id cannot be found for the subdirectory given, we assume it's a path belonging to the main site
+		// So use the main site's blog_id.
+		if (0 === $blog_id && !SUBDOMAIN_INSTALL) $blog_id = get_blog_id_from_url($domain, $default_path);
+
+		return $blog_id;
+	}
+
+	/**
+	 * Checks if the bbPress plugin is active.
+	 *
+	 * @return Boolean True if the bbPress plugin is active, otherwise false.
+	 */
+	public static function is_bbpress_plugin_active() {
+		return is_plugin_active('bbpress/bbpress.php');
+	}
+
+	/**
+	 * Checks if the Buddypress plugin is active.
+	 *
+	 * @return Boolean True if the Buddypress plugin is active, otherwise false.
+	 */
+	public static function is_buddypress_plugin_active() {
+		return is_plugin_active('buddypress/bp-loader.php');
+	}
+
+	/**
+	 * Checks if the Contact Form 7 plugin is active.
+	 *
+	 * @return Boolean - True if the Contact Form 7 plugin is active, otherwise false.
+	 */
+	public static function is_contact_form_7_plugin_active() {
+		return is_plugin_active('contact-form-7/wp-contact-form-7.php');
+	}
+
+	/**
+	 * Checks if the Memberpress plugin is active.
+	 *
+	 * @return Boolean - True if the Memberpress plugin is active, otherwise false.
+	 */
+	public static function is_memberpress_plugin_active() {
+		return is_plugin_active('memberpress/memberpress.php');
+	}
+	 
+	/**
+	 * Retrieves and returns current WP general settings date time format.
+	 *
+	 * @return string
+	 */
+	public static function get_wp_datetime_format() {
+		return get_option('date_format') . ' ' . get_option('time_format');
+	}
+
+	/**
+	 * This function gets the timezone of the site as a DateTimeZone object
+	 *
+	 * @see https://developer.wordpress.org/reference/functions/wp_timezone/
+	 *
+	 * @return DateTimeZone - the timezone of the site as a DateTimeZone object
+	 */
+	public static function get_wp_timezone() {
+		return new DateTimeZone(self::get_wp_timezone_string());
+	}
+
+	/**
+	 * This function gets the timezone of the site as a string
+	 *
+	 * @see https://developer.wordpress.org/reference/functions/wp_timezone_string/
+	 *
+	 * @return string - PHP timezone name or a ±HH:MM offset
+	 */
+	public static function get_wp_timezone_string() {
+		$timezone_string = get_option('timezone_string');
+		
+		if ($timezone_string) return $timezone_string;
+		
+		$offset  = (float) get_option('gmt_offset');
+		$hours   = (int) $offset;
+		$minutes = ($offset - $hours);
+		$sign    = ($offset < 0) ? '-' : '+';
+		$abs_hour = abs($hours);
+		$abs_mins = abs($minutes * 60);
+		$tz_offset = sprintf('%s%02d:%02d', $sign, $abs_hour, $abs_mins);
+		
+		return $tz_offset;
+	}
+
+	/**
+	 * Converts a Unix timestamp to WP general settings timezone and format. It will also translate with wp_date if available.
+	 *
+	 * @param string $timestamp Optional. Will default to time() if not provided.
+	 * @param string $format    Optional. Will default to WP general settings format if not provided.
+	 *
+	 * @return string
+	 */
+	public static function convert_timestamp($timestamp = null, $format = null) {
+
+		if (!$format) $format = self::get_wp_datetime_format();
+
+		if (!$timestamp) $timestamp = time();
+
+		return function_exists('wp_date') ? wp_date($format, $timestamp) : get_date_from_gmt(gmdate('Y-m-d H:i:s', $timestamp), $format);
+	}
+
+	/**
+	 * Deletes unneeded default WP files.
+	 *
+	 * @global AIO_WP_Security $aio_wp_security
+	 *
+	 * @param bool $echo_results
+	 *
+	 * @return array
+	 */
+	public static function delete_unneeded_default_files($echo_results = false) {
+		global $aio_wp_security;
+
+		$files = array('readme.html', 'wp-config-sample.php', 'license.txt');
+		$info = array();
+		$error = array();
+		foreach ($files as $file_name) {
+			$file_path = ABSPATH . $file_name;
+
+			if (file_exists($file_path)) {
+				if (@wp_delete_file($file_path)) {
+					/* translators: %s: File name */
+					$success_message = sprintf(__('Successfully deleted the %s file.', 'all-in-one-wp-security-and-firewall'), $file_name);
+					$aio_wp_security->debug_logger->log_debug($success_message, 0);
+
+					if ($echo_results) {
+						AIOWPSecurity_Admin_Menu::show_msg_updated_st($success_message);
+					}
+				} else {
+					/* translators: %s: File name */
+					$failure_message = sprintf(__('Failed to delete the %s file.', 'all-in-one-wp-security-and-firewall'), $file_name) . ' ' . sprintf(__('Check the file/directory permissions at: %s', 'all-in-one-wp-security-and-firewall'), $file_path);
+					$error[] = $file_name;
+					$aio_wp_security->debug_logger->log_debug($failure_message, 4);
+
+					if ($echo_results) {
+						AIOWPSecurity_Admin_Menu::show_msg_error_st($failure_message);
+					}
+				}
+			} else {
+				/* translators: %s: File name */
+				$message = sprintf(__('The %s file has already been deleted.', 'all-in-one-wp-security-and-firewall'), $file_name);
+				$info[] = $message;
+				$aio_wp_security->debug_logger->log_debug($message, 0);
+
+				if ($echo_results) {
+					AIOWPSecurity_Admin_Menu::show_msg_updated_st($message);
+				}
+			}
+		}
+
+
+		return array(
+			'info' => $info,
+			'error' => empty($error) ? '' : implode(', ', $error)
+		);
+	}
+
+	/**
+	 * Convert a number of bytes into a suitable textual string
+	 *
+	 * @param Integer $size - the number of bytes
+	 *
+	 * @return String - the resulting textual string
+	 */
+	public static function convert_numeric_size_to_text($size) {
+		if ($size > 1073741824) {
+			return round($size / 1073741824, 1).' GB';
+		} elseif ($size > 1048576) {
+			return round($size / 1048576, 1).' MB';
+		} elseif ($size > 1024) {
+			return round($size / 1024, 1).' KB';
+		} else {
+			return round($size, 1).' B';
+		}
+	}
+
+	/**
+	 * Updates the Googlebot IP ranges config.
+	 *
+	 * @return array|WP_Error
+	 */
+	public static function get_googlebot_ip_ranges() {
+		$response = wp_safe_remote_get('https://developers.google.com/static/search/apis/ipranges/googlebot.json');
+
+		$body = wp_remote_retrieve_body($response);
+		$json_array = json_decode($body, true);
+
+		$ip_list_array = array();
+
+		foreach ($json_array['prefixes'] as $prefix) {
+			$ip_list_array[] = array_key_exists('ipv4Prefix', $prefix) ? $prefix['ipv4Prefix'] : $prefix['ipv6Prefix'];
+		}
+
+		return AIOWPSecurity_Utility_IP::validate_ip_list($ip_list_array, 'whitelist');
+	}
+
+	/**
+	 * This function creates and outputs the csv file for download
+	 *
+	 * @param array  $items       - the content
+	 * @param array  $export_keys - the keys for the content
+	 * @param string $filename    - the filename
+	 *
+	 * @return void
+	 */
+	public static function output_csv($items, $export_keys, $filename = 'data.csv') {
+		header("Content-Type: text/csv; charset=utf-8");
+		header("Content-Disposition: attachment; filename=".$filename);
+		header("Pragma: no-cache");
+		header("Expires: 0");
+		$output = fopen('php://output', 'w'); //open output stream
+
+		fputcsv($output, $export_keys, ',', '"', '\\'); // let's put column names first
+
+		foreach ($items as $item) {
+			$csv_line = array();
+
+			foreach ($export_keys as $key => $value) {
+				if (isset($item[$key])) {
+					$csv_line[] = ('created' == $key) ? AIOWPSecurity_Utility::convert_timestamp($item[$key]) : $item[$key];
+				}
+			}
+			fputcsv($output, $csv_line, ',', '"', '\\');
+		}
+	}
+	
+	/**
+	 * Check if a user is a member of the current blog ID in a multisite environment.
+	 *
+	 * @param int $user_id - User Id to check.
+	 *
+	 * @return bool Whether the user is a member of the current blog ID.
+	 */
+	public static function is_user_member_of_blog($user_id) {
+		$current_user_id = get_current_user_id();
+
+		if (is_multisite() && !is_super_admin($current_user_id)) {
+			$blog_id = get_current_blog_id();
+			return is_user_member_of_blog($user_id, $blog_id);
+		}
+
+		// Non-multisite or super admin, consider the user a member
+		return true;
+	}
+
+	/**
+	 * Blacklists an IP address.
+	 *
+	 * @global AIO_WP_Security $aio_wp_security
+	 * @global AIOWPS\Firewall\Config $aiowps_firewall_config
+	 *
+	 * @param string $ip The IP address to be blacklisted.
+	 *
+	 * @return void|WP_Error
+	 */
+	public static function blacklist_ip($ip) {
+		global $aio_wp_security;
+		$aiowps_firewall_config = AIOS_Firewall_Resource::request(AIOS_Firewall_Resource::CONFIG);
+
+		$blacklisted_ip_addresses = $aio_wp_security->configs->get_value('aiowps_banned_ip_addresses');
+
+		$ip_list_array = AIOWPSecurity_Utility_IP::create_ip_list_array_from_string_with_newline($blacklisted_ip_addresses);
+		$ip_list_array[] = $ip;
+
+		$validated_ip_list_array = AIOWPSecurity_Utility_IP::validate_ip_list($ip_list_array, 'blacklist');
+
+		if (is_wp_error($validated_ip_list_array)) {
+			return $validated_ip_list_array;
+		} else {
+			$banned_ip_data = implode("\n", $validated_ip_list_array);
+
+			$aio_wp_security->configs->set_value('aiowps_enable_blacklisting', '1'); // Force blacklist feature to be enabled.
+			$aio_wp_security->configs->set_value('aiowps_banned_ip_addresses', $banned_ip_data);
+			$aio_wp_security->configs->save_config();
+
+			$aiowps_firewall_config->set_value('aiowps_blacklist_ips', $validated_ip_list_array);
+		}
+	}
+
+	/**
+	 * Unlocks an IP address.
+	 *
+	 * @global wpdb $wpdb
+	 *
+	 * @param string $ip The IP address to be blacklisted.
+	 *
+	 * @return boolean
+	 */
+	public static function unlock_ip($ip) {
+		global $wpdb;
+
+		$lockout_table = AIOWPSEC_TBL_LOGIN_LOCKOUT;
+
+		// Unlock single record.
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- PCP warning. Ignore.
+		$result = $wpdb->query($wpdb->prepare("UPDATE $lockout_table SET `released` = UNIX_TIMESTAMP() WHERE `failed_login_ip` = %s", $ip));
+
+		return null != $result;
+	}
+
+	/**
+	 * Unblacklists an IP address.
+	 *
+	 * @global AIO_WP_Security $aio_wp_security
+	 * @global AIOWPS\Firewall\Config $aiowps_firewall_config
+	 *
+	 * @param string $ip The IP address to be unblacklisted.
+	 *
+	 * @return boolean
+	 */
+	public static function unblacklist_ip($ip) {
+		global $aio_wp_security;
+		$aiowps_firewall_config = AIOS_Firewall_Resource::request(AIOS_Firewall_Resource::CONFIG);
+
+		$blacklisted_ip_addresses = $aio_wp_security->configs->get_value('aiowps_banned_ip_addresses');
+
+		$ip_list_array = AIOWPSecurity_Utility_IP::create_ip_list_array_from_string_with_newline($blacklisted_ip_addresses);
+
+		if (!in_array($ip, $ip_list_array)) {
+			return false;
+		}
+
+		$ip_list_array = array_diff($ip_list_array, array($ip));
+
+		$banned_ip_data = implode("\n", $ip_list_array);
+
+		$aio_wp_security->configs->set_value('aiowps_banned_ip_addresses', $banned_ip_data);
+		$aio_wp_security->configs->save_config();
+
+		$aiowps_firewall_config->set_value('aiowps_blacklist_ips', $ip_list_array);
+
+		return true;
+	}
+
+	/**
+	 * Determines if the .htaccess file can be written to.
+	 *
+	 * This function checks if the current user has the necessary permissions
+	 * (is the main site and super admin) and whether the server type is supported
+	 * for writing to the .htaccess file. It prevents modifications on unsupported
+	 * server types such as Nginx and IIS.
+	 *
+	 * @return bool True if .htaccess can be written to, false otherwise.
+	 */
+	public static function allow_to_write_to_htaccess() {
+		if (!AIOWPSecurity_Utility_Permissions::is_main_site_and_super_admin()) return false;
+		$serverType = self::get_server_type();
+
+		return !in_array($serverType, array('-1', 'nginx', 'iis'));
+	}
+
+	/**
+	 * Render the 5G Legacy Tab.
+	 *
+	 * This function checks if the current site is the main site and if the user is a super admin.
+	 * If these conditions are met, it checks whether the 5G firewall is enabled or not.
+	 *
+	 * @global object $aio_wp_security The global instance of the All-In-One WP Security & Firewall plugin.
+	 *
+	 * @return bool returns true if the 5G firewall is enabled, false otherwise.
+	 */
+	public static function render_5g_legacy_tab() {
+		global $aio_wp_security;
+		if (!AIOWPSecurity_Utility_Permissions::is_main_site_and_super_admin()) return false;
+
+		return '1' == $aio_wp_security->configs->get_value('aiowps_enable_5g_firewall');
+	}
+
+	/**
+	 * Filters an array item based on a specified callback key.
+	 *
+	 * This function checks if a specified callback is present and callable within the array item.
+	 * If the callback is callable, it executes the callback and returns the result.
+	 * If the callback is set but not callable, it logs an error and returns false.
+	 * If no callback is set, the function returns true.
+	 *
+	 * @param array  $item         The array item to filter.
+	 * @param string $callback_key The key in the array to check for a callable function.
+	 *
+	 * @return bool|mixed Returns the result of the callback if callable, false if the callback is not callable,
+	 *                    or true if no callback is set.
+	 */
+	public static function apply_callback_filter($item, $callback_key) {
+		if (isset($item[$callback_key])) {
+			if (is_callable($item[$callback_key])) {
+				return call_user_func($item[$callback_key]);
+			} else {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- PCP warning. Required for AIOS error reporting.
+				error_log("Callback function set but not callable (coding error)");
+				return false;
+			}
+		} else {
+			return true;
+		}
+	}
+
+	/**
+	 * Checks if other specific form-related plugins are active.
+	 *
+	 * @return bool Returns `true` if any of the specified plugins (bbPress, BuddyPress,
+	 *              or Contact Form 7) are active, or `false` if none of them are active.
+	 */
+	public static function is_other_form_plugins_active() {
+		return self::is_bbpress_plugin_active() || self::is_buddypress_plugin_active() || self::is_contact_form_7_plugin_active();
+	}
+
+	/**
+	 * Unserialize data while maintaining compatibility across PHP versions due to different number of arguments required by PHP's "unserialize" function
+	 *
+	 * @param string        $serialized_data Data to be unserialized, should be one that is already serialized
+	 * @param boolean|array $allowed_classes Either an array of class names which should be accepted, false to accept no classes, or true to accept all classes
+	 * @param integer       $max_depth       The maximum depth of structures permitted during unserialization, and is intended to prevent stack overflows
+	 *
+	 * @return mixed Unserialized data can be any of types (integer, float, boolean, string, array or object)
+	 */
+	public static function unserialize($serialized_data, $allowed_classes = false, $max_depth = 0) {
+		if (version_compare(PHP_VERSION, '7.0', '<')) {
+			$result = unserialize($serialized_data);
+		} else {
+			$result = unserialize($serialized_data, array('allowed_classes' => $allowed_classes, 'max_depth' => $max_depth)); // phpcs:ignore PHPCompatibility.FunctionUse.NewFunctionParameters.unserialize_optionsFound -- This is the method used to unserialize data instead of the default unserialize method 
+		}
+		return $result;
+	}
+
+	/**
+	 * Gets the rest route starting with namespace from the REST API endpoint
+	 * It excludes rest url prefix 'wp-json' and multisite folder from the endpoint
+	 * For example 'wc/store/v1/cart', 'contact-form-7/v1/contact-forms/45/feedback'
+	 *
+	 * @return string rest route starting with namespace
+	 */
+	public static function get_rest_route() {
+		$rest_route = !empty($_GET['rest_route']) ? sanitize_text_field(stripslashes($_GET['rest_route'])) : '';
+		// If route is not found in query parameter, extract from REQUEST_URI
+		if (empty($rest_route)) {
+			$request_uri = !empty($_SERVER['REQUEST_URI']) ? urldecode($_SERVER['REQUEST_URI']) : '';
+			$parsed_url = parse_url(trim($request_uri, '/'));
+			$path = isset($parsed_url['path']) ? $parsed_url['path'] : '';
+			if (false !== strpos($path, rest_get_url_prefix())) {
+				$path = preg_replace('/index\.php\//', '', $path); // index.php from path removed.
+				$rest_route = preg_replace('/(.*)\/?'.rest_get_url_prefix().'\/?/', '', $path); // wp-json rest prefix and multisite folder excluded
+				$rest_route = trim($rest_route, '/');
+				if (empty($rest_route)) $rest_route = '/'; // "wp-json" rest request without name space called.
+			} else {
+				$rest_route = '';
+			}
+		}
+		return $rest_route;
+	}
+	
+	/**
+	 * Get the registered namespace for REST routes end points 'wc', 'contact-form-7'
+	 *
+	 * @return array namespace.
+	 */
+	public static function get_rest_namespaces() {
+		$rest_server = rest_get_server();
+		$namespaces = $rest_server->get_namespaces();
+		$rest_route_namespaces = array();
+		foreach ($namespaces as $namesapce) {
+			$rest_route_namespaces[] = explode('/', $namesapce)[0]; // Namespace 'wc' only to consider instead 'wc/v1', 'wc/v2', 'wc/v3', 'wc/store'
+		}
+		$route_namespaces = array_unique($rest_route_namespaces);
+		sort($route_namespaces);
+		return $route_namespaces;
 	}
 }
