@@ -3,8 +3,8 @@ Contributors: TinyPNG
 Donate link: https://tinypng.com/
 Tags: compress images, compression, image size, page speed, performance
 Requires at least: 4.0
-Tested up to: 6.9
-Stable tag: 3.6.7
+Tested up to: 7.0
+Stable tag: 3.6.14
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -174,6 +174,27 @@ A: You can upgrade to a paid account by adding your *Payment details* on your [a
 A: When the conversion feature is enabled (to convert images to AVIF or WebP), each image will use double the number of credits: one for compression and one for format conversion.
 
 == Changelog ==
+= 3.6.14 =
+* fix: added check for valid path before deleting converted image
+* fix: use hook uninstall_plugin instead of uninstall.php to prevent dependency deletion
+
+= 3.6.13 =
+* fix: will copy sizes attribute to picture element
+* fix: will no longer clear logs on each save settings
+* feat: if supported, can serve modern formats like webp/avif through htacess rules
+* fix: when img has no src, will not attempt to transform it to a picture element
+
+= 3.6.12 =
+* chore: updated tiny package to 1.6.4
+* fix: resolved warning when img tag was missing src attribute
+
+= 3.6.9 =
+* fix: prevent picture element on product pages (WooCommerce)
+
+= 3.6.8 =
+* feat: download logs and diagnostics
+* chore: updated phpcs rules and formatting
+
 = 3.6.7 =
 * Added support for WordPress 6.9
 

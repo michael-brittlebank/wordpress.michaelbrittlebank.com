@@ -26,7 +26,7 @@ class Tiny_Image_Size {
 	private $_exists;
 	private $_file_size;
 	private $_mime_type;
-	private $_duplicate = false;
+	private $_duplicate         = false;
 	private $_duplicate_of_size = '';
 
 	public function __construct( $filename = null ) {
@@ -51,7 +51,7 @@ class Tiny_Image_Size {
 
 	public function add_tiny_meta( $response ) {
 		if ( isset( $this->meta['start'] ) ) {
-			$this->meta = $response;
+			$this->meta        = $response;
 			$this->meta['end'] = time();
 		}
 	}
@@ -59,8 +59,8 @@ class Tiny_Image_Size {
 	public function add_tiny_meta_error( $exception ) {
 		if ( isset( $this->meta['start'] ) ) {
 			$this->meta = array(
-				'error'   => $exception->get_type(),
-				'message' => $exception->get_message(),
+				'error'     => $exception->get_type(),
+				'message'   => $exception->get_message(),
 				'timestamp' => time(),
 			);
 		}
@@ -104,7 +104,6 @@ class Tiny_Image_Size {
 				'path' => $this->filename,
 			);
 		}
-
 	}
 
 	public function has_been_compressed() {
@@ -133,7 +132,7 @@ class Tiny_Image_Size {
 	public function mimetype() {
 		if ( is_null( $this->_mime_type ) ) {
 			if ( $this->exists() ) {
-				$file = file_get_contents( $this->filename );
+				$file             = file_get_contents( $this->filename );
 				$this->_mime_type = Tiny_Helpers::get_mimetype( $file );
 			} else {
 				$this->_mime_type = 'application/octet-stream';
@@ -229,7 +228,7 @@ class Tiny_Image_Size {
 	}
 
 	public function mark_duplicate( $duplicate_size_name ) {
-		$this->_duplicate = true;
+		$this->_duplicate         = true;
 		$this->_duplicate_of_size = $duplicate_size_name;
 	}
 
@@ -241,14 +240,32 @@ class Tiny_Image_Size {
 		return $this->_duplicate_of_size;
 	}
 
+	/**
+	 * Deletes the converted image file for this image size.
+	 *
+	 * @return void
+	 */
 	public function delete_converted_image_size() {
-		if ( $this->converted_image_exists() ) {
-			unlink( $this->meta['convert']['path'] );
+		if ( ! $this->converted_image_exists() ) {
+			return;
+		}
+		$upload_dir        = wp_upload_dir();
+		$convert_real_path = realpath( $this->meta['convert']['path'] );
+		$real_basedir      = realpath( $upload_dir['basedir'] );
+
+		if (
+			$convert_real_path &&
+			Tiny_Helpers::str_starts_with(
+				$convert_real_path,
+				trailingslashit( $real_basedir )
+			)
+		) {
+			unlink( $convert_real_path );
 		}
 	}
 
 	private function recently_started() {
-		$thirty_minutes_ago = date( 'U' ) - ( 60 * 30 );
+		$thirty_minutes_ago = gmdate( 'U' ) - ( 60 * 30 );
 		return (
 			isset( $this->meta['start'] ) &&
 			$this->meta['start'] > $thirty_minutes_ago
